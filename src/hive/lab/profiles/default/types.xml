@@ -9,5 +9,6 @@
 <object name="portal_types" meta_type="Plone Types Tool">
   <!-- -*- extra stuff goes here -*- -->
   <object name="hive.lab.cliniclab" meta_type="Dexterity FTI" />
+  <object name="hive.lab.researchlab" meta_type="Dexterity FTI" />
 
 </object>
