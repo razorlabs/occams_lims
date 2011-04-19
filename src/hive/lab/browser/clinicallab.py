@@ -19,8 +19,21 @@ from hive.lab import MessageFactory as _
 # from avrc.aeh.browser.specimenlabform import SpecimenAliquotor
 # from avrc.aeh.content.institute import IInstitute
 
+from hive.lab.browser.utils import NestedFormView
+
 from hive.lab.interfaces import IClinicalLab
 
+from hive.lab.interfaces import ISpecimen
+
+
+from z3c.form import field
+from z3c.form import button
+from z3c.form.interfaces import DISPLAY_MODE
+from avrc.data.store.interfaces import IDatastore
+from zope.component import  getSiteManager
+
+from plone.dexterity import content
+from plone.z3cform.crud import crud
 
 class View(dexterity.DisplayForm):
     grok.context(IClinicalLab)
@@ -44,41 +57,10 @@ class View(dexterity.DisplayForm):
         
         
 
-
-
-
-
-
-
-
-#----------------------------
-from cStringIO import StringIO
-from datetime import date
-
-from zope.component import  getSiteManager
-
-from z3c.form import field
-from z3c.form import button
-from z3c.form.interfaces import DISPLAY_MODE
-
-from plone.dexterity import content
-from plone.z3cform.crud import crud
-
-from avrc.aeh import MessageFactory as _
-from avrc.aeh.browser.widget import TimeFieldWidget
-from avrc.aeh.browser.widget import StorageFieldWidget
-from avrc.aeh.specimen import labels
-from avrc.aeh.specimen.specimen import ISpecimen
-
-from avrc.data.store.interfaces import IDatastore
-from avrc.data.store.interfaces import ISpecimen as IDSSpecimen
-
-
-
-
-
 class SpecimenRequestor(crud.CrudForm):
-
+    """
+    The crud form to apply new specimen
+    """
     ignoreContext=True
     newmanager = field.Fields(ISpecimen, mode=DISPLAY_MODE).\
     select('patient_title', 'patient_initials', 'study_title',
@@ -87,18 +69,18 @@ class SpecimenRequestor(crud.CrudForm):
     select('tubes','date_collected', 'time_collected',  'notes')
     update_schema = newmanager
     addform_factory = crud.NullForm #wrappableAddForm
-    editform_factory = SpecimenButtonManager
+#    editform_factory = SpecimenButtonManager
 
     batch_size = 30
 
     @property
     def action(self):
-        return self.context.absolute_url() + '@@/clinicallab'
+        return self.context.absolute_url()
 
     def updateWidgets(self):
         super(SpecimenRequestor, self).updateWidgets()
-        self.update_schema['time_collected'].widgetFactory = TimeFieldWidget
-        self.update_schema['tubes'].widgetFactory = StorageFieldWidget
+#         self.update_schema['time_collected'].widgetFactory = TimeFieldWidget
+#         self.update_schema['tubes'].widgetFactory = StorageFieldWidget
 
     def get_items(self):
         sm = getSiteManager(self)
@@ -111,6 +93,74 @@ class SpecimenRequestor(crud.CrudForm):
         return specimenlist
 
 
+
+
+
+
+# 
+# 
+# 
+# 
+# #----------------------------
+# from cStringIO import StringIO
+# from datetime import date
+# 
+# from zope.component import  getSiteManager
+# 
+# from z3c.form import field
+# from z3c.form import button
+# from z3c.form.interfaces import DISPLAY_MODE
+# 
+# from plone.dexterity import content
+# from plone.z3cform.crud import crud
+# 
+# from avrc.aeh import MessageFactory as _
+# from avrc.aeh.browser.widget import TimeFieldWidget
+# from avrc.aeh.browser.widget import StorageFieldWidget
+# from avrc.aeh.specimen import labels
+# from avrc.aeh.specimen.specimen import ISpecimen
+# 
+# from avrc.data.store.interfaces import IDatastore
+# from avrc.data.store.interfaces import ISpecimen as IDSSpecimen
+# 
+# 
+# 
+# 
+# 
+# class SpecimenRequestor(crud.CrudForm):
+# 
+#     ignoreContext=True
+#     newmanager = field.Fields(ISpecimen, mode=DISPLAY_MODE).\
+#     select('patient_title', 'patient_initials', 'study_title',
+#            'protocol_title','specimen_type', 'tube_type')
+#     newmanager += field.Fields(ISpecimen).\
+#     select('tubes','date_collected', 'time_collected',  'notes')
+#     update_schema = newmanager
+#     addform_factory = crud.NullForm #wrappableAddForm
+#     editform_factory = SpecimenButtonManager
+# 
+#     batch_size = 30
+# 
+#     @property
+#     def action(self):
+#         return self.context.absolute_url() + '@@/clinicallab'
+# 
+#     def updateWidgets(self):
+#         super(SpecimenRequestor, self).updateWidgets()
+#         self.update_schema['time_collected'].widgetFactory = TimeFieldWidget
+#         self.update_schema['tubes'].widgetFactory = StorageFieldWidget
+# 
+#     def get_items(self):
+#         sm = getSiteManager(self)
+#         ds = sm.queryUtility(IDatastore, 'fia')
+#         specimenlist=[]
+#         specimen_manager = ds.specimen
+#         for specimenobj in specimen_manager.list_by_state(u'pending-draw', before_date=date.today()):
+#             newSpecimen = ISpecimen(specimenobj)
+#             specimenlist.append((specimenobj.dsid, newSpecimen))
+#         return specimenlist
+# 
+# 
 
 # ------------------------------------------------------------------------------
 # Clinical View
