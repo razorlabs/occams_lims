@@ -1,0 +1,22 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      i18n:domain="plone.z3cform"
+      tal:omit-tag="">
+
+  <div class="listingBar">
+    <div tal:repeat="page options/pages" tal:omit-tag="">
+      <a tal:content="page/label"
+         tal:attributes="href page/link"
+         i18n:translate=""
+         tal:omit-tag="python:page['link'] is None">
+        Previous
+      </a>
+    </div>
+  </div>
+  
+  
+  
+  
+</html>

@@ -3,6 +3,7 @@ from Products.CMFCore.utils import getToolByName
 from plone.directives import dexterity
 
 from zope.security import checkPermission
+from datetime import date
 
 from five import grok
 
@@ -22,8 +23,8 @@ from hive.lab import MessageFactory as _
 from hive.lab.browser.utils import NestedFormView
 
 from hive.lab.interfaces import IClinicalLab
-
-from hive.lab.interfaces import ISpecimen
+from avrc.data.store.interfaces import ISpecimen
+from hive.lab.interfaces import IViewableSpecimen
 
 
 from z3c.form import field
@@ -53,17 +54,15 @@ class View(dexterity.DisplayForm):
         view = view.__of__(context)
         view.form_instance=form
         return view
-        
-        
 
 class SpecimenRequestor(crud.CrudForm):
     """
     The crud form to apply new specimen
     """
     ignoreContext=True
-    newmanager = field.Fields(ISpecimen, mode=DISPLAY_MODE).\
+    newmanager = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
     select('patient_title', 'patient_initials', 'study_title',
-           'protocol_title','specimen_type', 'tube_type')
+           'protocol_title', 'specimen_type', 'tube_type')
     newmanager += field.Fields(ISpecimen).\
     select('tubes','date_collected', 'time_collected',  'notes')
     update_schema = newmanager
@@ -85,10 +84,9 @@ class SpecimenRequestor(crud.CrudForm):
         sm = getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
         specimenlist=[]
-        specimen_manager = ds.specimen
+        specimen_manager = ds.getSpecimenManager()
         for specimenobj in specimen_manager.list_by_state(u'pending-draw', before_date=date.today()):
-            newSpecimen = ISpecimen(specimenobj)
-            specimenlist.append((specimenobj.dsid, newSpecimen))
+            specimenlist.append((specimenobj.dsid, specimenobj))
         return specimenlist
 
 
