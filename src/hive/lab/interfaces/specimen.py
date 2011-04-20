@@ -43,12 +43,12 @@ class IViewableSpecimen(form.Schema):
         readonly=True
         )
         
-    specimen_type = zope.schema.Choice(
+    pretty_specimen_type = zope.schema.Choice(
         title=_(u"Specimen Type"),
         source=utils.SpecimenAliquotVocabulary(u"specimen_type")
         )
         
-    tube_type = zope.schema.Choice(
+    pretty_tube_type = zope.schema.Choice(
         title=_(u"Tube Type"),
         source=utils.SpecimenAliquotVocabulary(u"specimen_tube_type"),
         )
@@ -78,227 +78,20 @@ class ViewableSpecimen(grok.Adapter):
     def protocol_title(self):
         return utils.get_protocol_title(self.context.protocol_zid)
     
-
-# 
-# @grok.adapter(IPatient)
-# @grok.implementer(ISubject)
-# def PatientToSubject(context):
-#     """ Translates a patient to a datastore subject
-#     """
-#     intids = getUtility(IIntIds)
-# 
-#     subject = Subject(
-#         zid=intids.getId(context),
-#         uid=unformat(context.getId()),
-#         our=unicode(context.getId()),
-#         aeh=context.aeh_number,
-#         )
-# 
-#     if context.nurse:
-#         subject.nurse_email = unicode(context.nurse)
-# 
-#     return subject
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# 
-# class ISpecimen(form.Schema):
-#     """
-#     Base class for all specimens that will be collected.
-#     """
-#     formtitle = interface.Attribute(_(u""))
-#     formdesc = interface.Attribute(_(u""))
-# 
-#     #
-#     # Attribute Fields
-#     #
-#     form.omitted("dsid")
-#     dsid = zope.schema.Int(
-#         title=u"DataStore ID",
-#         required=False
-#         )
-# 
-#     form.omitted("protocol_zid")
-#     protocol_zid = zope.schema.Int(
-#         title=u"Plone Protocol ZID",
-#         required=False
-#         )
-# 
-#     patient_title = zope.schema.TextLine(
-#         title=u"Patient OUR#",
-#         readonly=True
-#         )
-# 
-#     patient_initials = zope.schema.TextLine(
-#         title=u"Initials",
-#         readonly=True
-#         )
-# 
-#     study_title = zope.schema.TextLine(
-#         title=u"Study",
-#         readonly=True
-#         )
-# 
-#     patient_legacy_number = zope.schema.TextLine(
-#         title=u"Patient Legacy (AEH) Number",
-#         readonly=True
-#         )
-# 
-#     protocol_title = zope.schema.TextLine(
-#         title=u"Protocol Week",
-#         readonly=True
-#         )
-# 
-#     form.omitted("subject_zid")
-#     subject_zid = zope.schema.Int(
-#         title=u"Plone Subject ZID",
-#         required=False
-#         )
-# 
-#     form.mode(state='hidden')
-#     state = zope.schema.Choice(
-#         title=_(u"State"),
-#         source=SpecimenAliquotVocabulary(u"specimen_state"),
-# #        default=u"pending-draw"
-#         )
-# 
-#     date_collected = zope.schema.Date(
-#         title=_(u"Date Collected"),
-#         required=True,
-#         )
-# 
-#     time_collected = zope.schema.Time(
-#         title=_(u"Time Collected"),
-#         required=False,
-#         )
-# 
-#     form.mode(specimen_type='hidden')
-#     specimen_type = zope.schema.Choice(
-#         title=_(u"Specimen Type"),
-#         source=SpecimenAliquotVocabulary(u"specimen_type")
-#         )
-# 
-#     form.mode(destination='hidden')
-#     destination = zope.schema.Choice(
-#         title=_(u"Destination"),
-#         source=SpecimenAliquotVocabulary(u"specimen_destination"),
-# #        default=u"Richman Lab",
-#         )
-# 
-#     tubes = zope.schema.Int(
-#         title=_(u"How many tubes?"),
-#         required=False,
-#         )
-# 
-#     form.mode(tube_type='hidden')
-#     tube_type = zope.schema.Choice(
-#         title=_(u"Tube Type"),
-#         source=SpecimenAliquotVocabulary(u"specimen_tube_type"),
-#         )
-# 
-#     notes = zope.schema.Text(
-#         title=_(u"Notes"),
-#         required=False,
-#         )
-# 
-#     def create_aliquot():
-#         """
-#         Breaks up the current specimen into aliquot objects.
-# 
-#         Returns:
-#             objects that implement IAliquot
-#         """
-# 
-# @form.default_value(field=ISpecimen['date_collected'])
-# def setDateCollected(data):
-#     return date.today()
-#     
-#     
+    @property
+    def pretty_specimen_type(self):
+        return self.context.specimen_type
     
-# 
-# # class DSSpecimenToSpecimen(Specimen, grok.Adapter):
-# #     """
-# #     Translates a patient to a datastore subject
-# #     """
-# #     grok.context(interface.Interface)
-# #     grok.provides(ISpecimen)
-# # 
-# #     def __init__(self, context):
-# #         self.context = context
-# #         ## This context doesn't exist in plone, so fake things if necessary
-# #         self.dsid = context.dsid
-# #         self.subject_zid = context.subject_zid
-# #         self.protocol_zid = context.protocol_zid
-# #         self.state = context.state
-# #         self.date_collected = context.date_collected
-# #         self.time_collected = context.time_collected
-# #         self.specimen_type = context.specimen_type
-# #         self.destination = context.destination
-# #         self.tubes = context.tubes
-# #         self.tube_type = context.tube_type
-# #         self.notes = context.notes
-# # 
-
-# @grok.adapter(IDSSpecimen)
-# @grok.implementer(ISpecimen)
-# def PatientToSubject(context):
-#     """ Translates a specimen to a datastore specimen
-#     """
-#     intids = getUtility(IIntIds)
-# 
-#     specimen = Specimen(
-#         
-#         )
-
-# #         ## This context doesn't exist in plone, so fake things if necessary
-# #         self.dsid = context.dsid
-# #         self.subject_zid = context.subject_zid
-# #         self.protocol_zid = context.protocol_zid
-# #         self.state = context.state
-# #         self.date_collected = context.date_collected
-# #         self.time_collected = context.time_collected
-# #         self.specimen_type = context.specimen_type
-# #         self.destination = context.destination
-# #         self.tubes = context.tubes
-# #         self.tube_type = context.tube_type
-# #         self.notes = context.notes
-# # 
-
-
-#
-# 
-# # -----------------------------------------------------------------------------
+    @property
+    def pretty_tube_type(self):
+        return self.context.tube_type
+ 
+ 
+ 
+ 
+# #----------------------------------------------------------------------------
 # # PBMC and Plasma
-# # -----------------------------------------------------------------------------
+# #----------------------------------------------------------------------------
 # class ACD(ISpecimen):
 # 
 #     formtitle = interface.Attribute(_(u"PBMC & Plasma"))

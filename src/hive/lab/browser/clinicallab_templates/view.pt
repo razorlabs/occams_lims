@@ -29,12 +29,6 @@
           <br /> Time may be entered in military format. You will see confirmation
             of success below this text.
         </p>
-        <p>
-          <strong>
-            <em>Drawing specimen off protocol is currently unsupported, and will
-              be available in a future release.</em>
-          </strong>
-        </p>
         <div
           tal:content="structure view/specimen_requestor" />
         <br

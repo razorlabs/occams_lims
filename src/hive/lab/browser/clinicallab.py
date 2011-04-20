@@ -9,6 +9,7 @@ from five import grok
 
 from hive.lab import MessageFactory as _
 
+from hive.lab.browser import widget
 
 # from avrc.aeh.browser.aliquotform import AliquotRequestor
 # from avrc.aeh.browser.aliquotform import AliquotByOUR
@@ -62,11 +63,11 @@ class SpecimenRequestor(crud.CrudForm):
     ignoreContext=True
     newmanager = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
     select('patient_title', 'patient_initials', 'study_title',
-           'protocol_title', 'specimen_type', 'tube_type')
+           'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
     newmanager += field.Fields(ISpecimen).\
     select('tubes','date_collected', 'time_collected',  'notes')
     update_schema = newmanager
-    addform_factory = crud.NullForm #wrappableAddForm
+    addform_factory = crud.NullForm
 #__in    editform_factory = SpecimenButtonManager
 
     batch_size = 30
@@ -77,8 +78,10 @@ class SpecimenRequestor(crud.CrudForm):
 
     def updateWidgets(self):
         super(SpecimenRequestor, self).updateWidgets()
-#         self.update_schema['time_collected'].widgetFactory = TimeFieldWidget
-#         self.update_schema['tubes'].widgetFactory = StorageFieldWidget
+        self.update_schema['time_collected'].widgetFactory = widget.TimeFieldWidget
+        self.update_schema['tubes'].widgetFactory = widget.StorageFieldWidget
+        self.update_schema['time_collected'].label = _(u"Time Collected")
+        self.update_schema['date_collected'].label = _(u"Date Collected")
 
     def get_items(self):
         sm = getSiteManager(self)
@@ -92,6 +95,15 @@ class SpecimenRequestor(crud.CrudForm):
 
 
 
+
+#### Goes in the button manager
+
+#     def render_batch_navigation(self):
+#         navigation = BatchNavigation(self.batch, self.request)
+#         def make_link(page):
+#             return "%s?%spage=%s" % (self.request.getURL(), self.prefix, page)
+#         navigation.make_link = make_link
+#         return navigation()
 
 
 # 
