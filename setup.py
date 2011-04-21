@@ -26,6 +26,7 @@ setup(name='hive.lab',
       zip_safe=False,
       install_requires=[
         'setuptools',
+        'beast.browser',                    # Tools for browser displays
         'collective.autopermission',        # Schema permissions
         'plone.app.dexterity',              # Plone 4 FTI libraries
         'plone.app.intid',

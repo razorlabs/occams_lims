@@ -1,5 +1,0 @@
-
-<metal:block>
-    <h1 class="documentFirstHeading" tal:content="view/label | nothing" />
-    <metal:block use-macro="context/@@ploneform-macros/titlelessform" />
-</metal:block>
