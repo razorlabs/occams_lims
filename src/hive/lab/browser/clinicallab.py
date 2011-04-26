@@ -11,16 +11,6 @@ from hive.lab import MessageFactory as _
 
 from beast.browser import widgets
 
-# from avrc.aeh.browser.aliquotform import AliquotRequestor
-# from avrc.aeh.browser.aliquotform import AliquotByOUR
-# from avrc.aeh.browser.clinicallabform import SpecimenRequestor
-# from avrc.aeh.browser.form import NestedFormView
-# from avrc.aeh.browser.labelprintform import AliquotLabelPrinter
-# from avrc.aeh.browser.labelprintform import AliquotLabelRePrinter
-# from avrc.aeh.browser.specimenaliquotform import SpecimenToAliquotor
-# from avrc.aeh.browser.specimenlabform import SpecimenAliquotor
-# from avrc.aeh.content.institute import IInstitute
-
 from beast.browser.crud import NestedFormView, BatchNavigation
 
 from hive.lab.interfaces import IClinicalLab
@@ -36,7 +26,21 @@ from zope.component import  getSiteManager
 
 from plone.z3cform.crud import crud
 
+# ------------------------------------------------------------------------------
+# Constants
+# ------------------------------------------------------------------------------
+SUCCESS_MESSAGE = _(u"Successfully updated")
+PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
+NO_CHANGES = _(u"No changes made.")
+
+# ------------------------------------------------------------------------------
+# Views
+# ------------------------------------------------------------------------------
+
 class View(dexterity.DisplayForm):
+    """
+    Primary view for a clinical lab object.
+    """
     grok.context(IClinicalLab)
     grok.require('zope2.View')
 
@@ -50,34 +54,49 @@ class View(dexterity.DisplayForm):
         @return: z3c.form wrapped for Plone 3 view
         """
         context = self.context.aq_inner
-        form = SpecimenRequestor(context, self.request)
+        form = NewSpecimen(context, self.request)
         view = NestedFormView(context,self.request)
         view = view.__of__(context)
         view.form_instance=form
         return view
 
+# ------------------------------------------------------------------------------
+# Base Form
+# ------------------------------------------------------------------------------
+
 class SpecimenRequestor(crud.CrudForm):
     """
-    The crud form to apply new specimen
+    Base Crud form for editing specimen. Some specimen will need to be 
     """
     ignoreContext=True
-    newmanager = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
-    select('patient_title', 'patient_initials', 'study_title',
-           'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
-    newmanager += field.Fields(ISpecimen).\
-    select('tubes','date_collected', 'time_collected',  'notes')
-    update_schema = newmanager
     addform_factory = crud.NullForm
     
     batch_size = 30
-    
-    @property
-    def editform_factory(self):
-        return SpecimenButtonManager
 
     @property
+    def schemata(self):
+
+        display1 = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
+            select('patient_title', 'patient_initials', 'study_title',
+           'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+           
+        display2 = field.Fields(ISpecimen).\
+            select('tubes','date_collected', 'time_collected',  'notes')
+        return display1 + display2
+
+    update_schema =  schemata
+ 
+    @property
+    def editform_factory(self):
+        raise NotImplementedError
+
+    @property
+    def display_state(self):
+        raise NotImplementedError
+        
+    @property
     def action(self):
-        return self.context.absolute_url()
+        raise NotImplementedError
 
     def updateWidgets(self):
         super(SpecimenRequestor, self).updateWidgets()
@@ -89,10 +108,25 @@ class SpecimenRequestor(crud.CrudForm):
         ds = sm.queryUtility(IDatastore, 'fia')
         specimenlist=[]
         specimen_manager = ds.getSpecimenManager()
-        for specimenobj in specimen_manager.list_by_state(u'pending-draw', before_date=date.today()):
+        for specimenobj in specimen_manager.list_by_state(self.display_state, before_date=date.today()):
             specimenlist.append((specimenobj.dsid, specimenobj))
         return specimenlist
 
+# ------------------------------------------------------------------------------
+# Specific forms
+# ------------------------------------------------------------------------------
+class NewSpecimen(SpecimenRequestor):
+    @property
+    def editform_factory(self):
+        return SpecimenButtonManager
+
+    @property
+    def display_state(self):
+        return u"pending-draw"
+        
+    @property
+    def action(self):
+        return self.context.absolute_url()
 
 # ------------------------------------------------------------------------------
 # Clinical View
@@ -100,7 +134,11 @@ class SpecimenRequestor(crud.CrudForm):
 # 
 class SpecimenButtonManager(crud.EditForm):
     label=_(u"")
+    
     def render_batch_navigation(self):
+        """
+        Render the batch navigation to include the default styles for Plone
+        """
         navigation = BatchNavigation(self.batch, self.request)
         def make_link(page):
             return "%s?%spage=%s" % (self.request.getURL(), self.prefix, page)
@@ -135,48 +173,6 @@ class SpecimenButtonManager(crud.EditForm):
             if updated:
                 newspecimen = specimen_manager.put(specimenobj)
         self.status = status
-
-    @button.buttonAndHandler(_('Print Selected'), name='print',)
-    def handlePrint(self, action):
-        success = _(u"Successfully updated")
-        no_changes = _(u"No changes made.")
-        self.handleUpdate(self, action)
-        if self.status != success and self.status != no_changes:
-            self.status = 'Cannot print because: %s' % self.status
-            return
-        selected = self.selected_items()
-        if selected:
-            self.status = _(u"Printable PDF on its way.")
-            stream = StringIO()
-            labelWriter = labels.labelGenerator(labels.AVERY_5160, stream)
-
-            for id, item in selected:
-                count = item.tubes
-
-                if count is None or count < 1:
-                    count = 1
-
-                for i in range(count):
-                    labelWriter.drawASpecimenLabel(
-                        date=item.date_collected.strftime("%m/%d/%Y"),
-                        PID=item.patient_title,
-                        week=item.protocol_title,
-                        study=item.study_title,
-                        type=item.specimen_type
-                        )
-
-            labelWriter.writeLabels()
-            content = stream.getvalue()
-            stream.close()
-
-            self.request.RESPONSE.setHeader("Content-type","application/pdf")
-            self.request.RESPONSE.setHeader("Content-disposition",
-                                            "attachment;filename=labels.pdf")
-            self.request.RESPONSE.setHeader("Cache-Control","no-cache")
-            self.request.RESPONSE.write(content)
-
-        else:
-            self.status = _(u"Please select items to Print.")
 
 
     @button.buttonAndHandler(_('Complete selected'), name='complete')
@@ -228,3 +224,44 @@ class SpecimenButtonManager(crud.EditForm):
         return
 
 
+    @button.buttonAndHandler(_('Print Selected'), name='print',)
+    def handlePrint(self, action):
+        success = _(u"Successfully updated")
+        no_changes = _(u"No changes made.")
+        self.handleUpdate(self, action)
+        if self.status != success and self.status != no_changes:
+            self.status = 'Cannot print because: %s' % self.status
+            return
+        selected = self.selected_items()
+        if selected:
+            self.status = _(u"Printable PDF on its way.")
+            stream = StringIO()
+            labelWriter = labels.labelGenerator(labels.AVERY_5160, stream)
+
+            for id, item in selected:
+                count = item.tubes
+
+                if count is None or count < 1:
+                    count = 1
+
+                for i in range(count):
+                    labelWriter.drawASpecimenLabel(
+                        date=item.date_collected.strftime("%m/%d/%Y"),
+                        PID=item.patient_title,
+                        week=item.protocol_title,
+                        study=item.study_title,
+                        type=item.specimen_type
+                        )
+
+            labelWriter.writeLabels()
+            content = stream.getvalue()
+            stream.close()
+
+            self.request.RESPONSE.setHeader("Content-type","application/pdf")
+            self.request.RESPONSE.setHeader("Content-disposition",
+                                            "attachment;filename=labels.pdf")
+            self.request.RESPONSE.setHeader("Cache-Control","no-cache")
+            self.request.RESPONSE.write(content)
+
+        else:
+            self.status = _(u"Please select items to Print.")
