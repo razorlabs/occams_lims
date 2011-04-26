@@ -28,16 +28,10 @@ setup(name='hive.lab',
         'setuptools',
         'beast.browser',                    # Tools for browser displays
         'collective.autopermission',        # Schema permissions
-        'plone.app.dexterity',              # Plone 4 FTI libraries
-        'plone.app.intid',
-        'plone.app.portlets',
-        'plone.namedfile[blobs]',
-        'plone.principalsource',
-        'z3c.schema',
-        'z3c.saconfig',                     # Database connectivity
-        'reportlab',                        # PDF label generator
+        'plone.dexterity',                  # Dexterity FTI
         'avrc.data.store',                  # EAV Back-end
         'avrc.data.registry',               # OUR number generator
+        'reportlab',                        # PDF label generator
         'xlutils',                          # Excel Export          # -*- Extra requirements: -*-
       ],
       entry_points="""
