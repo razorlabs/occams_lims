@@ -34,15 +34,13 @@
   </property>
 
   <!-- Method aliases -->
-  <alias from="(Default)" to="(selected layout)" />
+  <alias from="(Default)" to="view" />
   <alias from="edit" to="@@edit" />
   <alias from="sharing" to="@@sharing" />
   <alias from="view" to="@@view" />
-  <!-- 
-   <alias from="reports" to="@@reports" />
-  <alias from="studentview" to="@@studentview" />
-  <alias from="nurseview" to="@@nurseview" />
--->
+  <alias from="batched" to="@@batched" />
+  <alias from="postponed" to="@@postponed" />
+  <alias from="completed" to="@@completed" />
 
 
   <!-- Actions -->
@@ -56,37 +54,18 @@
     <permission value="View" />
   </action>
 
-  <action title="Clinic View" action_id="clinicallab" category="object" condition_expr=""
-    url_expr="string:${object_url}/@@clinicallab" visible="True">
-    <permission value="View" />
-  </action>
-  
-   <action title="Experimental Lab" action_id="specimenlab" category="object" condition_expr=""
-    url_expr="string:${object_url}/@@specimenlab" visible="True">
-    <permission value="View" />
-  </action>
-  
-   <action title="Aliquot View" action_id="aliquotlab" category="object" condition_expr=""
-    url_expr="string:${object_url}/@@aliquotlab" visible="True">
+  <action title="Batched" action_id="batched" category="object" condition_expr=""
+    url_expr="string:${object_url}/@@batched" visible="True">
     <permission value="View" />
   </action>
 
-  <!-- 
-  <action title="Reports" action_id="reports" category="object" condition_expr=""
-    url_expr="string:${object_url}/reports" visible="True">
+  <action title="Postponed" action_id="postponed" category="object" condition_expr=""
+    url_expr="string:${object_url}/@@postponed" visible="True">
     <permission value="View" />
   </action>
-  <action title="For Nurses" action_id="nurseview" category="object" condition_expr=""
-    url_expr="string:${object_url}/nurseview" visible="True">
+
+  <action title="Completed Today" action_id="completed" category="object" condition_expr=""
+    url_expr="string:${object_url}/@@completed" visible="True">
     <permission value="View" />
   </action>
-  <action title="For Students" action_id="studentview" category="object" condition_expr=""
-    url_expr="string:${object_url}/studentview" visible="True">
-    <permission value="View" />
-  </action>
-  <action title="For Lab" action_id="labview" category="object" condition_expr=""
-    url_expr="string:${object_url}/labview" visible="True">
-    <permission value="View" />
-  </action>
-  -->
 </object>
