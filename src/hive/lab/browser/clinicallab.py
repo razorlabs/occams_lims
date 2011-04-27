@@ -16,6 +16,7 @@ from beast.browser.crud import NestedFormView, BatchNavigation
 from hive.lab.interfaces import IClinicalLab
 from avrc.data.store.interfaces import ISpecimen
 from hive.lab.interfaces import IViewableSpecimen
+from hive.lab.interfaces import ISpecimenLabel
 
 
 from z3c.form import field
@@ -55,7 +56,7 @@ class View(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = NewSpecimen(context, self.request)
-        view = NestedFormView(context,self.request)
+        view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance=form
         return view
@@ -115,7 +116,7 @@ class Completed(dexterity.DisplayForm):
     grok.require('zope2.View')
 
     def __init__(self, context, request):
-        super(Postponed, self).__init__(context, request)
+        super(Completed, self).__init__(context, request)
         self.specimen_requestor = self.getFormRequestor()
 
     def getFormRequestor(self):
@@ -224,6 +225,19 @@ class PostponedSpecimen(SpecimenRequestor):
         return self.context.absolute_url()
 
 class CompletedSpecimen(SpecimenRequestor):
+
+    display0 = field.Fields(ISpecimen, mode=DISPLAY_MODE).\
+        select('state')
+
+    display1 = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
+        select('patient_title', 'patient_initials', 'study_title',
+       'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+       
+    display2 = field.Fields(ISpecimen, mode=DISPLAY_MODE).\
+        select('tubes','date_collected', 'time_collected',  'notes')
+
+    update_schema =  display0 + display1 + display2
+    
     @property
     def editform_factory(self):
         return CompletedSpecimenManager
@@ -241,8 +255,9 @@ class CompletedSpecimen(SpecimenRequestor):
         ds = sm.queryUtility(IDatastore, 'fia')
         specimenlist=[]
         specimen_manager = ds.getSpecimenManager()
-        for specimenobj in specimen_manager.list_by_state(self.display_state, before_date=date.today(), after_date=date.today()):
-            specimenlist.append((specimenobj.dsid, specimenobj))
+        for state in [u'complete', u'rejected']:
+            for specimenobj in specimen_manager.list_by_state(state, before_date=date.today(), after_date=date.today()):
+                specimenlist.append((specimenobj.dsid, specimenobj))
         return specimenlist
   
 # ------------------------------------------------------------------------------
@@ -265,7 +280,6 @@ class SpecimenButtonCore(crud.EditForm):
     def changeState(self, action, state, acttitle):
         success = SUCCESS_MESSAGE
         no_changes = NO_CHANGES
-        self.handleUpdate(self, action)
         if self.status != success and self.status != no_changes:
             self.status = 'Cannot %s draw because: %s' % (acttitle, self.status)
             return
@@ -281,11 +295,8 @@ class SpecimenButtonCore(crud.EditForm):
             self.status = _(u"Your specimen have been %sd." % (acttitle))
         else:
             self.status = _(u"Please select specimen to %s."% (acttitle))
-        self._update_subforms()
 
-     
-    @button.buttonAndHandler(_('Save All Changes'), name='update')
-    def handleUpdate(self, action):
+    def saveChanges(self, action):
         success = SUCCESS_MESSAGE
         partly_success = _(u"Some of your changes could not be applied.")
         status = no_changes = NO_CHANGES
@@ -313,96 +324,126 @@ class SpecimenButtonCore(crud.EditForm):
                 newspecimen = specimen_manager.put(specimenobj)
         self.status = status
 
-    @button.buttonAndHandler(_('Print Selected'), name='print',)
-    def handlePrint(self, action):
+            
+    def queLabels(self, action):
         success = SUCCESS_MESSAGE
         no_changes = NO_CHANGES
-        self.handleUpdate(self, action)
-        if self.status != success and self.status != no_changes:
-            self.status = 'Cannot print because: %s' % self.status
-            return
+
         selected = self.selected_items()
+        label_que = self.context.context.labels
         if selected:
-            self.status = _(u"Printable PDF on its way.")
-            stream = StringIO()
-            labelWriter = labels.labelGenerator(labels.AVERY_5160, stream)
-
-            for id, item in selected:
-                count = item.tubes
-
-                if count is None or count < 1:
-                    count = 1
-
-                for i in range(count):
-                    labelWriter.drawASpecimenLabel(
-                        date=item.date_collected.strftime("%m/%d/%Y"),
-                        PID=item.patient_title,
-                        week=item.protocol_title,
-                        study=item.study_title,
-                        type=item.specimen_type
-                        )
-
-            labelWriter.writeLabels()
-            content = stream.getvalue()
-            stream.close()
-
-            self.request.RESPONSE.setHeader("Content-type","application/pdf")
-            self.request.RESPONSE.setHeader("Content-disposition",
-                                            "attachment;filename=labels.pdf")
-            self.request.RESPONSE.setHeader("Cache-Control","no-cache")
-            self.request.RESPONSE.write(content)
-
-        else:
-            self.status = _(u"Please select items to Print.")
-
+            self.status = _(u"Specimen Being added to que.")      
+        for id, item in selected:
+            count = item.tubes
+            if count is None or count < 1:
+                count = 1
+            for i in range(count):
+                label_que.catalog_object(ISpecimenLabel(item), uid="%d-%d" %(id, i))
+        
 # ------------------------------------------------------------------------------
 # Buttons For Specific Forms
 # ------------------------------------------------------------------------------
 # 
 class NewSpecimenManager(SpecimenButtonCore):
     label=_(u"")
+        
+    @button.buttonAndHandler(_('Save All Changes'), name='update')
+    def handleUpdate(self, action):
+        self.saveChanges(action)
+        return
+        
+    @button.buttonAndHandler(_('Print Selected'), name='print',)
+    def handlePrint(self, action):
+        self.saveChanges(action)
+        self.queLabels(action)
+        return
+        
     @button.buttonAndHandler(_('Complete selected'), name='complete')
     def handleCompleteDraw(self, action):
+        self.saveChanges(action)
         self.changeState(action, 'complete','complete')
+        self.queLabels(action)
+        self._update_subforms()
         return
         
     @button.buttonAndHandler(_('Batch Selected'), name='batched')
     def handleBatchDraw(self, action):
+        self.saveChanges(action)
         self.changeState(action, 'batched','batch')
+        self.queLabels(action)
+        self._update_subforms()
         return
         
     @button.buttonAndHandler(_('Postpone Selected'), name='postponed')
     def handleCompleteDraw(self, action):
+        self.saveChanges(action)
         self.changeState(action, 'postponed','postpone')
+        self._update_subforms()
         return
 
     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='cancel')
     def handleCancelDraw(self, action):
+        self.saveChanges(action)
         self.changeState(action, 'rejected','reject')
+        self._update_subforms()
         return
         
 class BatchedSpecimenManager(SpecimenButtonCore):
     label=_(u"")
+    @button.buttonAndHandler(_('Save All Changes'), name='update')
+    def handleUpdate(self, action):
+        self.saveChanges(action)
+        return
+        
+    @button.buttonAndHandler(_('Print Selected'), name='print',)
+    def handlePrint(self, action):
+        self.saveChanges(action)
+        self.queLabels(action)
+        return
+        
     @button.buttonAndHandler(_('Complete selected'), name='complete')
     def handleCompleteDraw(self, action):
+        self.saveChanges(action)
         self.changeState(action, 'complete','complete')
+        self.queLabels(action)
+        self._update_subforms()
         return 
         
 class PostponedSpecimenManager(SpecimenButtonCore):
     label=_(u"")
+    @button.buttonAndHandler(_('Save All Changes'), name='update')
+    def handleUpdate(self, action):
+        self.saveChanges(action)
+        return
+        
+    @button.buttonAndHandler(_('Print Selected'), name='print',)
+    def handlePrint(self, action):
+        self.saveChanges(action)
+        self.queLabels(action)
+        self._update_subforms()
+        return
+        
     @button.buttonAndHandler(_('Complete selected'), name='complete')
     def handleCompleteDraw(self, action):
+        self.saveChanges(action)
         self.changeState(action, 'complete','complete')
+        self.queLabels(action)
+        self._update_subforms()
         return
         
     @button.buttonAndHandler(_('Batch Selected'), name='batched')
     def handleBatchDraw(self, action):
+        self.saveChanges(action)
         self.changeState(action, 'batched','batch')
+        self.queLabels(action)
+        self._update_subforms()
         return
         
     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='cancel')
     def handleCancelDraw(self, action):
+        self.saveChanges(action)
         self.changeState(action, 'rejected','reject')
+        self._update_subforms()
         return
         
 class CompletedSpecimenManager(SpecimenButtonCore):
@@ -410,4 +451,10 @@ class CompletedSpecimenManager(SpecimenButtonCore):
     @button.buttonAndHandler(_('Recover selected'), name='recover')
     def handleCompleteDraw(self, action):
         self.changeState(action, 'pending-draw','recover')
+        self._update_subforms()
+        return
+
+    @button.buttonAndHandler(_('Print Selected'), name='print',)
+    def handlePrint(self, action):
+        self.queLabels(action)
         return
