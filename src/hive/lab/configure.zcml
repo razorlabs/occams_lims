@@ -27,15 +27,15 @@
       <plone:behavior
         title="Available Specimen"
         description="Make Specimen Available for an object."
-        provides=".interfaces.lab.IAvailableSpecimen"
-        for="plone.dexterity.interfaces.IDexterityContent"
+        provides="hive.lab.interfaces.lab.IAvailableSpecimen"
+        for="avrc.aeh.content.study.IStudy"
         />
 
       <plone:behavior
         title="Required Specimen"
         description="Make Specimen Required for an object."
-        provides="hive.lab.interfaces.IRequiredSpecimen"
-        for="plone.dexterity.interfaces.IDexterityContent"
+        provides="hive.lab.interfaces.lab.IRequiredSpecimen"
+        for="avrc.aeh.content.cycle.ICycle"
         />
 
 </configure>

@@ -7,10 +7,4 @@
     <object name="hive.lab.specimenblueprint" meta_type="Dexterity FTI" />
     <object name="hive.lab.aliquotblueprint" meta_type="Dexterity FTI" />
 
-    <object name="avrc.aeh.institute" meta_type="Dexterity FTI">
-        <property name="allowed_content_types" purge="False">
-            <element value="hive.lab.cliniclab" />
-            <element value="hive.lab.researchlab" />
-        </property>
-    </object>
 </object>

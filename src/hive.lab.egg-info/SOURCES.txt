@@ -30,6 +30,7 @@ src/hive/lab/browser/clinicallab_templates/batched.pt
 src/hive/lab/browser/clinicallab_templates/completed.pt
 src/hive/lab/browser/clinicallab_templates/postponed.pt
 src/hive/lab/browser/clinicallab_templates/view.pt
+src/hive/lab/browser/researchlab_templates/view.pt
 src/hive/lab/interfaces/__init__.py
 src/hive/lab/interfaces/aliquot.py
 src/hive/lab/interfaces/lab.py
@@ -37,5 +38,8 @@ src/hive/lab/interfaces/labels.py
 src/hive/lab/interfaces/specimen.py
 src/hive/lab/profiles/default/metadata.xml
 src/hive/lab/profiles/default/types.xml
+src/hive/lab/profiles/default/types/avrc.aeh.institute.xml
+src/hive/lab/profiles/default/types/hive.lab.aliquotblueprint.xml
 src/hive/lab/profiles/default/types/hive.lab.cliniclab.xml
 src/hive/lab/profiles/default/types/hive.lab.researchlab.xml
+src/hive/lab/profiles/default/types/hive.lab.specimenblueprint.xml
