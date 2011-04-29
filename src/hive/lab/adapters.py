@@ -83,7 +83,7 @@ def handleResearchLabAdded(lab, event):
 # 
 #     session.flush()
 
-## Add handler for visit
+## Add handler for cycle
 
 # @grok.subscribe(IVisit, IObjectAddedEvent)
 # def handleVisitAdded(visit, event):
@@ -135,6 +135,76 @@ def handleResearchLabAdded(lab, event):
 #                         iface=iface,
 #                         protocol_zid=int(cycle_rel.to_id)
 #                         )
+
+
+##### Specimen handlers for Visits
+
+#     @property
+#     def requested_specimen(self):
+#         return self.requestedSpecimen()
+# 
+#     def requestedSpecimen(self):
+#         sm = getSiteManager(self)
+#         ds = sm.queryUtility(IDatastore, 'fia')
+#         specimenlist = []
+#         specimen_manager = ds.getSpecimenManager()
+#         intids = component.getUtility(IIntIds)
+#         patient = self.aq_parent
+#         patient_zid = intids.getId(patient)
+#         for cycle in self.cycles:
+#             cycle_zid = cycle.to_id
+#             kwargs = dict(protocol_zid=cycle_zid, subject_zid=patient_zid)
+#             for specimenobj in specimen_manager.list_specimen_by_group(**kwargs):
+#                 newSpecimen = ISpecimen(specimenobj)
+#                 specimenlist.append(newSpecimen)
+#         return specimenlist
+# 
+#     def addRequestedSpecimen(self, iface=None, protocol_zid=None):
+#         """ """
+#         intids = component.getUtility(IIntIds)
+#         patient = self.aq_parent
+#         patient_zid = intids.getId(patient)
+# 
+#         kwarg = {
+#             'date_collected': self.visit_date,
+#             'subject_zid': int(patient_zid),
+#             'protocol_zid': protocol_zid
+#             }
+# 
+#         newSpecimen = None
+# 
+#         if iface.isOrExtends(specimen.ACD):
+#             newSpecimen = specimen.ACDSpecimen(**kwarg)
+#         elif iface.isOrExtends(specimen.AnalSwab):
+#             newSpecimen = specimen.AnalSwabSpecimen(**kwarg)
+#         elif iface.isOrExtends(specimen.CSF):
+#             newSpecimen = specimen.CSFSpecimen(**kwarg)
+#         elif iface.isOrExtends(specimen.GenitalSecretions):
+#             newSpecimen = specimen.GSSpecimen(**kwarg)
+#         elif iface.isOrExtends(specimen.Serum):
+#             newSpecimen = specimen.SerumSpecimen(**kwarg)
+#         elif iface.isOrExtends(specimen.RSGut):
+#             newSpecimen = specimen.RSGutSpecimen(**kwarg)
+#         elif iface.isOrExtends(specimen.TIGut):
+#             newSpecimen = specimen.TIGutSpecimen(**kwarg)
+#         else:
+#             raise Exception('Cannot find an object for %s' % iface)
+# 
+#         foundSpecimen = False
+# 
+#         for spec in self.requestedSpecimen():
+#             if newSpecimen.specimen_type == spec.specimen_type \
+#                     and spec.protocol_zid == protocol_zid:
+#                 foundSpecimen = True
+# 
+#         if not foundSpecimen:
+#             sm = getSiteManager(self)
+#             ds = sm.queryUtility(IDatastore, 'fia')
+#             specimentmanager = ds.getSpecimenManager()
+#             specimentmanager.put(IDSSpecimen(newSpecimen))
+
+
+
 
 class ViewableSpecimen(grok.Adapter):
     grok.context(ISpecimen)
@@ -222,3 +292,4 @@ class LabeledSpecimen(grok.Adapter):
     @property
     def date_collected(self):
         return self.context.date_collected
+        

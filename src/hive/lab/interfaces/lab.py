@@ -143,11 +143,18 @@ class IRequestedSpecimen(form.Schema):
 
     def requested_specimen():
         """ """
-
+        pass
     def requestedSpecimen():
         """ """
-
+        pass
     def addRequestedSpecimen():
         """ """
+         pass       
+    def getSpecimenFormList():
+        """ get the list of specimens for this visit """
+        pass
+    def getOptionalSpecimenFormVocabulary():
+        """ get the list of remaining specimens that can be requested """
 
+        pass
 zope.interface.alsoProvides(IRequestedSpecimen, form.IFormFieldProvider)

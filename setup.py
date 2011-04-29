@@ -31,11 +31,11 @@ setup(name='hive.lab',
         'plone.dexterity',                  # Dexterity FTI
         'avrc.data.store',                  # EAV Back-end
         'avrc.data.registry',               # OUR number generator
-        'reportlab',                        # PDF label generator
-        'xlutils',                          # Excel Export
         'plone.behavior',
         'plone.app.registry',                # For registering the behaviors
-        'avrc.aeh'
+        'avrc.aeh',
+        'reportlab',                        # PDF label generator
+        'xlutils',                          # Excel Export
           # -*- Extra requirements: -*-
       ],
       entry_points="""
