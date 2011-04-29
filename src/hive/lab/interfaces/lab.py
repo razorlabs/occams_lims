@@ -6,6 +6,8 @@ from z3c.relationfield.schema import RelationChoice, RelationList
 from plone.formwidget.contenttree import ObjPathSourceBinder
 from plone.app.dexterity.behaviors.related import IRelatedItems
 from hive.lab.interfaces.specimen import ISpecimenBlueprint
+from hive.lab.vocabularies import SpecimenVocabulary
+
 
 class ILab(form.Schema):
     """
@@ -114,7 +116,7 @@ class IAvailableSpecimen(form.Schema):
     related_specimen = RelationList(
         title=_(u'label_related_specimen', default=u'Available Specimen'),
         default=[],
-        value_type=RelationChoice(title=u"Related",
+        value_type=RelationChoice(title=u"Specimen",
                       source=ObjPathSourceBinder(object_provides=ISpecimenBlueprint.__identifier__
 )),
         required=False,
@@ -126,12 +128,12 @@ class IRequiredSpecimen(form.Schema):
     """
     """
     form.fieldset('specimen', label=u"Specimen",
-                  fields=['required_specimen'])
-    required_specimen =  RelationList(
-        title=_(u'label_requured_specimen', default=u'Required Specimen'),
+                  fields=['related_specimen'])
+    related_specimen = zope.schema.List(
+        title=_(u'label_related_specimen', default=u'Required Specimen'),
         default=[],
-        value_type=RelationChoice(title=u"Related",
-                      source=ObjPathSourceBinder(object_provides=ISpecimenBlueprint.__identifier__)),
+        value_type=zope.schema.Choice(title=u"Specimen",
+                      source=SpecimenVocabulary()),
         required=False,
         )
 
