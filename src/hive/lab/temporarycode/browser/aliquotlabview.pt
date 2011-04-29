@@ -1,0 +1,118 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xml:lang="en"
+  xmlns:tal="http://xml.zope.org/namespaces/tal"
+  xmlns:metal="http://xml.zope.org/namespaces/metal"
+  xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  lang="en"
+  metal:use-macro="context/main_template/macros/master"
+  i18n:domain="avrc.aeh">
+  <body>
+    <metal:main
+      fill-slot="main">
+      <tal:main-macro
+        metal:define-macro="main">
+        <div
+          tal:replace="structure provider:plone.abovecontenttitle" />
+        <h1
+          class="documentFirstHeading">Aliquot Pending Check-in</h1>
+        <div
+          tal:replace="structure provider:plone.belowcontenttitle" />
+        <p
+          class="documentDescription"
+          tal:content="context/description" />
+        <div
+          tal:replace="structure provider:plone.abovecontentbody" />
+        <h2>Filter by OUR Number</h2>
+        <p>Enter an OUR Number, and press go: this will filter the aliquot to
+          only show aliquot for this OUR Number. Press "Show All" to remove this
+          filter.</p>
+        <div
+          tal:content="structure view/aliquotbyour"
+          tal:on-error="string:" />
+        <br />
+        <hr />
+        <br />
+        <h2>Aliquot Batch List</h2>
+        <p>Below, you will find all of the aliquot (possibly for only one OUR
+          Number) that are currently pending check-in.</p>
+        <h4
+          tal:condition="view/ourNumberFilter">
+          Currently Filtered for OUR#:
+          <span
+            tal:replace="view/ourNumberFilter" />
+        </h4>
+        <h4
+          tal:condition="not:view/ourNumberFilter">
+          Currently Showing All Available Aliquot
+        </h4>
+        <div
+          tal:content="structure view/aliquot_requestor" />
+        <br
+          class="visualClear" />
+        <h4>Instructions, Description of Buttons</h4>
+        <ol>
+          <li>
+            <strong>Save All Changes:</strong>
+            Saves any entered data for both checked and unchecked aliquot in the
+            current batch to the database. Look for confirmation at the top of
+            the page.
+          </li>
+          <li>
+            <strong>Create Labels for Selected:</strong>
+            A label for the selected aliquot will be created and listed below in
+            the "Labels Ready to Print" section. NOTE: this does not save
+            changes, or reflect any unsaved changes in the label. Be sure to
+            save your changes before creating your labels
+          </li>
+          <li>
+            <strong>Check-in Selected:</strong>
+            Saves changes to both checked and unchecked aliquot, as above. Then
+            moves the selected aliquot to its checked-in state.
+          </li>
+          <li>
+            <strong>Mark Selected Unused:</strong>
+            Marks the selected aliquot as unused. This generally means you
+            generated an aliquot in the database, and then did not have the
+            specimen to actually create it. NOTE: No changes are saved when you
+            press this button.
+          </li>
+        </ol>
+        <br />
+        <hr />
+        <br />
+        <h2>Label Printing</h2>
+        <p>The Aliquot Label form, which shows below when there are labels to
+          print, keeps track of the labels made for the aliquot created above.
+          To print, simply leave the check boxes checked, and press "Print
+          Selected". Be sure to use the refresh list button after you print!</p>
+        <div
+          tal:content="structure view/aliquotlabels" />
+        <br
+          class="visualClear" />
+        <h4>Instructions, Description of Buttons</h4>
+        <ol>
+          <li>
+            <strong>Print Selected:</strong>
+            This will print all of the selected labels. After the labels are
+            printed, they are removed from the list, so make sure to press the
+            "Refresh List" button after you print!
+          </li>
+          <li>
+            <strong>Refresh List:</strong>
+            Refreshes the list of labels, to only show unprinted labels. This
+            will be automatic in a future release.
+          </li>
+          <li>
+            <strong>Remove Selected:</strong>
+            Remove the selected label from the list. Use this button when you
+            don't want to print a label for an aliquot you have already created.
+            NOTE: this does not affect the created aliquot, only the label.
+          </li>
+        </ol>
+        <div
+          tal:replace="structure provider:plone.belowcontentbody" />
+      </tal:main-macro>
+    </metal:main>
+  </body>
+</html>
