@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<rolemap>
+  <roles>
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </roles>
+  <permissions>
+    <!-- -*- extra stuff goes here -*- -->
+
+  <permission name="avrc: View Clinical Specimen Data" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="Nurse" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="avrc: Add Clinical Specimen Data" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="Nurse" />
+      <role name="ClinicalLab" />
+  </permission>
+
+  <permission name="avrc: Modify Clinical Specimen Data" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="avrc: Review Clinical Specimen Data" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="avrc: View Aliquot Data" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="avrc: Add Aliquot Data" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="avrc: Modify Aliquot Data" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="avrc: Review Aliquot Data" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </permission>
+
+ </permissions>
+</rolemap>

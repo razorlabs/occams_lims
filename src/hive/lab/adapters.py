@@ -51,6 +51,91 @@ def handleResearchLabAdded(lab, event):
     label_catalog.addColumn('date_collected')
 
 
+#### From institute.py
+## Should happen on addition of specimen
+#from avrc.aeh.specimen._import import datastore_import as specimen_vocabularies
+
+# def addSpecimen(datastore, specimen_vocabulary_map):
+#     """ Helper method to add the specimen vocabulary mapping to the Datastore.
+# 
+#         TODO: migrate to Datastore code base
+#     """
+#     Session = datastore.getScopedSession()
+#     session = Session()
+# 
+#     for vocabulary_name, vocabulary_obj in specimen_vocabulary_map.items():
+#         vocabuylary_name = unicode(vocabulary_name)
+# 
+#         num_entries = session.query(model.SpecimenAliquotTerm)\
+#             .filter_by(vocabulary_name=vocabuylary_name)\
+#             .count()
+# 
+#         # Only enter the specimen vocabulary if it doesn't already exist in
+#         # the database
+#         if num_entries <= 0:
+#             for term_obj in vocabulary_obj:
+#                 session.add(model.SpecimenAliquotTerm(
+#                     vocabulary_name=vocabulary_name,
+#                     title=term_obj.title and unicode(term_obj.title) or None,
+#                     token=unicode(term_obj.token),
+#                     value=unicode(term_obj.value)
+#                     ))
+# 
+#     session.flush()
+
+## Add handler for visit
+
+# @grok.subscribe(IVisit, IObjectAddedEvent)
+# def handleVisitAdded(visit, event):
+#     patient = visit.aq_parent
+#     intids = getUtility(IIntIds)
+# 
+#     ds = getUtility(IDatastore, 'fia', visit)
+#     schema_manager = ds.getSchemaManager()
+#     visit_manager = ds.getVisitManager()
+#     newobjlist = []
+#     requested_tests = []
+#     if visit.cycles is None or not len(visit.cycles):
+#         cycle_relations = []
+#         cycleList = patient.getCycleList(visit.visit_date)
+#         for cycle in cycleList:
+#             cycleid = intids.getId(cycle)
+#             cyclerelation = RelationValue(cycleid)
+#             cycle_relations.append(cyclerelation)
+#         visit.cycles = cycle_relations
+#     for cycle in visit.cycles:
+#         cycleid = cycle.to_id
+#         cycle = cycle.to_object
+# 
+#         kwarg = {'date_collected': visit.visit_date}
+# 
+#         forms = []
+#         forms.extend(cycle.required_behavior_forms)
+#         forms.extend(cycle.required_tests)
+#         for form in forms:
+#             if form not in requested_tests:
+#                 requested_tests.append(form)
+#                 iface = schema_manager.get(unicode(form))
+#                 newobj = ds.put(ds.spawn(iface, **kwarg))
+#                 newobj.setState(u'pending-entry')
+#                 newobjlist.append(newobj)
+# 
+#         for iface in cycle.required_specimen:
+#             visit.addRequestedSpecimen(iface=iface, protocol_zid=int(cycleid))
+# 
+#     obj = visit_manager.put(IDSVisit(visit))
+# 
+#     if len(newobjlist):
+#         visit_manager.add_instances(obj, newobjlist)
+
+### And on modify
+
+#                 for iface in cycle_obj.required_specimen:
+#                     visit.addRequestedSpecimen(
+#                         iface=iface,
+#                         protocol_zid=int(cycle_rel.to_id)
+#                         )
+
 class ViewableSpecimen(grok.Adapter):
     grok.context(ISpecimen)
     grok.provides(IViewableSpecimen)

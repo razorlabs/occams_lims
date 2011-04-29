@@ -139,3 +139,15 @@ class IRequiredSpecimen(form.Schema):
 
 zope.interface.alsoProvides(IRequiredSpecimen, form.IFormFieldProvider)
 
+class IRequestedSpecimen(form.Schema):
+
+    def requested_specimen():
+        """ """
+
+    def requestedSpecimen():
+        """ """
+
+    def addRequestedSpecimen():
+        """ """
+
+zope.interface.alsoProvides(IRequestedSpecimen, form.IFormFieldProvider)
