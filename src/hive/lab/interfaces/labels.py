@@ -7,11 +7,65 @@ import zope.schema
 
 from five import grok
 from hive.lab import MessageFactory as _
-
-from avrc.data.store.interfaces import ISpecimen
+from plone.directives import form
 
 from hive.lab import utilities as utils
 
+
+class ILabelSheet(form.Schema):
+    """
+        info for building a pdf of labels
+    """
+    page_height = zope.schema.Decimal(
+        title=_(u"Page Height"),
+        required=True
+        )
+        
+    page_width = zope.schema.Decimal(
+        title=_(u"Page Width"),
+        required=True
+        )
+
+    top_margin = zope.schema.Decimal(
+        title=_(u"Top Margin"),
+        required=True
+        )
+    side_margin = zope.schema.Decimal(
+        title=_(u"Side Margin"),
+        required=True
+        )
+    vert_pitch = zope.schema.Decimal(
+        title=_(u"Vertical Pitch"),
+        required=True
+        )
+        
+    horz_pitch = zope.schema.Decimal(
+        title=_(u"Horizontal Pitch"),
+        required=True
+        )
+    label_height = zope.schema.Decimal(
+        title=_(u"Label Height"),
+        required=True
+        )
+    label_width = zope.schema.Decimal(
+        title=_(u"Label Width"),
+        required=True
+        )
+        
+    label_round = zope.schema.Decimal(
+        title=_(u"Label Round"),
+        required=True
+        )
+
+    no_across = zope.schema.Int(
+        title=_(u"Number Across"),
+        required=True
+        )
+
+    no_down = zope.schema.Int(
+        title=_(u"Number Down"),
+        required=True
+        )
 
 class ILabel(interface.Interface):
     """
@@ -57,26 +111,3 @@ class IAliquotLabel(ILabel):
         source=utils.SpecimenAliquotVocabulary(u"aliquot_type")
         ) 
 
-class LabeledSpecimen(grok.Adapter):
-    grok.context(ISpecimen)
-    grok.provides(ISpecimenLabel)
-
-    @property
-    def patient_title(self):
-        return utils.get_patient_title(self.context.subject_zid)
-
-    @property
-    def study_title(self):
-        return utils.get_study_title(self.context.protocol_zid)
-    
-    @property
-    def protocol_title(self):
-        return utils.get_protocol_title(self.context.protocol_zid)
-        
-    @property
-    def pretty_specimen_type(self):
-        return self.context.specimen_type
-
-    @property
-    def date_collected(self):
-        return self.context.date_collected

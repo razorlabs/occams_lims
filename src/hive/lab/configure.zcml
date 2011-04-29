@@ -7,10 +7,15 @@
     i18n_domain="hive.lab">
 
   <include file="profiles.zcml" />
+  
+  <include package="plone.behavior" file="meta.zcml"/>
 
   <!-- Include configuration for dependencies listed in setup.py -->
   <includeDependencies package="." />
 
+<!-- 
+  <include package="plone.behavior" file="meta.zcml" />
+ -->
   <!-- Grok the package to initialize schema interfaces and content classes -->
   <!-- Note that because we include this command, sub-packages no longer
        need configure.zcml files. (We also don't need to specify them in
@@ -19,5 +24,18 @@
   <grok:grok package="." />
 
   <!-- -*- extra stuff goes here -*- -->
-  
+      <plone:behavior
+        title="Available Specimen"
+        description="Make Specimen Available for an object."
+        provides=".interfaces.lab.IAvailableSpecimen"
+        for="plone.dexterity.interfaces.IDexterityContent"
+        />
+
+      <plone:behavior
+        title="Required Specimen"
+        description="Make Specimen Required for an object."
+        provides="hive.lab.interfaces.IRequiredSpecimen"
+        for="plone.dexterity.interfaces.IDexterityContent"
+        />
+
 </configure>

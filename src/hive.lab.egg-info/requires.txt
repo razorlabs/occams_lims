@@ -6,3 +6,6 @@ avrc.data.store
 avrc.data.registry
 reportlab
 xlutils
+plone.behavior
+plone.app.registry
+avrc.aeh

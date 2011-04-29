@@ -32,7 +32,11 @@ setup(name='hive.lab',
         'avrc.data.store',                  # EAV Back-end
         'avrc.data.registry',               # OUR number generator
         'reportlab',                        # PDF label generator
-        'xlutils',                          # Excel Export          # -*- Extra requirements: -*-
+        'xlutils',                          # Excel Export
+        'plone.behavior',
+        'plone.app.registry',                # For registering the behaviors
+        'avrc.aeh'
+          # -*- Extra requirements: -*-
       ],
       entry_points="""
       # -*- Entry points: -*-

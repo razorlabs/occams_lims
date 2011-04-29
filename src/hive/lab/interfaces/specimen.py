@@ -1,18 +1,13 @@
 from datetime import datetime
 from datetime import date
 
-from zope import component
 from zope import interface
-from zope.app.intid.interfaces import IIntIds
-from zope.schema.fieldproperty import FieldProperty
+
 import zope.schema
 
 from plone.directives import form
-from five import grok
 from hive.lab import MessageFactory as _
-
-from avrc.data.store.interfaces import ISpecimen
-from avrc.data.store.lab import Specimen
+from hive.lab.interfaces import ILabel
 
 from hive.lab import utilities as utils
 
@@ -53,39 +48,144 @@ class IViewableSpecimen(form.Schema):
         source=utils.SpecimenAliquotVocabulary(u"specimen_tube_type"),
         )
 
+class ISpecimenBlueprint(form.Schema):
+    """
+    Blueprint the system can use to create specimen
+    """
+    title = zope.schema.TextLine(
+        title=_(u'Specimen Title'),
+        )
+        
+    specimen_type_title = zope.schema.TextLine(
+        title=_(u'Specimen Type Title'),
+        )
+    specimen_type = zope.schema.TextLine(
+        title=_(u'Specimen Type'),
+        )
+        
+    default_tubes = zope.schema.Int(
+        title=_(u'Default tubes count'),
+        required=False,
+        )
 
-class ViewableSpecimen(grok.Adapter):
-    grok.context(ISpecimen)
-    grok.provides(IViewableSpecimen)
+    tube_type_title = zope.schema.TextLine(
+        title=_(u'Tube Type Title'),
+        )
         
-    @property
-    def patient_title(self):
-        return utils.get_patient_title(self.context.subject_zid)
-        
-    @property
-    def patient_initials(self):
-        return utils.get_patient_initials(self.context.subject_zid)
+    tube_type = zope.schema.TextLine(
+        title=_(u'Tube Type Value'),
+        )
 
-    @property
-    def patient_legacy_number(self):
-        return utils.get_patient_legacy_number(self.context.subject_zid)
+class ISpecimenLabel(ILabel):
+    """
+    A Specimen Label
+    """
+    
+    pretty_specimen_type = zope.schema.Choice(
+        title=_(u"Specimen Type"),
+        source=utils.SpecimenAliquotVocabulary(u"specimen_type")
+        ) 
         
-    @property
-    def study_title(self):
-        return utils.get_study_title(self.context.protocol_zid)
-    
-    @property
-    def protocol_title(self):
-        return utils.get_protocol_title(self.context.protocol_zid)
-    
-    @property
-    def pretty_specimen_type(self):
-        return self.context.specimen_type
-    
-    @property
-    def pretty_tube_type(self):
-        return self.context.tube_type
- 
+# class ACDSpecimen(Specimen):
+#     interface.implements(ACD)
+#     def __init__(self, **kwargs):
+#         super(ACDSpecimen, self).__init__(**kwargs)
+#         self.specimen_type = u"acd"
+#         if self.tubes is None:
+#             self.tubes = 3
+#         if self.tube_type is None:
+#             self.tube_type = u'acdyellowtop'
+# 
+#     @property
+#     def title(self):
+#         intids = component.getUtility(IIntIds)
+#         cycle = intids.getObject(self.protocol_zid)
+#         study = cycle.aq_parent
+#         return '%s, %s, %s' % (study.title, cycle.title, "PBMC & Plasma")        
+
+
+# class IAliquotableSpecimen(ISpecimen):
+#     """
+#     """
+#     def aliquot():
+#         """
+#         """
+# 
+# class AliquotableSpecimen(grok.Adapter):
+#     """
+#     Translates a patient to a datastore subject
+#     """
+#     grok.context(ISpecimen)
+#     grok.provides(IAliquotableSpecimen)
+# 
+#     def aliquot(self):
+# 
+#         args = {}
+#         args['specimen_dsid'] = self.dsid
+#         args['store_date'] = self.date_collected
+#         args['notes'] = self.notes
+# 
+#         newaliquotlist = []
+#         if str(self.specimen_type) == 'acd':
+#             args['aliquot_type'] = unicode('plasma')
+#             args['volume'] = 1.0
+#             args['cell_amount'] = None
+#             aliquot = Aliquot(**args)
+#             newaliquotlist.append(aliquot)
+#             
+#             args['aliquot_type'] = unicode('pbmc')
+#             args['volume'] = None
+#             args['cell_amount'] = 5.0
+#             aliquot = Aliquot(**args)
+#             newaliquotlist.append(aliquot)
+#             
+#         elif str(self.specimen_type) == 'csf':
+#             args['aliquot_type'] = unicode('csfpellet')
+#             args['volume'] = None
+#             args['cell_amount'] = None
+#             aliquot = Aliquot(**args)
+#             newaliquotlist.append(aliquot)
+#             args['aliquot_type'] = unicode('csf')
+#             args['volume'] = None
+#             args['cell_amount'] = 1.0
+#             aliquot = Aliquot(**args)
+#             newaliquotlist.append(aliquot)
+#         elif str(self.specimen_type) == 'serum':
+#             args['aliquot_type'] = unicode('serum')
+#             args['volume'] = 1.0
+#             args['cell_amount'] = None
+#             aliquot = Aliquot(**args)
+#             newaliquotlist.append(aliquot)
+#         elif str(self.specimen_type) == 'swab':
+#             args['aliquot_type'] = unicode('swab')
+#             args['volume'] = None
+#             args['cell_amount'] = None
+#             aliquot = Aliquot(**args)
+#             newaliquotlist.append(aliquot)
+#         elif str(self.specimen_type) == 'genital-secretion':
+#             args['aliquot_type'] = unicode('gscells')
+#             args['volume'] = None
+#             args['cell_amount'] = 1.0
+#             aliquot = Aliquot(**args)
+#             newaliquotlist.append(aliquot)
+#             args['aliquot_type'] = unicode('gsplasma')
+#             args['volume'] = 1.0
+#             args['cell_amount'] = None
+#             aliquot = Aliquot(**args)
+#             newaliquotlist.append(aliquot)
+#         elif str(self.specimen_type) == 'rs-gut':
+#             args['aliquot_type'] = unicode('rs-gut')
+#             args['volume'] = 1.0
+#             args['cell_amount'] = None
+#             aliquot = Aliquot(**args)
+#             newaliquotlist.append(aliquot)
+#         elif str(self.specimen_type) == 'ti-gut':
+#             args['aliquot_type'] = unicode('ti-gut')
+#             args['volume'] = 1.0
+#             args['cell_amount'] = None
+#             aliquot = Aliquot(**args)
+#             newaliquotlist.append(aliquot)
+#         return newaliquotlist
  
  
  

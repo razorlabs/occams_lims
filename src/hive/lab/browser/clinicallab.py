@@ -280,9 +280,9 @@ class SpecimenButtonCore(crud.EditForm):
     def changeState(self, action, state, acttitle):
         success = SUCCESS_MESSAGE
         no_changes = NO_CHANGES
-        if self.status != success and self.status != no_changes:
-            self.status = 'Cannot %s draw because: %s' % (acttitle, self.status)
-            return
+#         if self.status != success and self.status != no_changes:
+#             self.status = 'Cannot %s draw because: %s' % (acttitle, self.status)
+#             return
         selected = self.selected_items()
         if selected:
             sm = getSiteManager(self)

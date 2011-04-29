@@ -1,31 +1,29 @@
 <?xml version="1.0"?>
-<object name="hive.lab.cliniclab"
+<object name="hive.lab.aliquotblueprint"
    meta_type="Dexterity FTI"
    i18n:domain="hive.lab" xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
   <!-- Basic metadata -->
-  <property name="title" i18n:translate="">HIVe: Clinical Laboratory</property>
+  <property name="title" i18n:translate="">HIVe: Aliquot Blueprint</property>
   <property name="description"
-    i18n:translate="">A Clinical Laboratory for Collection of Specimen</property>
+    i18n:translate="">A Template for Aliquoting of Specimen</property>
   <property name="content_icon">/misc_/Archetypes/tool.gif</property> <!-- navigation_icon.png</property>-->
   <property name="global_allow">False</property>
   <property name="filter_content_types">True</property>  
   <property name="allowed_content_types">
-      <element value="hive.lab.specimenblueprint" />
   </property>
   <property name="allow_discussion">False</property>
 
  <!-- schema interface -->
- <property name="schema">hive.lab.interfaces.IClinicalLab</property> 
+ <property name="schema">hive.lab.interfaces.IAliquotBlueprint</property> 
 
  <!-- class used for content items -->
- <property name="klass">plone.dexterity.content.Container</property>
+ <property name="klass">plone.dexterity.content.Item</property>
 
  <property name="add_permission">cmf.AddPortalContent</property>
  
  <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
-     <element value="plone.app.dexterity.behaviors.metadata.IDublinCore"/>
  </property>
 
   <!-- View information -->
@@ -39,9 +37,7 @@
   <alias from="edit" to="@@edit" />
   <alias from="sharing" to="@@sharing" />
   <alias from="view" to="@@view" />
-  <alias from="batched" to="@@batched" />
-  <alias from="postponed" to="@@postponed" />
-  <alias from="completed" to="@@completed" />
+
 
 
   <!-- Actions -->
@@ -55,18 +51,4 @@
     <permission value="View" />
   </action>
 
-  <action title="Batched" action_id="batched" category="object" condition_expr=""
-    url_expr="string:${object_url}/@@batched" visible="True">
-    <permission value="View" />
-  </action>
-
-  <action title="Postponed" action_id="postponed" category="object" condition_expr=""
-    url_expr="string:${object_url}/@@postponed" visible="True">
-    <permission value="View" />
-  </action>
-
-  <action title="Completed Today" action_id="completed" category="object" condition_expr=""
-    url_expr="string:${object_url}/@@completed" visible="True">
-    <permission value="View" />
-  </action>
 </object>

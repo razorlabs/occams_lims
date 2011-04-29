@@ -1,4 +1,3 @@
-from hive.lab.interfaces.lab import IClinicalLab
-from hive.lab.interfaces.lab import IResearchLab
-from hive.lab.interfaces.specimen import IViewableSpecimen
-from hive.lab.interfaces.labels import ISpecimenLabel
+from hive.lab.interfaces.lab import *
+from hive.lab.interfaces.specimen import *
+from hive.lab.interfaces.aliquot import *
