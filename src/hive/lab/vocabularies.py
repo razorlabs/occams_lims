@@ -7,9 +7,6 @@ from plone.memoize.instance import memoize
 
 from five import grok
 
-from avrc.aeh.specimen import specimen
-
-
 class SpecimenVocabulary(object):
     """
     Context source binder to provide a vocabulary of users in a given group.
@@ -45,13 +42,32 @@ class SpecimenVocabulary(object):
         return SimpleVocabulary(terms=self.getTerms(context))
 
 
+class SpecimenVisitVocabulary(object):
+    """
+    Context source binder to provide a vocabulary of users in a given group.
+    """
+    grok.implements(IContextSourceBinder)
+    
+    def __init__(self):
+        self.property = 'related_specimen'
+        self.study = None
+        
+    def cycleVocabulary(self):
+        context = self.context.aq_inner
+        cycles = context.getCycles()
+        termlist=[]
+        intids = component.getUtility(IIntIds)
+        for cycle in cycles:
+            int
+            studytitle = cycle.aq_parent.Title()
+            cycletitle = '%s, %s' % (studytitle, cycle.Title())
+            protocol_zid = intids.getId(cycle)
+            termlist.append(SimpleTerm(
+                                       title=cycletitle,
+                                       token='%s' % protocol_zid,
+                                       value=protocol_zid))
+        return SimpleVocabulary(terms=termlist)
 
-states_vocabulary = SimpleVocabulary(terms=[
-    SimpleTerm("pending-entry", "pending-entry", u"Pending Entry"),
-    SimpleTerm("pending-review", "pending-review", u"Pending Review"),
-    SimpleTerm("complete", "complete", u"Complete"),
-    SimpleTerm("not-done", "not-done", u"Not Done"),
-    ])
 
 AliquotStatusVocabulary = SimpleVocabulary(terms=[
                 SimpleTerm("checked in", "checked in", u"Aliquot Checked In"),
