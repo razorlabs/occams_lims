@@ -8,8 +8,14 @@ from plone.app.dexterity.behaviors.related import IRelatedItems
 from hive.lab.interfaces.specimen import ISpecimenBlueprint
 from hive.lab.vocabularies import SpecimenVocabulary
 
-
-class ILab(form.Schema):
+class IContainsSpecimen(zope.interface.Interface):
+    """
+    Marker interface for items that contain Specimen Blueprints
+    """
+    pass
+    
+    
+class ILab(form.Schema, IContainsSpecimen):
     """
     An Interface for the Labs
     """
@@ -105,59 +111,3 @@ class ILabelSheet(form.Schema):
         title=_(u"Number Down"),
         required=True
         )
-
-class ISpecimenRequests(form.Schema):
-    """
-    """
-    form.fieldset('specimen', label=u"Specimen",
-                  fields=['related_specimen'])
-                  
-    related_specimen = zope.schema.List(
-        title=_(u'label_related_specimen', default=u'Specimen'),
-        default=[],
-        value_type=zope.schema.Choice(title=u"Specimen",
-                      source=SpecimenVocabulary()),
-        required=False,
-        )
-        
-zope.interface.alsoProvides(ISpecimenRequests, form.IFormFieldProvider)
-
-class IAvailableSpecimen(ISpecimenRequests):
-    """
-    """
-    related_specimen = RelationList(
-        title=_(u'label_related_specimen', default=u'Available Specimen'),
-        default=[],
-        value_type=RelationChoice(title=u"Specimen", source=ObjPathSourceBinder(object_provides=ISpecimenBlueprint.__identifier__
-)),
-        required=False,
-        )
-
-class IRequiredSpecimen(ISpecimenRequests):
-    """
-    """
-    pass
-
-
-
-class IRequestSpecimen(ISpecimenRequests):
-    """
-    """
-    pass
-
-    def requestedSpecimen():
-        """ """
-        pass
-        
-    def addRequestedSpecimen():
-        """ """
-        pass
-        
-    def getSpecimenFormList():
-        """ get the list of specimens for this visit """
-        pass
-        
-    def getOptionalSpecimenFormVocabulary():
-        """ get the list of remaining specimens that can be requested """
-        pass
-        

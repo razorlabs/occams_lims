@@ -10,7 +10,7 @@ from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
 
 from hive.lab import utilities as utils
-
+    
 class IViewableSpecimen(form.Schema):
  
     patient_title = zope.schema.TextLine(
@@ -85,6 +85,73 @@ class ISpecimenLabel(ILabel):
         title=_(u"Specimen Type"),
         source=utils.SpecimenAliquotVocabulary(u"specimen_type")
         ) 
+
+from z3c.relationfield.schema import RelationList, RelationChoice
+from plone.formwidget.contenttree import ObjPathSourceBinder
+#from plone.app.dexterity.behaviors.related import IRelatedItems
+from hive.lab.vocabularies import SpecimenVocabulary
+
+class ISpecimenRequests(form.Schema):
+    """
+    """
+    form.fieldset('specimen', label=u"Specimen",
+                  fields=['related_specimen'])
+                  
+    related_specimen = zope.schema.List(
+        title=_(u'label_related_specimen', default=u'Specimen'),
+        default=[],
+        value_type=zope.schema.Choice(title=u"Specimen",
+                      source=SpecimenVocabulary()),
+        required=False,
+        )
+        
+zope.interface.alsoProvides(ISpecimenRequests, form.IFormFieldProvider)
+
+class IAvailableSpecimen(ISpecimenRequests):
+    """
+    """
+    related_specimen = RelationList(
+        title=_(u'label_related_specimen', default=u'Available Specimen'),
+        default=[],
+        value_type=RelationChoice(title=u"Specimen", source=ObjPathSourceBinder(object_provides=ISpecimenBlueprint.__identifier__
+)),
+        required=False,
+        )
+
+class IRequiredSpecimen(ISpecimenRequests):
+    """
+    """
+    pass
+
+class IRequestSpecimen(interface.Interface):
+    """
+    Marker class for items that require specimen
+    """
+    pass
+
+# class IRequestSpecimen(ISpecimenRequests):
+#     """
+#     """
+#     pass
+
+# 
+#     def requestedSpecimen():
+#         """ """
+#         pass
+#         
+#     def addRequestedSpecimen():
+#         """ """
+#         pass
+#         
+#     def getSpecimenFormList():
+#         """ get the list of specimens for this visit """
+#         pass
+#         
+#     def getOptionalSpecimenFormVocabulary():
+#         """ get the list of remaining specimens that can be requested """
+#         pass
+        
+
         
 # class ACDSpecimen(Specimen):
 #     interface.implements(ACD)
