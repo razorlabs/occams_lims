@@ -4,7 +4,9 @@ from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
 
 from plone.memoize.instance import memoize
-
+from zope import component
+from avrc.data.store import model
+from avrc.data.store.interfaces import IDatastore
 from five import grok
 
 class SpecimenVocabulary(object):
@@ -68,3 +70,14 @@ class SpecimenVisitVocabulary(object):
                                        value=protocol_zid))
         return SimpleVocabulary(terms=termlist)
 
+class SpecimenAliquotVocabulary(object):
+    """ Parameterized-vocabulary for retrieving data store vocabulary terms. """
+    grok.implements(IContextSourceBinder)
+
+    def __init__(self, vocabulary_name):
+        self.vocabulary_name = unicode(vocabulary_name)
+
+    def __call__(self, context):
+        ds =  component.getUtility(IDatastore, "fia")
+        vocab = ds.getSpecimenManager().get_vocabulary(self.vocabulary_name)
+        return vocab

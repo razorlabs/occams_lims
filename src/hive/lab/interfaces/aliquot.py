@@ -5,7 +5,7 @@ from plone.directives import form
 
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
-from hive.lab import utilities as utils
+from hive.lab import vocabularies
 
 class IViewableAliquot(form.Schema):
     aliquot_id = zope.schema.TextLine(
@@ -35,7 +35,7 @@ class IViewableAliquot(form.Schema):
 
     pretty_aliquot_type = zope.schema.Choice(
         title=_(u"Aliquot Type"),
-        source=utils.SpecimenAliquotVocabulary(u"aliquot_type")
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         )
       
   
@@ -97,5 +97,5 @@ class IAliquotLabel(ILabel):
     
     pretty_aliquot_type = zope.schema.Choice(
         title=_(u"Aliquot Type"),
-        source=utils.SpecimenAliquotVocabulary(u"aliquot_type")
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         ) 

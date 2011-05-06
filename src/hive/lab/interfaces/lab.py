@@ -1,8 +1,11 @@
 import zope.schema
 from plone.directives import form
 
-from hive.lab import MessageFactory as _
 import zope.interface
+
+from hive.lab import MessageFactory as _
+from hive.lab.interfaces.labels import ILabelSheet
+
 
 class IContainsSpecimen(zope.interface.Interface):
     """

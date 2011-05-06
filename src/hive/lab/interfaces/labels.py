@@ -9,7 +9,7 @@ from five import grok
 from hive.lab import MessageFactory as _
 from plone.directives import form
 
-from hive.lab import utilities as utils
+from hive.lab import vocabularies
 
 
 class ILabelSheet(form.Schema):
@@ -98,7 +98,7 @@ class ISpecimenLabel(ILabel):
     
     pretty_specimen_type = zope.schema.Choice(
         title=_(u"Specimen Type"),
-        source=utils.SpecimenAliquotVocabulary(u"specimen_type")
+        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type")
         ) 
 
 class IAliquotLabel(ILabel):
@@ -108,6 +108,6 @@ class IAliquotLabel(ILabel):
     
     pretty_aliquot_type = zope.schema.Choice(
         title=_(u"Aliquot Type"),
-        source=utils.SpecimenAliquotVocabulary(u"aliquot_type")
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         ) 
 

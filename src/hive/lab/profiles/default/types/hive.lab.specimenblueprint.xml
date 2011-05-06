@@ -19,12 +19,13 @@
  <property name="schema">hive.lab.interfaces.specimen.ISpecimenBlueprint</property> 
 
  <!-- class used for content items -->
- <property name="klass">plone.dexterity.content.Container</property>
+ <property name="klass">hive.lab.content.objects.SpecimenBlueprint</property>
 
  <property name="add_permission">cmf.AddPortalContent</property>
  
  <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
+     <element value="plone.app.dexterity.behaviors.metadata.IDublinCore"/>
  </property>
 
   <!-- View information -->

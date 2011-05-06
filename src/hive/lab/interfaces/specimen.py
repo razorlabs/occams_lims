@@ -9,7 +9,7 @@ from plone.formwidget.contenttree import ObjPathSourceBinder
 from hive.lab.vocabularies import SpecimenVocabulary
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
-from hive.lab import utilities as utils
+from hive.lab import vocabularies
     
 class IViewableSpecimen(form.Schema):
  
@@ -40,42 +40,40 @@ class IViewableSpecimen(form.Schema):
         
     pretty_specimen_type = zope.schema.Choice(
         title=_(u"Specimen Type"),
-        source=utils.SpecimenAliquotVocabulary(u"specimen_type")
+        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type")
         )
         
     pretty_tube_type = zope.schema.Choice(
         title=_(u"Tube Type"),
-        source=utils.SpecimenAliquotVocabulary(u"specimen_tube_type"),
+        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_tube_type"),
         )
 
 class ISpecimenBlueprint(form.Schema):
     """
     Blueprint the system can use to create specimen
     """
-    title = zope.schema.TextLine(
-        title=_(u'Specimen Title'),
-        )
         
-    specimen_type_title = zope.schema.TextLine(
-        title=_(u'Specimen Type Title'),
-        )
-    specimen_type = zope.schema.TextLine(
-        title=_(u'Specimen Type'),
+    specimen_type = zope.schema.Choice(
+        title=_(u"Specimen Type"),
+        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type")
         )
         
     default_tubes = zope.schema.Int(
         title=_(u'Default tubes count'),
         required=False,
         )
+        
+    tube_type = zope.schema.Choice(
+        title=_(u"Tube Type"),
+        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_tube_type"),
+        )
 
-    tube_type_title = zope.schema.TextLine(
-        title=_(u'Tube Type Title'),
+    destination = zope.schema.Choice(
+        title=_(u"Destination"),
+        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_destination"),
+        default=u"Richman Lab",
         )
         
-    tube_type = zope.schema.TextLine(
-        title=_(u'Tube Type Value'),
-        )
-
 class ISpecimenLabel(ILabel):
     """
     A Specimen Label
@@ -83,10 +81,8 @@ class ISpecimenLabel(ILabel):
     
     pretty_specimen_type = zope.schema.Choice(
         title=_(u"Specimen Type"),
-        source=utils.SpecimenAliquotVocabulary(u"specimen_type")
+        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type")
         ) 
-
-
 
 class IAvailableSpecimen(form.Schema):
     """
@@ -119,7 +115,7 @@ class IRequiredSpecimen(form.Schema):
         required=False)
 zope.interface.alsoProvides(IRequiredSpecimen, form.IFormFieldProvider)
 
-class IRequestSpecimen(interface.Interface):
+class IRequestedSpecimen(interface.Interface):
     """
     Marker class for items that require specimen
     """

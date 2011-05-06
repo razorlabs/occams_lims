@@ -35,4 +35,18 @@
         for="avrc.aeh.content.cycle.ICycle"
         />
 
+      <plone:behavior
+        title="Requested Specimen"
+        description="Make Specimen Required for an object."
+        provides="hive.lab.interfaces.specimen.IRequestedSpecimen"
+        for="avrc.aeh.content.visit.IVisit"
+        />
+
+      <plone:behavior
+        title="Label Sheet"
+        description="Make this lab produce labels"
+        provides="hive.lab.interfaces.labels.ILabelSheet"
+        for="hive.lab.interfaces.lab.ILab"
+        />
+
 </configure>

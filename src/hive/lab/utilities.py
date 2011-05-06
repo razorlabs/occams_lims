@@ -79,16 +79,3 @@ def get_patient_initials(zid):
         return unicode(patient.initials)
     else:
         return None
-        
-        
-class SpecimenAliquotVocabulary(object):
-    """ Parameterized-vocabulary for retrieving data store vocabulary terms. """
-    grok.implements(IContextSourceBinder)
-
-    def __init__(self, vocabulary_name):
-        self.vocabulary_name = unicode(vocabulary_name)
-
-    def __call__(self, context):
-        ds =  component.getUtility(IDatastore, "fia")
-        vocab = ds.getSpecimenManager().get_vocabulary(self.vocabulary_name)
-        return vocab
