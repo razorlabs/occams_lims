@@ -69,9 +69,7 @@ class ViewableAliquot(grok.Adapter):
     @property
     def pretty_aliquot_type(self):
         return self.context.aliquot_type
-        
-        
-        
+
 class LabeledSpecimen(grok.Adapter):
     grok.context(ISpecimen)
     grok.provides(ISpecimenLabel)

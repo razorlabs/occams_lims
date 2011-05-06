@@ -78,7 +78,6 @@ class ISpecimenLabel(ILabel):
     """
     A Specimen Label
     """
-    
     pretty_specimen_type = zope.schema.Choice(
         title=_(u"Specimen Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type")
@@ -101,6 +100,7 @@ class IAvailableSpecimen(form.Schema):
         required=False)
 zope.interface.alsoProvides(IAvailableSpecimen, form.IFormFieldProvider)
 
+
 class IRequiredSpecimen(form.Schema):
     """
     """
@@ -115,8 +115,22 @@ class IRequiredSpecimen(form.Schema):
         required=False)
 zope.interface.alsoProvides(IRequiredSpecimen, form.IFormFieldProvider)
 
+class ISpecimenSupport(interface.Interface):
+    """
+    Marker class for items that have specimen associated with them
+    """
+    def getSpecimen():
+        """
+        Function that provides specimen associated with the object
+        """
+    
 class IRequestedSpecimen(interface.Interface):
     """
     Marker class for items that require specimen
     """
-    pass
+    
+    def getSpecimen():
+        """
+        Function that provides specimen associated with the object
+        """
+zope.interface.alsoProvides(IRequestedSpecimen, ISpecimenSupport)
