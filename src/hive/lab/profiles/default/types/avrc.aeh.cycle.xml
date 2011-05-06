@@ -4,6 +4,6 @@
    i18n:domain="avrc.aeh" xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
  <property name="behaviors" purge="false">
-     <element value="hive.lab.interfaces.IRequiredSpecimen" />
+     <element value="hive.lab.interfaces.specimen.IRequiredSpecimen" />
  </property>
 </object>

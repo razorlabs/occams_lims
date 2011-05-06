@@ -1,31 +1,27 @@
 from Products.CMFCore.utils import getToolByName
-
 from plone.directives import dexterity
-
 from zope.security import checkPermission
 from datetime import date
-
 from five import grok
-
-from hive.lab import MessageFactory as _
-
-from beast.browser import widgets
-
-from beast.browser.crud import NestedFormView, BatchNavigation
-
-from hive.lab.interfaces.lab import IClinicalLab
-from avrc.data.store.interfaces import ISpecimen
-from hive.lab.interfaces.specimen import IViewableSpecimen
-from hive.lab.interfaces.specimen import ISpecimenLabel
-
-
 from z3c.form import field
 from z3c.form import button
 from z3c.form.interfaces import DISPLAY_MODE
-from avrc.data.store.interfaces import IDatastore
+from plone.z3cform.crud import crud
 from zope.component import  getSiteManager
 
-from plone.z3cform.crud import crud
+from beast.browser import widgets
+from beast.browser.crud import NestedFormView, BatchNavigation
+from avrc.data.store.interfaces import ISpecimen
+from avrc.data.store.interfaces import IDatastore
+
+from hive.lab.interfaces.lab import IClinicalLab
+from hive.lab.interfaces.specimen import IViewableSpecimen
+from hive.lab.interfaces.specimen import ISpecimenLabel
+
+from hive.lab import MessageFactory as _
+
+
+
 
 # ------------------------------------------------------------------------------
 # Constants

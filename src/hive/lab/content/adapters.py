@@ -1,14 +1,13 @@
+from five import grok
+
+from avrc.data.store.interfaces import ISpecimen
+from avrc.data.store.interfaces import IAliquot
+
+from hive.lab import utilities as utils
 from hive.lab.interfaces.aliquot import IViewableAliquot
 from hive.lab.interfaces.specimen import IViewableSpecimen
 from hive.lab.interfaces.specimen import ISpecimenLabel
-
-from avrc.data.store.interfaces import IAliquot
-from five import grok
-
 from hive.lab import MessageFactory as _
-from avrc.data.store.interfaces import ISpecimen
-from hive.lab import utilities as utils
-
 
 class ViewableSpecimen(grok.Adapter):
     grok.context(ISpecimen)

@@ -16,7 +16,7 @@
   <property name="allow_discussion">False</property>
 
  <!-- schema interface -->
- <property name="schema">hive.lab.interfaces.IResearchLab</property> 
+ <property name="schema">hive.lab.interfaces.lab.IResearchLab</property> 
 
  <!-- class used for content items -->
  <property name="klass">plone.dexterity.content.Container</property>
