@@ -1,7 +1,7 @@
 
 from hive.lab.interfaces.labels import ILabelSheet
 from hive.lab.interfaces.lab import IContainsSpecimen
-from hive.lab.interfaces.specimen import IRequestSpecimen
+# from hive.lab.interfaces.specimen import IRequestSpecimen
 
 from five import grok
 from zope.lifecycleevent import IObjectAddedEvent
@@ -29,41 +29,41 @@ def handleLabelSheetAdded(sheet, event):
     label_catalog.addColumn('date_collected')
 
 
-@grok.subscribe(IRequestSpecimen, IObjectAddedEvent)
-def handleSpecimenRequestorAdd(item, event):
-    """
-    Create New Specimen, based on the blueprint, with the following fields:
-    subject_zid
-
-    protocol_zid
-
-    state
-
-    date_collected
-
-    time_collected
-
-    specimen_type
-
-    destination
-
-    tubes
-
-    tube_type
-
-    notes
-    
-    """
-    
-    intids = component.getUtility(IIntIds)
-    patient = self.aq_parent
-    patient_zid = intids.getId(patient)
-    specimen_state = u'pending-draw'
-    import pdb;pdb.set_trace()
-    for cycle in item.cycles:
-        for bp in cycle.related_specimen:
-            blueprint = bp.to_object
-            
+# @grok.subscribe(IRequestSpecimen, IObjectAddedEvent)
+# def handleSpecimenRequestorAdd(item, event):
+#     """
+#     Create New Specimen, based on the blueprint, with the following fields:
+#     subject_zid
+# 
+#     protocol_zid
+# 
+#     state
+# 
+#     date_collected
+# 
+#     time_collected
+# 
+#     specimen_type
+# 
+#     destination
+# 
+#     tubes
+# 
+#     tube_type
+# 
+#     notes
+#     
+#     """
+#     
+#     intids = component.getUtility(IIntIds)
+#     patient = self.aq_parent
+#     patient_zid = intids.getId(patient)
+#     specimen_state = u'pending-draw'
+#     import pdb;pdb.set_trace()
+#     for cycle in item.cycles:
+#         for bp in cycle.related_specimen:
+#             blueprint = bp.to_object
+#             
             
 # #             visit.addRequestedSpecimen(iface=iface, protocol_zid=int(cycleid))
 

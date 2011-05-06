@@ -3,7 +3,7 @@ from zope import interface
 import zope.schema
 from plone.directives import form
 from hive.lab import MessageFactory as _
-from hive.lab.interfaces import ILabel
+from hive.lab.interfaces.labels import ILabel
 from hive.lab import utilities as utils
 
 class IViewableAliquot(form.Schema):

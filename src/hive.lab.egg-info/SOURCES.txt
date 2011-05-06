@@ -16,7 +16,6 @@ src/hive.lab.egg-info/paster_plugins.txt
 src/hive.lab.egg-info/requires.txt
 src/hive.lab.egg-info/top_level.txt
 src/hive/lab/__init__.py
-src/hive/lab/adapters.py
 src/hive/lab/configure.zcml
 src/hive/lab/permissions.zcml
 src/hive/lab/profiles.zcml
@@ -47,10 +46,12 @@ src/hive/lab/profiles/default/types.xml
 src/hive/lab/profiles/default/types/avrc.aeh.cycle.xml
 src/hive/lab/profiles/default/types/avrc.aeh.institute.xml
 src/hive/lab/profiles/default/types/avrc.aeh.study.xml
+src/hive/lab/profiles/default/types/avrc.aeh.visit.xml
 src/hive/lab/profiles/default/types/hive.lab.aliquotblueprint.xml
 src/hive/lab/profiles/default/types/hive.lab.cliniclab.xml
 src/hive/lab/profiles/default/types/hive.lab.researchlab.xml
 src/hive/lab/profiles/default/types/hive.lab.specimenblueprint.xml
+src/hive/lab/temporarycode/adapters.py
 src/hive/lab/temporarycode/clinicallabform.py
 src/hive/lab/temporarycode/labelprintform.py
 src/hive/lab/temporarycode/specimenaliquotform.py

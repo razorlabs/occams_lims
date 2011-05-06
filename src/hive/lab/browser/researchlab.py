@@ -13,9 +13,9 @@ from beast.browser import widgets
 
 from beast.browser.crud import NestedFormView, BatchNavigation
 
-from hive.lab.interfaces import IResearchLab
+from hive.lab.interfaces.lab import IResearchLab
 from avrc.data.store.interfaces import ISpecimen
-from hive.lab.interfaces import IViewableSpecimen
+from hive.lab.interfaces.specimen import IViewableSpecimen
 
 
 from z3c.form import field

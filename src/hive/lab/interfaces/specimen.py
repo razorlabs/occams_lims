@@ -91,7 +91,39 @@ from plone.formwidget.contenttree import ObjPathSourceBinder
 #from plone.app.dexterity.behaviors.related import IRelatedItems
 from hive.lab.vocabularies import SpecimenVocabulary
 
-class ISpecimenRequests(form.Schema):
+# class ISpecimenRequests(form.Schema):
+#     """
+#     """
+# 
+#                   
+#     related_specimen = zope.schema.List(
+#         title=_(u'label_related_specimen', default=u'Specimen'),
+#         default=[],
+#         value_type=zope.schema.Choice(title=u"Specimen",
+#                       source=SpecimenVocabulary()),
+#         required=False,
+#         )
+#         
+# zope.interface.alsoProvides(ISpecimenRequests, form.IFormFieldProvider)
+
+class IAvailableSpecimen(form.Schema):
+    """
+    """
+    form.fieldset('specimen', label=u"Specimen",
+                  fields=['related_specimen'])
+                  
+    related_specimen = RelationList(
+        title=_(u'label_related_specimen', default=u'Available Specimen'),
+        default=[],
+        value_type=RelationChoice(
+            title=u"Specimen", source=ObjPathSourceBinder(
+                object_provides=ISpecimenBlueprint.__identifier__
+            )
+        ),
+        required=False)
+zope.interface.alsoProvides(IAvailableSpecimen, form.IFormFieldProvider)
+
+class IRequiredSpecimen(form.Schema):
     """
     """
     form.fieldset('specimen', label=u"Specimen",
@@ -102,26 +134,8 @@ class ISpecimenRequests(form.Schema):
         default=[],
         value_type=zope.schema.Choice(title=u"Specimen",
                       source=SpecimenVocabulary()),
-        required=False,
-        )
-        
-zope.interface.alsoProvides(ISpecimenRequests, form.IFormFieldProvider)
-
-class IAvailableSpecimen(ISpecimenRequests):
-    """
-    """
-    related_specimen = RelationList(
-        title=_(u'label_related_specimen', default=u'Available Specimen'),
-        default=[],
-        value_type=RelationChoice(title=u"Specimen", source=ObjPathSourceBinder(object_provides=ISpecimenBlueprint.__identifier__
-)),
-        required=False,
-        )
-
-class IRequiredSpecimen(ISpecimenRequests):
-    """
-    """
-    pass
+        required=False)
+zope.interface.alsoProvides(IRequiredSpecimen, form.IFormFieldProvider)
 
 class IRequestSpecimen(interface.Interface):
     """

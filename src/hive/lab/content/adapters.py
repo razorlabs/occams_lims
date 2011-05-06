@@ -1,6 +1,6 @@
-from hive.lab.interfaces import IViewableAliquot
-from hive.lab.interfaces import IViewableSpecimen
-from hive.lab.interfaces import ISpecimenLabel
+from hive.lab.interfaces.aliquot import IViewableAliquot
+from hive.lab.interfaces.specimen import IViewableSpecimen
+from hive.lab.interfaces.specimen import ISpecimenLabel
 
 from avrc.data.store.interfaces import IAliquot
 from five import grok
