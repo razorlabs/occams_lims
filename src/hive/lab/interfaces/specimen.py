@@ -115,6 +115,8 @@ class IRequiredSpecimen(form.Schema):
         required=False)
 zope.interface.alsoProvides(IRequiredSpecimen, form.IFormFieldProvider)
 
+
+
 class ISpecimenSupport(interface.Interface):
     """
     Marker class for items that have specimen associated with them
@@ -124,7 +126,7 @@ class ISpecimenSupport(interface.Interface):
         Function that provides specimen associated with the object
         """
     
-class IRequestedSpecimen(interface.Interface):
+class IRequestedSpecimen(ISpecimenSupport):
     """
     Marker class for items that require specimen
     """
@@ -133,4 +135,4 @@ class IRequestedSpecimen(interface.Interface):
         """
         Function that provides specimen associated with the object
         """
-zope.interface.alsoProvides(IRequestedSpecimen, ISpecimenSupport)
+

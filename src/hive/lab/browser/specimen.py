@@ -43,6 +43,7 @@ class SpecimenSupport(dexterity.DisplayForm):
     """
     grok.context(ISpecimenSupport)
     grok.require('zope2.View')
+    grok.name('specimen')
 
     def __init__(self, context, request):
         super(SpecimenSupport, self).__init__(context, request)
