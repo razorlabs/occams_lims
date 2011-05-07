@@ -2,6 +2,7 @@ from plone.dexterity import content
 import zope.interface
 from zope.schema.fieldproperty import FieldProperty
 import zope.component
+from zope.app.intid.interfaces import IIntIds
 
 from avrc.data.store.lab import Specimen
 from avrc.data.store.interfaces import IDatastore
@@ -29,7 +30,7 @@ class SpecimenBlueprint(content.Container):
         intids = zope.component.getUtility(IIntIds)
         blueprint_zid = intids.getId(self)
         
-        sm =  zope.component.getSiteManager(visit)
+        sm =  zope.component.getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
         specimen_manager = ds.getSpecimenManager()
         
