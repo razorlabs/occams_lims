@@ -6,6 +6,7 @@ from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
 from Products.PluginIndexes.DateIndex.DateIndex import DateIndex
 import zope.component
 
+from avrc.data.store.interfaces import IDatastore
 
 from hive.lab.interfaces.specimen import IRequestedSpecimen
 from hive.lab.interfaces.labels import ILabelSheet
@@ -39,6 +40,9 @@ def handleRequestedSpecimenAdded(visit, event):
     intids = zope.component.getUtility(IIntIds)
     patient = visit.aq_parent
     patient_zid = intids.getId(patient)    
+    sm =  zope.component.getSiteManager(self)
+    ds = sm.queryUtility(IDatastore, 'fia')
+    specimen_manager = ds.getSpecimenManager()  
     
     for cycle_relation in visit.cycles:
         cycle_zid = cycle_relation.to_id
@@ -47,8 +51,9 @@ def handleRequestedSpecimenAdded(visit, event):
         if cycle.related_specimen is not None and len(cycle.related_specimen):
             for specimen_relation in cycle.related_specimen:
                 specimenBlueprint = specimen_relation.to_object
-                specimenBlueprint.createSpecimen(patient_zid, cycle_zid, visit.visit_date)
-                
+                specimen = specimenBlueprint.createSpecimen(patient_zid, cycle_zid, visit.visit_date)
+                specimen_manager.put(specimen)
+
 
                 #We don't want duplicate specimen
                 

@@ -58,32 +58,37 @@ class IAliquotBlueprint(form.Schema):
     """
     Blueprint the system can use to create aliquot
     """
-    title = zope.schema.TextLine(
-        title=_(u'Aliquot Title'),
+
+    default_count = zope.schema.Int(
+        title=_(u'Default Count'),
+        description=_(u'Default number of aliquot expected from the specimen')
+        default=1,
+        required=True
         )
-        
-    aliquot_type_title = zope.schema.TextLine(
-        title=_(u'Aliquot Type Title'),
-        )
-    aliquot_type = zope.schema.TextLine(
-        title=_(u'Aliquot Type Value'),
+    aliquot_type = zope.schema.Choice(
+        title=_(u"Aliquot Type"),
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         )
 
-    default_volume = zope.schema.Float(
-        title=_(u'Default volume'),
+    volume = zope.schema.Float(
+        title=_(u"Volume (mLs)"),
         required=False,
-        )
-    measure = zope.schema.TextLine(
-        title=_(u'Volume Measurement'),
         )
         
-    default_count = zope.schema.Float(
-        title=_(u'Default cell count'),
+    cell_amount = zope.schema.Float(
+        title=_(u"# of cells (x10^6)"),
+        description=_(u"measured in millions"),
         required=False,
         )
-    measure = zope.schema.TextLine(
-        title=_(u'Volume Measurement'),
+        
+    storage_site = zope.schema.Choice(
+        title=_(u"Storage Site"),
+        description=_(u"Please select the appropriate location:"),
+        source=SpecimenAliquotVocabulary(u"aliquot_storage_site"),
+        required=True,
+        default=u'richman lab'
         )
+        
     special_instructions = zope.schema.List(
         title=_(u'Special Instruction Options'),
         value_type = zope.schema.TextLine(),
