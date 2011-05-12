@@ -68,7 +68,7 @@ def get_specimen(zid):
     site = getSite()
     sm = getSiteManager(site)
     ds = sm.queryUtility(IDatastore, 'fia')
-    specimen_manager = ds.specimen
+    specimen_manager = ds.getSpecimenManager()
     return specimen_manager.get(zid)
 
 @ram.cache(_render_details_cachekey)

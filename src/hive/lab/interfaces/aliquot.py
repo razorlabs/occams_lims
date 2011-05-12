@@ -8,6 +8,8 @@ from hive.lab.interfaces.labels import ILabel
 from hive.lab import vocabularies
 
 class IViewableAliquot(form.Schema):
+    """
+    """
     aliquot_id = zope.schema.TextLine(
         title=u"Aliquot #",
         readonly=True
@@ -37,21 +39,13 @@ class IViewableAliquot(form.Schema):
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         )
-      
-  
-class IAliquotLabel(interface.Interface):
 
-    aliquot = zope.schema.TextLine(title=u"Aliquot Number")
-
-    our = zope.schema.TextLine(title=u"OUR #")
-
-    study = zope.schema.TextLine(title=u"Study")
-
-    week = zope.schema.TextLine(title=u"Week")
-
-    type = zope.schema.TextLine(title=u"Type")
-
-    date = zope.schema.Date(title=u"Storage Date")
+    special_instruction = zope.schema.Choice(
+        title=_(u"Special"),
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_special_instruction"),
+        default=u'na',
+        required=False,
+        )
 
 
 class IAliquotBlueprint(form.Schema):
@@ -59,12 +53,12 @@ class IAliquotBlueprint(form.Schema):
     Blueprint the system can use to create aliquot
     """
 
-    default_count = zope.schema.Int(
-        title=_(u'Default Count'),
-        description=_(u'Default number of aliquot expected from the specimen')
-        default=1,
-        required=True
-        )
+#     default_count = zope.schema.Int(
+#         title=_(u'Default Count'),
+#         description=_(u'Default number of aliquot expected from the specimen'),
+#         default=1,
+#         required=True
+#         )
     aliquot_type = zope.schema.Choice(
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
@@ -84,7 +78,7 @@ class IAliquotBlueprint(form.Schema):
     storage_site = zope.schema.Choice(
         title=_(u"Storage Site"),
         description=_(u"Please select the appropriate location:"),
-        source=SpecimenAliquotVocabulary(u"aliquot_storage_site"),
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_storage_site"),
         required=True,
         default=u'richman lab'
         )
@@ -94,7 +88,18 @@ class IAliquotBlueprint(form.Schema):
         value_type = zope.schema.TextLine(),
         required=False
         )
-        
+
+class IAliquotGenerator(form.Schema):
+    count = zope.schema.Int(
+        title=_(u'Count'),
+        description=_(u'Number of aliquot to generate from the specimen'),
+        required=False
+        )
+#     blueprint_zid = zope.schema.TextLine(
+#         title=u"Blueprint",
+#         readonly=True
+#         )
+
 class IAliquotLabel(ILabel):
     """
     A Specimen Label
@@ -104,3 +109,17 @@ class IAliquotLabel(ILabel):
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         ) 
+        
+# class IAliquotLabel(interface.Interface):
+# 
+#     aliquot = zope.schema.TextLine(title=u"Aliquot Number")
+# 
+#     our = zope.schema.TextLine(title=u"OUR #")
+# 
+#     study = zope.schema.TextLine(title=u"Study")
+# 
+#     week = zope.schema.TextLine(title=u"Week")
+# 
+#     type = zope.schema.TextLine(title=u"Type")
+# 
+#     date = zope.schema.Date(title=u"Storage Date")

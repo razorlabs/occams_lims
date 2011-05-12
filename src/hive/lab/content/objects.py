@@ -12,6 +12,7 @@ from hive.lab.interfaces.specimen import ISpecimenBlueprint
 from hive.lab.interfaces.aliquot import IAliquotBlueprint
 
 
+
 class SpecimenBlueprint(content.Container):
     zope.interface.implements(ISpecimenBlueprint)
     __doc__ = ISpecimenBlueprint.__doc__
@@ -32,6 +33,7 @@ class SpecimenBlueprint(content.Container):
         blueprint_zid = intids.getId(self)
         
         kwargs = {}
+        kwargs['blueprint_zid'] = blueprint_zid
         kwargs['subject_zid'] = subject_zid
         kwargs['protocol_zid'] = protocol_zid
         kwargs['state'] = u'pending-draw' 
@@ -42,60 +44,76 @@ class SpecimenBlueprint(content.Container):
         kwargs['tube_type'] = self.tube_type
 
         return Specimen(**kwargs)
-        
-    def aliquotSpecimen(self, specimen):
+
+
+    def createAliquotMold(self, specimen):
         """
         Loop through the aliquot in this folder, and 
         create aliquots.
         """
-        for blueprint in self.folderContents({'portal_type':'IAliquotBlueprint'}):
-            blueprint.createAliquot(specimen)
-        setattr(specimen, 'state', u'aliquoted')
+        moldlist = []
+        for aliquot_blueprint in self.listFolderContents({'portal_type':'hive.lab.aliquotblueprint'}):
+            moldlist.append(aliquot_blueprint.createAliquot(specimen))
+        return moldlist
         # Get the transaction and commit it?
 
 class AliquotBlueprint(content.Item):
     zope.interface.implements(IAliquotBlueprint)
     __doc__ = IAliquotBlueprint.__doc__
     
-    default_count = FieldProperty(IAliquotBlueprint["default_count"])
 
     aliquot_type = FieldProperty(IAliquotBlueprint["aliquot_type"])
-
     volume = FieldProperty(IAliquotBlueprint["volume"])
-        
     cell_amount = FieldProperty(IAliquotBlueprint["cell_amount"])
-        
     storage_site = FieldProperty(IAliquotBlueprint["storage_site"])
-        
     special_instructions = FieldProperty(IAliquotBlueprint["special_instructions"])
 
 
-    def createAliquot(self, specimen, store_date):
+    def createAliquot(self, specimen):
         """
-        Build a set of keyword arguements and pass back a specimen matching this blueprint
+        Creat a mold from this template to create Aliquot
         """
-        if store_date is None:
-            store_date = date()
-        # intids = zope.component.getUtility(IIntIds)
-#         blueprint_zid = intids.getId(self)
-#         
         kwargs={}
-        kwargs['specimen_dsid'] = 
+        kwargs['specimen_dsid'] = specimen.dsid
+        kwargs['state']=unicode('pending')
         kwargs['type'] = self.aliquot_type
         kwargs['volume'] = self.volume
         kwargs['cell_amount'] = self.cell_amount
-        kwargs['store_date'] = store_date
+        kwargs['store_date'] = specimen.date_collected
         kwargs['storage_site'] = self.storage_site
         kwargs['thawed_num'] = 0
-        kwargs['special_instruction'] = self.special_instructions
+        kwargs['special_instruction'] = self.special_instructions                
+
+        return Aliquot(**kwargs)
         
-        obj.freezer = context.freezer
-        obj.rack = context.rack
-        obj.box = context.box
-        obj.notes = context.notes
-        
-        aliquot_list=[]
-        for i in self.default_count:
-            aliquot_list.append(Aliquot(**kwargs))
-            
-        return aliquot_list
+
+
+#     def createAliquot(self, specimen, store_date):
+#         """
+#         Build a set of keyword arguements and pass back a specimen matching this blueprint
+#         """
+#         if store_date is None:
+#             store_date = date()
+#         # intids = zope.component.getUtility(IIntIds)
+# #         blueprint_zid = intids.getId(self)
+# #         
+#         kwargs={}
+#         kwargs['specimen_dsid'] = None
+#         kwargs['type'] = self.aliquot_type
+#         kwargs['volume'] = self.volume
+#         kwargs['cell_amount'] = self.cell_amount
+#         kwargs['store_date'] = store_date
+#         kwargs['storage_site'] = self.storage_site
+#         kwargs['thawed_num'] = 0
+#         kwargs['special_instruction'] = self.special_instructions
+# #         
+# #         obj.freezer = context.freezer
+# #         obj.rack = context.rack
+# #         obj.box = context.box
+# #         obj.notes = context.notes
+# #         
+#         aliquot_list=[]
+#         for i in self.default_count:
+#             aliquot_list.append(Aliquot(**kwargs))
+#             
+#         return aliquot_list

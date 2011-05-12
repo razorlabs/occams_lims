@@ -176,86 +176,7 @@ class SpecimenRequestor(crud.CrudForm):
             specimenlist.append((specimenobj.dsid, specimenobj))
         return specimenlist
 
-# ------------------------------------------------------------------------------
-# Specific forms
-# ------------------------------------------------------------------------------
-class NewSpecimen(SpecimenRequestor):
-    @property
-    def editform_factory(self):
-        return NewSpecimenManager
 
-    @property
-    def display_state(self):
-        return u"pending-draw"
-        
-    @property
-    def action(self):
-        return self.context.absolute_url()
-
-
-class BatchedSpecimen(SpecimenRequestor):
-    @property
-    def editform_factory(self):
-        return BatchedSpecimenManager
-
-    @property
-    def display_state(self):
-        return u"batched"
-        
-    @property
-    def action(self):
-        return self.context.absolute_url()
-   
-   
-class PostponedSpecimen(SpecimenRequestor):
-    @property
-    def editform_factory(self):
-        return PostponedSpecimenManager
-
-    @property
-    def display_state(self):
-        return u"postponed"
-        
-    @property
-    def action(self):
-        return self.context.absolute_url()
-
-class CompletedSpecimen(SpecimenRequestor):
-
-    display0 = field.Fields(ISpecimen, mode=DISPLAY_MODE).\
-        select('state')
-
-    display1 = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
-        select('patient_title', 'patient_initials', 'study_title',
-       'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
-       
-    display2 = field.Fields(ISpecimen, mode=DISPLAY_MODE).\
-        select('tubes','date_collected', 'time_collected',  'notes')
-
-    update_schema =  display0 + display1 + display2
-    
-    @property
-    def editform_factory(self):
-        return CompletedSpecimenManager
-
-    @property
-    def display_state(self):
-        return u"complete"
-        
-    @property
-    def action(self):
-        return self.context.absolute_url()
-
-    def get_items(self):
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        specimenlist=[]
-        specimen_manager = ds.getSpecimenManager()
-        for state in [u'complete', u'rejected']:
-            for specimenobj in specimen_manager.list_by_state(state, before_date=date.today(), after_date=date.today()):
-                specimenlist.append((specimenobj.dsid, specimenobj))
-        return specimenlist
-  
 # ------------------------------------------------------------------------------
 # Button Base Class
 # ------------------------------------------------------------------------------
@@ -335,11 +256,24 @@ class SpecimenButtonCore(crud.EditForm):
                 count = 1
             for i in range(count):
                 label_que.catalog_object(ISpecimenLabel(item), uid="%d-%d" %(id, i))
+                
+# ------------------------------------------------------------------------------
+# Specific forms
+# ------------------------------------------------------------------------------
+class NewSpecimen(SpecimenRequestor):
+    @property
+    def editform_factory(self):
+        return NewSpecimenManager
+
+    @property
+    def display_state(self):
+        return u"pending-draw"
         
-# ------------------------------------------------------------------------------
-# Buttons For Specific Forms
-# ------------------------------------------------------------------------------
-# 
+    @property
+    def action(self):
+        return self.context.absolute_url()
+
+
 class NewSpecimenManager(SpecimenButtonCore):
     label=_(u"")
         
@@ -357,7 +291,7 @@ class NewSpecimenManager(SpecimenButtonCore):
     @button.buttonAndHandler(_('Complete selected'), name='complete')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'complete','complete')
+        self.changeState(action, 'pending-aliquot','complete')
         self.queLabels(action)
         self._update_subforms()
         return
@@ -383,7 +317,22 @@ class NewSpecimenManager(SpecimenButtonCore):
         self.changeState(action, 'rejected','reject')
         self._update_subforms()
         return
+
+# ------------------------------------------------------------------------------
+
+class BatchedSpecimen(SpecimenRequestor):
+    @property
+    def editform_factory(self):
+        return BatchedSpecimenManager
+
+    @property
+    def display_state(self):
+        return u"batched"
         
+    @property
+    def action(self):
+        return self.context.absolute_url()
+
 class BatchedSpecimenManager(SpecimenButtonCore):
     label=_(u"")
     @button.buttonAndHandler(_('Save All Changes'), name='update')
@@ -400,11 +349,26 @@ class BatchedSpecimenManager(SpecimenButtonCore):
     @button.buttonAndHandler(_('Complete selected'), name='complete')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'complete','complete')
+        self.changeState(action, 'pending-aliquot','complete')
         self.queLabels(action)
         self._update_subforms()
         return 
+
+# ------------------------------------------------------------------------------
+   
+class PostponedSpecimen(SpecimenRequestor):
+    @property
+    def editform_factory(self):
+        return PostponedSpecimenManager
+
+    @property
+    def display_state(self):
+        return u"postponed"
         
+    @property
+    def action(self):
+        return self.context.absolute_url()
+
 class PostponedSpecimenManager(SpecimenButtonCore):
     label=_(u"")
     @button.buttonAndHandler(_('Save All Changes'), name='update')
@@ -422,7 +386,7 @@ class PostponedSpecimenManager(SpecimenButtonCore):
     @button.buttonAndHandler(_('Complete selected'), name='complete')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'complete','complete')
+        self.changeState(action, 'pending-aliquot','complete')
         self.queLabels(action)
         self._update_subforms()
         return
@@ -441,6 +405,44 @@ class PostponedSpecimenManager(SpecimenButtonCore):
         self.changeState(action, 'rejected','reject')
         self._update_subforms()
         return
+
+# ------------------------------------------------------------------------------
+
+class CompletedSpecimen(SpecimenRequestor):
+
+    display0 = field.Fields(ISpecimen, mode=DISPLAY_MODE).\
+        select('state')
+
+    display1 = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
+        select('patient_title', 'patient_initials', 'study_title',
+       'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+       
+    display2 = field.Fields(ISpecimen, mode=DISPLAY_MODE).\
+        select('tubes','date_collected', 'time_collected',  'notes')
+
+    update_schema =  display0 + display1 + display2
+    
+    @property
+    def editform_factory(self):
+        return CompletedSpecimenManager
+
+    @property
+    def display_state(self):
+        return u"pending-aliquot"
+        
+    @property
+    def action(self):
+        return self.context.absolute_url()
+
+    def get_items(self):
+        sm = getSiteManager(self)
+        ds = sm.queryUtility(IDatastore, 'fia')
+        specimenlist=[]
+        specimen_manager = ds.getSpecimenManager()
+        for state in [u'pending-aliquot', u'rejected']:
+            for specimenobj in specimen_manager.list_by_state(state, before_date=date.today(), after_date=date.today()):
+                specimenlist.append((specimenobj.dsid, specimenobj))
+        return specimenlist
         
 class CompletedSpecimenManager(SpecimenButtonCore):
     label=_(u"")

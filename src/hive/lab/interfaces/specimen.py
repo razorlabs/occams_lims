@@ -2,6 +2,7 @@ from datetime import datetime
 from datetime import date
 from zope import interface
 import zope.schema
+import zope.interface
 from plone.directives import form
 from z3c.relationfield.schema import RelationList, RelationChoice
 from plone.formwidget.contenttree import ObjPathSourceBinder
@@ -73,7 +74,17 @@ class ISpecimenBlueprint(form.Schema):
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_destination"),
         default=u"Richman Lab",
         )
-        
+
+class IBlueprintForSpecimen(zope.interface.Interface):
+    """
+    Find the blueprint associated with a Specimen
+    """
+    def getBlueprint():
+        """
+        Find the assocated Blueprint for this specimen
+        """
+        pass
+       
 class ISpecimenLabel(ILabel):
     """
     A Specimen Label

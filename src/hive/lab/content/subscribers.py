@@ -40,7 +40,7 @@ def handleRequestedSpecimenAdded(visit, event):
     intids = zope.component.getUtility(IIntIds)
     patient = visit.aq_parent
     patient_zid = intids.getId(patient)    
-    sm =  zope.component.getSiteManager(self)
+    sm =  zope.component.getSiteManager(visit)
     ds = sm.queryUtility(IDatastore, 'fia')
     specimen_manager = ds.getSpecimenManager()  
     
