@@ -22,7 +22,7 @@ def handleLabelSheetAdded(sheet, event):
     manage_addZCatalog(sheet, 'labels', u'Labels', REQUEST=None)
     zcat = sheet._getOb('labels')
     label_catalog = zcat._catalog
-    for field in ['patient_title', 'study_title', 'protocol_title', 'pretty_specimen_type']:
+    for field in ['patient_title', 'study_title', 'protocol_title', 'pretty_specimen_type','portal_type']:
         index = FieldIndex(field)
         label_catalog.addIndex(field, index)
         label_catalog.addColumn(field)

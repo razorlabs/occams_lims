@@ -2,6 +2,7 @@ from five import grok
 import zope.component
 from zope.app.intid.interfaces import IIntIds
 
+from avrc.data.store.interfaces import IDatastore
 from avrc.data.store.interfaces import ISpecimen
 from avrc.data.store.interfaces import IAliquot
 
@@ -14,6 +15,17 @@ from hive.lab.interfaces.specimen import IBlueprintForSpecimen
 from hive.lab.interfaces.specimen import IViewableSpecimen
 from hive.lab.interfaces.specimen import ISpecimenLabel
 from hive.lab import MessageFactory as _
+
+# @grok.adapter(IAliquot)
+# @grok.implementer(ISpecimen)
+# def SpecimenOfAliquot(context):
+#     """ Translates an Aliquot into its parent Specimen
+#     """
+#     sm = zope.component.getSiteManager(self)
+#     ds = sm.queryUtility(IDatastore, 'fia')
+#     specimen_manager = ds.getSpecimenManager()
+#     specimen = specimen_manager.get(context.specimen_dsid)
+#     return specimen
 
 class ViewableSpecimen(grok.Adapter):
     grok.context(ISpecimen)
@@ -95,11 +107,12 @@ class BlueprintForSpecimen(grok.Adapter):
     """
     def getBlueprint(self, context):
         intids = zope.component.getUtility(IIntIds)
-        if hasattr(self.context, 'blueprint_zid'):
-            return intids.getObject(self.context.blueprint_zid)
+        if hasattr(self.context, 'blueprint_zid') and self.context.blueprint_zid is not None:
+            return intids.getObject(int(self.context.blueprint_zid))
         else:
             raise Exception('Not using newest version. please fix manually')
             return None
+
 
 class LabeledSpecimen(grok.Adapter):
     grok.context(ISpecimen)

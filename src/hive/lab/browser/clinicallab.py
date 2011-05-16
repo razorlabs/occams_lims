@@ -135,6 +135,13 @@ class SpecimenRequestor(crud.CrudForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be 
     """
+    
+    def __init__(self,context, request):
+        super(SpecimenRequestor, self).__init__(context, request)
+        sm = getSiteManager(self)
+        ds = sm.queryUtility(IDatastore, 'fia')
+        self.specimen_manager = ds.getSpecimenManager()
+        
     ignoreContext=True
     addform_factory = crud.NullForm
     
@@ -168,11 +175,8 @@ class SpecimenRequestor(crud.CrudForm):
         
 
     def get_items(self):
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
         specimenlist=[]
-        specimen_manager = ds.getSpecimenManager()
-        for specimenobj in specimen_manager.list_by_state(self.display_state, before_date=date.today()):
+        for specimenobj in self.specimen_manager.list_by_state(self.display_state, before_date=date.today()):
             specimenlist.append((specimenobj.dsid, specimenobj))
         return specimenlist
 
@@ -183,7 +187,7 @@ class SpecimenRequestor(crud.CrudForm):
 # 
 class SpecimenButtonCore(crud.EditForm):
     label=_(u"")
-    
+            
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone
@@ -197,18 +201,12 @@ class SpecimenButtonCore(crud.EditForm):
     def changeState(self, action, state, acttitle):
         success = SUCCESS_MESSAGE
         no_changes = NO_CHANGES
-#         if self.status != success and self.status != no_changes:
-#             self.status = 'Cannot %s draw because: %s' % (acttitle, self.status)
-#             return
+
         selected = self.selected_items()
         if selected:
-            sm = getSiteManager(self)
-            ds = sm.queryUtility(IDatastore, 'fia')
-            specimen_manager = ds.getSpecimenManager()
             for id, specimenobj in selected:
-                specimenobj = ISpecimen(specimenobj)
                 setattr(specimenobj, 'state', unicode(state))
-                newspecimen = specimen_manager.put(specimenobj)
+                newspecimen = self.context.specimen_manager.put(specimenobj)
             self.status = _(u"Your specimen have been %sd." % (acttitle))
         else:
             self.status = _(u"Please select specimen to %s."% (acttitle))
@@ -217,9 +215,6 @@ class SpecimenButtonCore(crud.EditForm):
         success = SUCCESS_MESSAGE
         partly_success = _(u"Some of your changes could not be applied.")
         status = no_changes = NO_CHANGES
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        specimen_manager = ds.getSpecimenManager()
         for subform in self.subforms:
             data, errors = subform.extractData()
             if errors:
@@ -238,7 +233,7 @@ class SpecimenButtonCore(crud.EditForm):
                     if status is no_changes:
                         status = success
             if updated:
-                newspecimen = specimen_manager.put(specimenobj)
+                newspecimen = self.context.specimen_manager.put(specimenobj)
         self.status = status
 
             
@@ -291,7 +286,7 @@ class NewSpecimenManager(SpecimenButtonCore):
     @button.buttonAndHandler(_('Complete selected'), name='complete')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'pending-aliquot','complete')
+        self.changeState(action, 'complete','complete')
         self.queLabels(action)
         self._update_subforms()
         return
@@ -349,7 +344,7 @@ class BatchedSpecimenManager(SpecimenButtonCore):
     @button.buttonAndHandler(_('Complete selected'), name='complete')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'pending-aliquot','complete')
+        self.changeState(action, 'complete','complete')
         self.queLabels(action)
         self._update_subforms()
         return 
@@ -386,7 +381,7 @@ class PostponedSpecimenManager(SpecimenButtonCore):
     @button.buttonAndHandler(_('Complete selected'), name='complete')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'pending-aliquot','complete')
+        self.changeState(action, 'complete','complete')
         self.queLabels(action)
         self._update_subforms()
         return
@@ -435,12 +430,9 @@ class CompletedSpecimen(SpecimenRequestor):
         return self.context.absolute_url()
 
     def get_items(self):
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
         specimenlist=[]
-        specimen_manager = ds.getSpecimenManager()
-        for state in [u'pending-aliquot', u'rejected']:
-            for specimenobj in specimen_manager.list_by_state(state, before_date=date.today(), after_date=date.today()):
+        for state in [u'complete', u'rejected']:
+            for specimenobj in self.specimen_manager.list_by_state(state, before_date=date.today(), after_date=date.today()):
                 specimenlist.append((specimenobj.dsid, specimenobj))
         return specimenlist
         

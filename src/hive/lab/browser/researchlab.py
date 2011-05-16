@@ -26,6 +26,7 @@ from hive.lab.interfaces.aliquot import IAliquotGenerator
 
 from hive.lab.browser.clinicallab import SpecimenRequestor
 from hive.lab.browser.clinicallab import SpecimenButtonCore
+
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -47,7 +48,7 @@ class View(dexterity.DisplayForm):
 
     def __init__(self, context, request):
         super(View, self).__init__(context, request)
-        self.aliquot_requestor = self.getFormRequestor()
+        self.form_requestor = self.getFormRequestor()
         self.aliquot_molder = self.getAliquotRequestor()
 
     def getFormRequestor(self):
@@ -72,7 +73,54 @@ class View(dexterity.DisplayForm):
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance=form
-        return view        
+        return view 
+
+
+class Prepared(dexterity.DisplayForm):
+    """
+    Primary view for a clinical lab object.
+    """
+    grok.context(IResearchLab)
+    grok.require('zope2.View')
+
+    def __init__(self, context, request):
+        super(Prepared, self).__init__(context, request)
+        self.form_requestor = self.getFormRequestor()
+
+    def getFormRequestor(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotChecker(context, self.request)
+        view = NestedFormView(context,self.request)
+        view = view.__of__(context)
+        view.form_instance=form
+        return view
+
+class Completed(dexterity.DisplayForm):
+    """
+    Primary view for a clinical lab object.
+    """
+    grok.context(IResearchLab)
+    grok.require('zope2.View')
+
+    def __init__(self, context, request):
+        super(Completed, self).__init__(context, request)
+        self.form_requestor = self.getFormRequestor()
+
+    def getFormRequestor(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = CompletedAliquot(context, self.request)
+        view = NestedFormView(context,self.request)
+        view = view.__of__(context)
+        view.form_instance=form
+        return view
 
 # ------------------------------------------------------------------------------
 # Specific Specimen forms
@@ -93,7 +141,7 @@ class ReadySpecimen(SpecimenRequestor):
 
     @property
     def display_state(self):
-        return u"pending-aliquot"
+        return u"complete"
         
     @property
     def action(self):
@@ -104,51 +152,28 @@ class ReadySpecimenManager(SpecimenButtonCore):
     label=_(u"")
     @button.buttonAndHandler(_('Ready selected'), name='ready')
     def handleCompleteDraw(self, action):
-        self.changeState(action, 'prepared-aliquot','ready')
+        self.changeState(action, 'pending-aliquot','ready')
         self._update_subforms()
         return
 
-# ------------------------------------------------------------------------------
-# Aliquot Buttons
-# ------------------------------------------------------------------------------
 
-
-class AliquotCreator(crud.EditForm):
+class AliquotCreator(SpecimenButtonCore):
     label=_(u"")
     
     def changeSpecimenState(self, action, state, acttitle):
         success = SUCCESS_MESSAGE
         no_changes = NO_CHANGES
-#         if self.status != success and self.status != no_changes:
-#             self.status = 'Cannot %s draw because: %s' % (acttitle, self.status)
-#             return
+
         selected = self.selected_items()
         if selected:
-            sm = getSiteManager(self)
-            ds = sm.queryUtility(IDatastore, 'fia')
-            specimen_manager = ds.getSpecimenManager()
-            for id, specimenobj in selected:
-                specimenobj = ISpecimen(specimenobj)
+
+            for id, aliquottemplate in selected:
+                specimenobj = self.context.specimen_manager.get(aliquottemplate.specimen_dsid)
                 setattr(specimenobj, 'state', unicode(state))
-                newspecimen = specimen_manager.put(specimenobj)
+                newspecimen = self.context.specimen_manager.put(specimenobj)
             self.status = _(u"Your specimen have been %sd." % (acttitle))
         else:
             self.status = _(u"Please select specimen to %s."% (acttitle))
-             
-#     def queLabels(self, action):
-#         success = SUCCESS_MESSAGE
-#         no_changes = NO_CHANGES
-# 
-#         selected = self.selected_items()
-#         label_que = self.context.context.labels
-#         if selected:
-#             self.status = _(u"Specimen Being added to que.")      
-#         for id, item in selected:
-#             count = item.tubes
-#             if count is None or count < 1:
-#                 count = 1
-#             for i in range(count):
-#                 label_que.catalog_object(ISpecimenLabel(item), uid="%d-%d" %(id, i))
 
     @button.buttonAndHandler(_('Create Aliquot'), name='aliquot')
     def handleCreateAliquot(self, action):
@@ -159,9 +184,7 @@ class AliquotCreator(crud.EditForm):
         success = _(u"Successfully Aliquoted")
         partly_success = _(u"Some of your changes could not be applied.")
         status = no_changes = _(u"No Aliquot Entered.")
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        aliquot_manager = ds.getAliquotManager()
+
         for subform in self.subforms:
             data, errors = subform.extractData()
             if not data['select'] or not data['count']:
@@ -188,128 +211,248 @@ class AliquotCreator(crud.EditForm):
                 if hasattr(blueprint, 'dsid'):
                     # the put has updated blueprint. reset it.
                     blueprint.dsid=None
-                    
-                newaliquot = aliquot_manager.put(blueprint)
+                newaliquot = self.context.aliquot_manager.put(blueprint)
             if status is no_changes:
                 status = success
         self.status = status
-#        self.changeState(action, 'prepared-aliquot','aliquot')
         self._update_subforms()
         return
 
-#     @button.buttonAndHandler(_('Mark Specimen Complete'), name='complete')
-#     def handleCompleteSpecimen(self, action):
-#         self.changeSpecimenState(action, 'aliquoted','complete')
-#         self._update_subforms()
-#         return
+    @button.buttonAndHandler(_('Mark Specimen Complete'), name='complete')
+    def handleCompleteSpecimen(self, action):
+        self.changeSpecimenState(action, 'aliquoted','complete')
+        self._update_subforms()
+        return
+# ------------------------------------------------------------------------------
+# Aliquot Buttons
+# ------------------------------------------------------------------------------
+
+class AliquotButtonCore(crud.EditForm):
+    label=_(u"")
+    
+    def changeAliquotState(self, action, state, acttitle):
+        success = SUCCESS_MESSAGE
+        no_changes = NO_CHANGES
         
-# class SpecimenToAliquotor(crud.CrudForm):
-#     ignoreContext=True
-#     newmanager = field.Fields(aliquot.IAliquot).select('aliquot_count')
-# 
-#     newmanager += field.Fields(aliquot.IAliquot, mode=DISPLAY_MODE).\
-#                   select('patient_title', 'patient_legacy_number',
-#                          'study_title', 'protocol_title', 'aliquot_type')
-#                          
-#     newmanager += field.Fields(aliquot.IAliquot).\
-#                   select('volume', 'cell_amount', 'store_date','freezer',
-#                          'rack', 'box', 'notes', 'special_instruction')
-# 
-#     update_schema = newmanager
-#     addform_factory = crud.NullForm
-#     editform_factory = SpecimenToAliquotManager
-# 
-#     batch_size = 0
-# 
-#     @property
-#     def action(self):
-#         return self.context.absolute_url() + '@@/specimenlab'
-# 
-#     def updateWidgets(self):
-#         super(SpecimenToAliquotor, self).updateWidgets()
-#         self.update_schema['aliquot_count'].widgetFactory = widget.StorageFieldWidget
-#         self.update_schema['volume'].widgetFactory = widget.AmountFieldWidget
-#         self.update_schema['cell_amount'].widgetFactory = widget.AmountFieldWidget
-#         self.update_schema['freezer'].widgetFactory = widget.StorageFieldWidget
-#         self.update_schema['rack'].widgetFactory = widget.StorageFieldWidget
-#         self.update_schema['box'].widgetFactory = widget.StorageFieldWidget
-# 
-#     def get_items(self):
-#         sm = getSiteManager(self)
-#         ds = sm.queryUtility(IDatastore, 'fia')
-#         aliquotlist=[]
-#         specimen_manager = ds.specimen
-#         count = 100
-#         for specimenobj in specimen_manager.list_by_state('prepared-aliquot'):
-#             for aliquot_obj in IAliquotableSpecimen(specimenobj).aliquot():
-#                 newAliquot = aliquot.IAliquot(aliquot_obj)
-#                 aliquotlist.append((count, newAliquot))
-#                 count = count + 1
-#         return aliquotlist
+        selected = self.selected_items()
+        if selected:
+            for id, aliquotobj in selected:
+                setattr(aliquotobj, 'state', unicode(state))
+                newaliquot = self.context.aliquot_manager.put(aliquotobj)
+            self.status = _(u"Your aliquot have been %sd." % (acttitle))
+        else:
+            self.status = _(u"Please select aliquot to %s."% (acttitle))
+             
+    def saveChanges(self, action):
+        success = SUCCESS_MESSAGE
+        partly_success = _(u"Some of your changes could not be applied.")
+        status = no_changes = NO_CHANGES
+        for subform in self.subforms:
+            data, errors = subform.extractData()
+            if errors:
+                if status is no_changes:
+                    status = subform.formErrorsMessage
+                elif status is success:
+                    status = partly_success
+                continue
+            self.context.before_update(subform.content, data)
+            aliquotobj = subform.content
+            updated = False
+            for prop, value in data.items():
+                if hasattr(aliquotobj, prop) and getattr(aliquotobj, prop) != value:
+                    setattr(aliquotobj, prop, value)
+                    updated = True
+                    if status is no_changes:
+                        status = success
+            if updated:
+                newspecimen = self.context.aliquot_manager.put(aliquotobj)
+        self.status = status
+
+# ----------------------------------------------
+
+class AliquotVerifier(AliquotButtonCore):
+    label=_(u"")
+
+    @button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
+    def handleCheckinAliquot(self, action):
+        self.saveChanges(action)
+        self.changeAliquotState(action, 'checked-in', 'Check In')
+        self._update_subforms()
+        return
+
+    @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
+    def handleCheckinAliquot(self, action):
+        self.saveChanges(action)
+        self.changeAliquotState(action, 'unused', 'Unused')
+        self._update_subforms()
+        return
+
+class AliquotRecoverer(AliquotButtonCore):
+
+    @button.buttonAndHandler(_('Recover Aliquot'), name='recover')
+    def handleRecoverAliquot(self, action):
+        self.changeAliquotState(action, 'pending', 'Recover')
+        self._update_subforms()
+        return
+
 # ------------------------------------------------------------------------------
 # Base Form
 # ------------------------------------------------------------------------------
 
-class AliquotRequestor(crud.CrudForm):
+class AliquotRequestorCore(crud.CrudForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be 
     """
-    ignoreContext=True
-    addform_factory = crud.NullForm
-    editform_factory = AliquotCreator
-    batch_size = 10
     
-    display0 = field.Fields(IAliquotGenerator).\
-        select('count')
-        
-    display1 = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
-        select('patient_title', 'patient_legacy_number', 'study_title',
-       'protocol_title', 'pretty_aliquot_type')
-       
-    display2 = field.Fields(IAliquot).\
-        select('volume','cell_amount', 'store_date', 'freezer','rack','box')
-
-    display3 = field.Fields(IViewableAliquot).\
-        select('special_instruction')
-       
-    display4 = field.Fields(IAliquot).\
+    def __init__(self,context, request):
+        super(AliquotRequestorCore, self).__init__(context, request)
+        sm = getSiteManager(self)
+        ds = sm.queryUtility(IDatastore, 'fia')
+        self.aliquot_manager = ds.getAliquotManager()
+        self.display0 = field.Fields(IAliquot, mode=DISPLAY_MODE).\
+            select('dsid')
+            
+        self.display1 = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
+            select('patient_title', 'patient_legacy_number', 'study_title',
+           'protocol_title', 'pretty_aliquot_type')
+           
+        self.display2 = field.Fields(IAliquot).\
+            select('volume','cell_amount', 'store_date', 'freezer','rack','box')
+    
+        self.display3 = field.Fields(IViewableAliquot).\
+            select('special_instruction')
+           
+        self.display4 = field.Fields(IAliquot).\
         select('notes')
         
-    update_schema = display0 + display1 + display2 + display3 + display4
- 
-#     @property
-#     def editform_factory(self):
-#         raise NotImplementedError
-# 
-#     @property
-#     def display_state(self):
-#         raise NotImplementedError
-#         
-#     @property
-#     def action(self):
-#         raise NotImplementedError
+    ignoreContext=True
+    addform_factory = crud.NullForm
+    batch_size = 20
+
+    @property
+    def update_schema(self):
+        return self.display0 + self.display1 + self.display2 + self.display3 + self.display4
+
+    @property
+    def editform_factory(self):
+        raise NotImplementedError
+
+    @property
+    def display_state(self):
+        raise NotImplementedError
+
+    @property
+    def action(self):
+        raise NotImplementedError
 
     def updateWidgets(self):
-        super(AliquotRequestor, self).updateWidgets()
-        self.update_schema['count'].widgetFactory = widgets.StorageFieldWidget
+        super(AliquotRequestorCore, self).updateWidgets()
         self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
         self.update_schema['cell_amount'].widgetFactory = widgets.AmountFieldWidget
         self.update_schema['freezer'].widgetFactory = widgets.StorageFieldWidget
         self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
         self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
-        
+
+
     def get_items(self):
+        aliquotlist = []
+        session_manager = getToolByName(self.context,'session_data_manager')
+        session = session_manager.getSessionData(create=True)
+        kw={'state':self.display_state}
+        # Figure out from the request which form we are looking to input
+        for kword in ['type','before_date', 'after_date', 'our_id']:
+            if( self.request.has_key(kword) and self.request[kword] != None) or\
+            (session.has_key(kword) and session[kword] != None):
+                if self.request.has_key(kword):
+                    session[kword] = self.request[kword]
+                kw[kword]=session[kword]
+                
+        aliquot = self.aliquot_manager.filter_aliquot(**kw)
+
+        for aliquotobj in aliquot:
+            aliquotlist.append((aliquotobj.dsid, aliquotobj))
+        return aliquotlist
+        
+# ------------------------------------------------------------------------------
+# Specific Forms
+# ------------------------------------------------------------------------------
+
+class AliquotRequestor(AliquotRequestorCore):
+    """
+    """
+    def __init__(self,context, request):
+        super(AliquotRequestor, self).__init__(context, request)
         sm = getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
+        self.specimen_manager = ds.getSpecimenManager()
+
+        self.display0 = field.Fields(IAliquotGenerator).\
+        select('count')
+
+    editform_factory = AliquotCreator
+
+    display_state = 'pending-aliquot'
+
+
+    def updateWidgets(self):
+        self.update_schema['count'].widgetFactory = widgets.StorageFieldWidget
+        super(AliquotRequestor, self).updateWidgets()
+
+
+    def get_items(self):
         aliquotlist=[]
-        specimen_manager = ds.getSpecimenManager()
         count = 100
-        for specimenobj in specimen_manager.list_by_state('prepared-aliquot'):
+        for specimenobj in self.specimen_manager.list_by_state(self.display_state):
             blueprint = IBlueprintForSpecimen(specimenobj).getBlueprint(self.context)
             for aliquot in blueprint.createAliquotMold(specimenobj):
                 aliquotlist.append((count, aliquot))
                 count = count + 1
-
         return aliquotlist
-        
 
+
+class AliquotChecker(AliquotRequestorCore):
+    """
+    Base Crud form for editing specimen. Some specimen will need to be 
+    """
+    editform_factory = AliquotVerifier
+    display_state = 'pending'
+
+class CompletedAliquot(AliquotRequestorCore):
+
+
+    @property
+    def update_schema(self):
+        manager = self.display0 + self.display1 + self.display2 + self.display3 + self.display4
+        for key in manager.keys():
+            manager[key].mode=DISPLAY_MODE
+        return manager
+        
+    editform_factory = AliquotRecoverer
+    
+    @property
+    def action(self):
+        return self.context.absolute_url()
+
+    def get_items(self):
+        aliquoted = []
+        aliquotlist = []
+        session_manager = getToolByName(self.context,'session_data_manager')
+        session = session_manager.getSessionData(create=True)
+        kw={'before_date':date.today(),
+            'after_date':date.today()}
+        # Figure out from the request which form we are looking to input
+        for kword in ['type','before_date', 'after_date', 'our_id']:
+            if( self.request.has_key(kword) and self.request[kword] != None) or\
+            (session.has_key(kword) and session[kword] != None):
+                if self.request.has_key(kword):
+                    session[kword] = self.request[kword]
+                kw[kword]=session[kword]
+                
+        for state in [u'checked-in', u'unused']:
+            kw['state']=state
+            aliquots = self.aliquot_manager.filter_aliquot(**kw)
+            aliquoted.extend(aliquots)
+                
+        for aliquotobj in aliquoted:
+            aliquotlist.append((aliquotobj.dsid, aliquotobj))
+        return aliquotlist

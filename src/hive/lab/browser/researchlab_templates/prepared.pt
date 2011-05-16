@@ -33,9 +33,7 @@
           tal:content="structure view/form_requestor" />
         <br
           class="visualClear" />
- 
-        <div
-          tal:content="structure view/aliquot_molder" />
+
  
 
         <h4>Instructions, Description of Buttons</h4>

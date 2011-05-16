@@ -25,7 +25,7 @@
  
  <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
-     <element value="plone.app.dexterity.behaviors.metadata.IDublinCore"/>
+     <element value="plone.app.dexterity.behaviors.metadata.IBasic"/>
      <element value="hive.lab.interfaces.labels.ILabelSheet"/>
 
  </property>
@@ -41,6 +41,9 @@
   <alias from="edit" to="@@edit" />
   <alias from="sharing" to="@@sharing" />
   <alias from="view" to="@@view" />
+  <alias from="prepared" to="@@prepared" />
+  <alias from="completed" to="@@completed" />
+
   <!-- 
    <alias from="reports" to="@@reports" />
   <alias from="studentview" to="@@studentview" />
@@ -59,21 +62,16 @@
     <permission value="View" />
   </action>
 
-  <action title="Clinic View" action_id="clinicallab" category="object" condition_expr=""
-    url_expr="string:${object_url}/@@clinicallab" visible="True">
-    <permission value="View" />
-  </action>
-  
-   <action title="Experimental Lab" action_id="specimenlab" category="object" condition_expr=""
-    url_expr="string:${object_url}/@@specimenlab" visible="True">
-    <permission value="View" />
-  </action>
-  
-   <action title="Aliquot View" action_id="aliquotlab" category="object" condition_expr=""
-    url_expr="string:${object_url}/@@aliquotlab" visible="True">
+ 
+  <action title="Prepared" action_id="prepared" category="object" condition_expr=""
+    url_expr="string:${object_url}/@@prepared" visible="True">
     <permission value="View" />
   </action>
 
+  <action title="Completed" action_id="completed" category="object" condition_expr=""
+    url_expr="string:${object_url}/@@completed" visible="True">
+    <permission value="View" />
+  </action>
   <!-- 
   <action title="Reports" action_id="reports" category="object" condition_expr=""
     url_expr="string:${object_url}/reports" visible="True">

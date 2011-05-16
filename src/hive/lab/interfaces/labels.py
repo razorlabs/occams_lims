@@ -16,6 +16,19 @@ class ILabelSheet(form.Schema):
     """
         info for building a pdf of labels
     """
+    form.fieldset('label-sheet', label=u"Label Sheet",
+                  fields=['page_height',
+                  'page_width',
+                  'top_margin',
+                  'side_margin',
+                  'vert_pitch',
+                  'horz_pitch',
+                  'label_height',
+                  'label_width',
+                  'label_round',
+                  'no_across',
+                  'no_down'])
+                  
     page_height = zope.schema.Decimal(
         title=_(u"Page Height"),
         required=True
@@ -67,6 +80,9 @@ class ILabelSheet(form.Schema):
         required=True
         )
 
+interface.alsoProvides(ILabelSheet, form.IFormFieldProvider)
+
+
 class ILabel(interface.Interface):
     """
     Class that supports transforming an object into a label.
@@ -90,12 +106,16 @@ class ILabel(interface.Interface):
         title=u"Date",
         readonly=True
         )  
- 
+
 class ISpecimenLabel(ILabel):
     """
     A Specimen Label
     """
-    
+    klass = zope.schema.TextLine(
+        title=_(u"interface class"),
+        default=u"ISpecimen",
+        readonly=True,
+    )
     pretty_specimen_type = zope.schema.Choice(
         title=_(u"Specimen Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type")
@@ -105,7 +125,11 @@ class IAliquotLabel(ILabel):
     """
     A Specimen Label
     """
-    
+    klass = zope.schema.TextLine(
+        title=_(u"interface class"),
+        default=u"IAliquot",
+        readonly=True,
+    )
     pretty_aliquot_type = zope.schema.Choice(
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
