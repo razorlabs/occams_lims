@@ -79,6 +79,7 @@ class ILabelSheet(form.Schema):
         title=_(u"Number Down"),
         required=True
         )
+    
 
 interface.alsoProvides(ILabelSheet, form.IFormFieldProvider)
 
@@ -86,7 +87,11 @@ interface.alsoProvides(ILabelSheet, form.IFormFieldProvider)
 class ILabel(interface.Interface):
     """
     Class that supports transforming an object into a label.
-    """        
+    """
+    dsid = zope.schema.TextLine(
+        title=u"Sample ID",
+        readonly=True
+        )
     patient_title = zope.schema.TextLine(
         title=u"Patient OUR#",
         readonly=True
@@ -102,36 +107,46 @@ class ILabel(interface.Interface):
         readonly=True
         ) 
  
-    date_collected = zope.schema.Date(
+    date = zope.schema.TextLine(
         title=u"Date",
         readonly=True
-        )  
+        )
+        
+    pretty_type = zope.schema.TextLine(
+        title=u"Sample Type",
+        readonly=True
+        )
 
-class ISpecimenLabel(ILabel):
-    """
-    A Specimen Label
-    """
-    klass = zope.schema.TextLine(
-        title=_(u"interface class"),
-        default=u"ISpecimen",
-        readonly=True,
-    )
-    pretty_specimen_type = zope.schema.Choice(
-        title=_(u"Specimen Type"),
-        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type")
-        ) 
+    barcodeline = zope.schema.Int(
+        title=u"Barcode Line",
+        readonly=True
+        )
+        
+    label_lines = zope.schema.List(
+        title=u"Label Lines",
+        value_type=zope.schema.TextLine(),
+        readonly=True
+        )
 
-class IAliquotLabel(ILabel):
-    """
-    A Specimen Label
-    """
-    klass = zope.schema.TextLine(
-        title=_(u"interface class"),
-        default=u"IAliquot",
-        readonly=True,
-    )
-    pretty_aliquot_type = zope.schema.Choice(
-        title=_(u"Aliquot Type"),
-        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
-        ) 
 
+class ILabelPrinter(interface.Interface):
+    """
+    parts needed for label printing to work
+    """
+    
+    def getLabelQue():
+        """
+        """
+        pass
+    
+    def queLabel(labelable):
+        """
+        Add a label to the cue
+        """
+        pass
+        
+    def printLabelSheet(label_list, startcol=None, startrow=None):
+        """
+        Create the label page, and output
+        """
+        pass

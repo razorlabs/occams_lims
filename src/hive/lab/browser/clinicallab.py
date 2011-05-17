@@ -17,7 +17,8 @@ from avrc.data.store.interfaces import IDatastore
 from hive.lab.interfaces.lab import IClinicalLab
 from hive.lab.interfaces.specimen import IViewableSpecimen
 from hive.lab.interfaces.specimen import ISpecimenLabel
-
+from hive.lab.interfaces.labels import ILabelPrinter
+from hive.lab.browser.labels import LabelView
 from hive.lab import MessageFactory as _
 
 
@@ -58,6 +59,7 @@ class View(dexterity.DisplayForm):
         return view
 
 
+        
 class Batched(dexterity.DisplayForm):
     """
     Primary view for a clinical lab object.
@@ -235,23 +237,29 @@ class SpecimenButtonCore(crud.EditForm):
             if updated:
                 newspecimen = self.context.specimen_manager.put(specimenobj)
         self.status = status
-
             
-    def queLabels(self, action):
+    def printLabels(self, action):
         success = SUCCESS_MESSAGE
         no_changes = NO_CHANGES
-
         selected = self.selected_items()
-        label_que = self.context.context.labels
-        if selected:
-            self.status = _(u"Specimen Being added to que.")      
+        label_list=[]
+        labelsheet = ILabelPrinter(self.context.context)
         for id, item in selected:
             count = item.tubes
             if count is None or count < 1:
                 count = 1
             for i in range(count):
-                label_que.catalog_object(ISpecimenLabel(item), uid="%d-%d" %(id, i))
-                
+                label_list.append(item)
+        content = labelsheet.printLabelSheet(label_list)
+
+        self.request.RESPONSE.setHeader("Content-type","application/pdf")
+        self.request.RESPONSE.setHeader("Content-disposition",
+                                        "attachment;filename=labels.pdf")
+        self.request.RESPONSE.setHeader("Cache-Control","no-cache")
+        self.request.RESPONSE.write(content)
+        self.status = _(u"You print is on its way. Refresh the page to view only unprinted labels.")
+
+
 # ------------------------------------------------------------------------------
 # Specific forms
 # ------------------------------------------------------------------------------
@@ -275,19 +283,20 @@ class NewSpecimenManager(SpecimenButtonCore):
     @button.buttonAndHandler(_('Save All Changes'), name='update')
     def handleUpdate(self, action):
         self.saveChanges(action)
+        self._update_subforms()
         return
         
-    @button.buttonAndHandler(_('Print Selected'), name='print',)
+    @button.buttonAndHandler(_('Print Selected'), name='print')
     def handlePrint(self, action):
         self.saveChanges(action)
-        self.queLabels(action)
+        self.printLabels(action)
         return
         
     @button.buttonAndHandler(_('Complete selected'), name='complete')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'complete','complete')
-        self.queLabels(action)
+        self.printLabels(action)
         self._update_subforms()
         return
         
@@ -295,7 +304,6 @@ class NewSpecimenManager(SpecimenButtonCore):
     def handleBatchDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'batched','batch')
-        self.queLabels(action)
         self._update_subforms()
         return
         

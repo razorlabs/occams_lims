@@ -10,6 +10,7 @@ from avrc.data.store.interfaces import IDatastore
 
 from hive.lab.interfaces.specimen import IRequestedSpecimen
 from hive.lab.interfaces.labels import ILabelSheet
+from hive.lab.interfaces.labels import ILabel
 from hive.lab import MessageFactory as _
 
     
@@ -22,14 +23,10 @@ def handleLabelSheetAdded(sheet, event):
     manage_addZCatalog(sheet, 'labels', u'Labels', REQUEST=None)
     zcat = sheet._getOb('labels')
     label_catalog = zcat._catalog
-    for field in ['patient_title', 'study_title', 'protocol_title', 'pretty_specimen_type','portal_type']:
+    for field in ILabel.keys():
         index = FieldIndex(field)
         label_catalog.addIndex(field, index)
         label_catalog.addColumn(field)
-    dateindex = DateIndex('date_collected')
-    label_catalog.addIndex('date_collected', dateindex)  
-    label_catalog.addColumn('date_collected')
-
 
 
 @grok.subscribe(IRequestedSpecimen, IObjectAddedEvent)

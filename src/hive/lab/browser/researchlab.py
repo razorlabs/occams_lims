@@ -10,6 +10,7 @@ from z3c.form.interfaces import DISPLAY_MODE
 from plone.z3cform.crud import crud
 
 from hive.lab import MessageFactory as _
+from z3c.form import form as z3cform
 
 from beast.browser import widgets
 from beast.browser.crud import NestedFormView, BatchNavigation
@@ -23,9 +24,10 @@ from hive.lab.interfaces.specimen import IBlueprintForSpecimen
 
 from hive.lab.interfaces.aliquot import IViewableAliquot
 from hive.lab.interfaces.aliquot import IAliquotGenerator
-
+from hive.lab.interfaces.labels import ILabelPrinter
 from hive.lab.browser.clinicallab import SpecimenRequestor
 from hive.lab.browser.clinicallab import SpecimenButtonCore
+from hive.lab.browser.labels import LabelView
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -49,9 +51,21 @@ class View(dexterity.DisplayForm):
     def __init__(self, context, request):
         super(View, self).__init__(context, request)
         self.form_requestor = self.getFormRequestor()
-        self.aliquot_molder = self.getAliquotRequestor()
+        self.aliquot_molder = self.getSpecimenRequestor()
 
     def getFormRequestor(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = PendingSpecimen(context, self.request)
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance=form
+        return view
+
+    def getSpecimenRequestor(self):
         """
         Create a form instance.
         @return: z3c.form wrapped for Plone 3 view
@@ -63,7 +77,18 @@ class View(dexterity.DisplayForm):
         view.form_instance=form
         return view
 
-    def getAliquotRequestor(self):
+class Ready(dexterity.DisplayForm):
+    """
+    Primary view for a research lab object.
+    """
+    grok.context(IResearchLab)
+    grok.require('zope2.View')
+
+    def __init__(self, context, request):
+        super(Ready, self).__init__(context, request)
+        self.form_requestor = self.getFormRequestor()
+
+    def getFormRequestor(self):
         """
         Create a form instance.
         @return: z3c.form wrapped for Plone 3 view
@@ -73,8 +98,7 @@ class View(dexterity.DisplayForm):
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance=form
-        return view 
-
+        return view
 
 class Prepared(dexterity.DisplayForm):
     """
@@ -86,6 +110,7 @@ class Prepared(dexterity.DisplayForm):
     def __init__(self, context, request):
         super(Prepared, self).__init__(context, request)
         self.form_requestor = self.getFormRequestor()
+        self.label_requestor = self.getLabelRequestor()
 
     def getFormRequestor(self):
         """
@@ -98,7 +123,19 @@ class Prepared(dexterity.DisplayForm):
         view = view.__of__(context)
         view.form_instance=form
         return view
-
+        
+    def getLabelRequestor(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = LabelView(context, self.request)
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance=form
+        return view
+        
 class Completed(dexterity.DisplayForm):
     """
     Primary view for a clinical lab object.
@@ -126,6 +163,30 @@ class Completed(dexterity.DisplayForm):
 # Specific Specimen forms
 # ------------------------------------------------------------------------------
 
+class PendingSpecimen(SpecimenRequestor):
+    display1 = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
+        select('patient_title', 'patient_legacy_number', 'pretty_specimen_type', 'study_title', 'protocol_title',  'pretty_tube_type')
+       
+    display2 = field.Fields(ISpecimen, mode=DISPLAY_MODE).\
+        select('tubes','date_collected', 'time_collected',  'notes')
+
+    update_schema =  display1 + display2
+    
+    @property
+    def editform_factory(self):
+        return crud.NullForm
+
+    @property
+    def action(self):
+        return self.context.absolute_url()
+
+    def get_items(self):
+        specimenlist=[]
+        for specimenobj in self.specimen_manager.filter_specimen(before_date=date.today(), after_date=date.today()):
+            specimenlist.append((specimenobj.dsid, specimenobj))
+        return specimenlist
+
+
 class ReadySpecimen(SpecimenRequestor):
     display1 = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
         select('patient_title', 'patient_legacy_number', 'pretty_specimen_type', 'study_title', 'protocol_title',  'pretty_tube_type')
@@ -146,6 +207,8 @@ class ReadySpecimen(SpecimenRequestor):
     @property
     def action(self):
         return self.context.absolute_url()
+
+
 
 
 class ReadySpecimenManager(SpecimenButtonCore):
@@ -268,16 +331,42 @@ class AliquotButtonCore(crud.EditForm):
                 newspecimen = self.context.aliquot_manager.put(aliquotobj)
         self.status = status
 
+
+    def queLabels(self, action):
+        success = SUCCESS_MESSAGE
+        no_changes = NO_CHANGES
+        selected = self.selected_items()
+        if selected:
+            labelsheet = ILabelPrinter(self.context.context)
+            for id, aliquotobj in selected:
+                labelsheet.queLabel(aliquotobj)
+            self.status = _(u"Your aliquot have been qued.")
+        else:
+            self.status = _(u"Please select aliquot to que.")
+
 # ----------------------------------------------
 
 class AliquotVerifier(AliquotButtonCore):
     label=_(u"")
 
+    @button.buttonAndHandler(_('Save Changes'), name='save')
+    def handleSaveChanges(self, action):
+        self.saveChanges(action)
+        self._update_subforms()
+        return
+        
     @button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
+        self.queLabels(action)
         self.changeAliquotState(action, 'checked-in', 'Check In')
         self._update_subforms()
+        return
+
+    @button.buttonAndHandler(_('Print Selected'), name='print')
+    def handlePrintAliquot(self, action):
+        self.saveChanges(action)
+        self.queLabels(action)
         return
 
     @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
@@ -456,3 +545,52 @@ class CompletedAliquot(AliquotRequestorCore):
         for aliquotobj in aliquoted:
             aliquotlist.append((aliquotobj.dsid, aliquotobj))
         return aliquotlist
+
+
+# -----------------------------------------------------------------------------
+# Aliquot Filter
+# -----------------------------------------------------------------------------
+
+class AliquotFilter(z3cform.Form):
+    """ Form to select a cycle to view. This is to reduce the crazy
+        navigation
+    """
+
+    ignoreContext=True
+
+    def update(self):
+        ournum = schema.TextLine(
+            title=_(u"Enter an OUR#"),
+            description=_(u"Enter an OUR# and press GO to show aliquots for "
+                          u"only this OUR Number"),
+            )
+        ournum.__name__ = "our"
+        self.fields += field.Fields(ournum)
+        super(AliquotByOUR, self).update()
+
+    @property
+    def action(self):
+        """ Rewrite HTTP POST action.
+            If the form is rendered embedded on the others pages we
+            make sure the form is posted through the same view always,
+            instead of making HTTP POST to the page where the form was rendered.
+        """
+        return os.path.join(self.context.absolute_url(), "@@aliquotlab")
+
+    @button.buttonAndHandler(_('Go'),name='go')
+    def goToAliquot(self, action):
+        """ Form button hander. """
+        data, errors = self.extractData()
+        if errors:
+            self.status=_(u"Sorry. That our number is not recognized")
+            return
+        redirect_url = "%s?our=%s" % (self.action, data['our'])
+        return self.request.response.redirect(redirect_url)
+
+    @button.buttonAndHandler(_('Show All'),name='showall')
+    def getAllAliquot(self, action):
+        """ Form button hander. """
+        session_manager = getToolByName(self.context,'session_data_manager')
+        session = session_manager.getSessionData(create=True)
+        session.invalidate()
+        return self.request.response.redirect(self.action)

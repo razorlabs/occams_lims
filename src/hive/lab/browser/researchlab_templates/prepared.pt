@@ -34,6 +34,10 @@
         <br
           class="visualClear" />
 
+        <br
+          class="visualClear" />
+        <div
+            tal:replace="structure view/label_requestor" />
  
 
         <h4>Instructions, Description of Buttons</h4>

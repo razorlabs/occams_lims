@@ -86,34 +86,3 @@ class AliquotBlueprint(content.Item):
 
         return Aliquot(**kwargs)
         
-
-
-#     def createAliquot(self, specimen, store_date):
-#         """
-#         Build a set of keyword arguements and pass back a specimen matching this blueprint
-#         """
-#         if store_date is None:
-#             store_date = date()
-#         # intids = zope.component.getUtility(IIntIds)
-# #         blueprint_zid = intids.getId(self)
-# #         
-#         kwargs={}
-#         kwargs['specimen_dsid'] = None
-#         kwargs['type'] = self.aliquot_type
-#         kwargs['volume'] = self.volume
-#         kwargs['cell_amount'] = self.cell_amount
-#         kwargs['store_date'] = store_date
-#         kwargs['storage_site'] = self.storage_site
-#         kwargs['thawed_num'] = 0
-#         kwargs['special_instruction'] = self.special_instructions
-# #         
-# #         obj.freezer = context.freezer
-# #         obj.rack = context.rack
-# #         obj.box = context.box
-# #         obj.notes = context.notes
-# #         
-#         aliquot_list=[]
-#         for i in self.default_count:
-#             aliquot_list.append(Aliquot(**kwargs))
-#             
-#         return aliquot_list
