@@ -28,6 +28,8 @@ src/hive/lab/browser/clinicallab.py
 src/hive/lab/browser/labels.py
 src/hive/lab/browser/researchlab.py
 src/hive/lab/browser/specimen.py
+src/hive/lab/browser/aliquot_templates/aliquotfilter.pt
+src/hive/lab/browser/aliquot_templates/view.pt
 src/hive/lab/browser/clinicallab_templates/baseview.pt
 src/hive/lab/browser/clinicallab_templates/batched.pt
 src/hive/lab/browser/clinicallab_templates/completed.pt

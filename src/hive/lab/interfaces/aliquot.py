@@ -130,8 +130,7 @@ class IAliquotFilterForm(form.Schema):
     type = zope.schema.List(
         title="Type of Aliquot",
         value_type=zope.schema.Choice(title="",
-        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
-            )
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type"),
         required=False
         )
         
