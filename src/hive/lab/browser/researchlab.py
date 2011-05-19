@@ -159,6 +159,9 @@ class Completed(dexterity.DisplayForm):
         view.form_instance=form
         return view
 
+
+
+
 # ------------------------------------------------------------------------------
 # Specific Specimen forms
 # ------------------------------------------------------------------------------

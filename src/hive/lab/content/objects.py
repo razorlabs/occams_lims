@@ -86,3 +86,9 @@ class AliquotBlueprint(content.Item):
 
         return Aliquot(**kwargs)
         
+    def getAliquotFilter(self):
+        """
+        return a dictionary with keywords for this item
+        """
+        kw={'type':self.aliquot_type}
+        return kw

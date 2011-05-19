@@ -47,18 +47,23 @@ class IViewableAliquot(form.Schema):
         required=False,
         )
 
+class IAliquotFilter(interface.Interface):
 
-class IAliquotBlueprint(form.Schema):
+    def getAliquotFilter():
+        """
+        Return a dictionary of keywords to use in filtering available aliquot
+        """
+class IAliquotSupport(interface.Interface):
+    """
+    Marker interface to search for aliquot associated with a specific item
+    """
+
+
+class IAliquotBlueprint(IAliquotSupport, IAliquotFilter, form.Schema):
     """
     Blueprint the system can use to create aliquot
     """
 
-#     default_count = zope.schema.Int(
-#         title=_(u'Default Count'),
-#         description=_(u'Default number of aliquot expected from the specimen'),
-#         default=1,
-#         required=True
-#         )
     aliquot_type = zope.schema.Choice(
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
@@ -88,6 +93,8 @@ class IAliquotBlueprint(form.Schema):
         value_type = zope.schema.TextLine(),
         required=False
         )
+        
+        
 
 class IAliquotGenerator(form.Schema):
     count = zope.schema.Int(
@@ -109,17 +116,40 @@ class IAliquotLabel(ILabel):
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         ) 
+
+
+class IAliquotFilterForm(form.Schema):
+    """
+    """
+    patient = zope.schema.TextLine(
+        title=_(u"Patient id"),
+        description=_(u"Patient OUR#, Legacy AEH ID, or Masterbook Number"),
+        required=False
+        )
+
+    type = zope.schema.List(
+        title="Type of Aliquot",
+        value_type=zope.schema.Choice(title="",
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
+            )
+        required=False
+        )
         
-# class IAliquotLabel(interface.Interface):
-# 
-#     aliquot = zope.schema.TextLine(title=u"Aliquot Number")
-# 
-#     our = zope.schema.TextLine(title=u"OUR #")
-# 
-#     study = zope.schema.TextLine(title=u"Study")
-# 
-#     week = zope.schema.TextLine(title=u"Week")
-# 
-#     type = zope.schema.TextLine(title=u"Type")
-# 
-#     date = zope.schema.Date(title=u"Storage Date")
+    before_date = zope.schema.Date(
+        title=_(u"Aliquot Date"),
+        description=_(u"Aliquot on this date. If Limit Date is set as well, will show aliquot between those dates"),
+        required=False
+
+        )
+ 
+    after_date = zope.schema.Date(
+        title=_(u"Aliquot Limit Date"),
+        description=_(u"Aliquot before this date. Only applies if Aliquot Date is also set"),
+        required=False
+        )
+    
+    show_all = zope.schema.Bool(
+        title=_(u"Show all Aliquot"),
+        description=_(u"Show all aliquot, including missing, never drawn, checked out, etc"),
+        required=False
+        )

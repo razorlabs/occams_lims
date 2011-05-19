@@ -23,7 +23,7 @@ def handleLabelSheetAdded(sheet, event):
     manage_addZCatalog(sheet, 'labels', u'Labels', REQUEST=None)
     zcat = sheet._getOb('labels')
     label_catalog = zcat._catalog
-    for field in ILabel.keys():
+    for field in ILabel.names():
         index = FieldIndex(field)
         label_catalog.addIndex(field, index)
         label_catalog.addColumn(field)
@@ -51,7 +51,7 @@ def handleRequestedSpecimenAdded(visit, event):
                 specimen = specimenBlueprint.createSpecimen(patient_zid, cycle_zid, visit.visit_date)
                 specimen_manager.put(specimen)
 
-
+## TODO: make specimen includer for add cycle to visit
                 #We don't want duplicate specimen
                 
 #                 foundSpecimen = False

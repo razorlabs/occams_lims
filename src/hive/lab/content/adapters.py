@@ -10,6 +10,9 @@ from avrc.data.store.interfaces import IDatastore
 from avrc.data.store.interfaces import ISpecimen
 from avrc.data.store.interfaces import IAliquot
 
+from avrc.aeh.content.visit import IVisit
+from avrc.aeh.content.patient import IPatient
+
 from hive.lab import utilities as utils
 from hive.lab.interfaces.aliquot import IViewableAliquot
 from hive.lab.interfaces.aliquot import IAliquotGenerator
@@ -19,22 +22,13 @@ from hive.lab.interfaces.labels import ILabelSheet
 from hive.lab.interfaces.labels import ILabel
 
 from hive.lab.interfaces.labels import ILabelPrinter
-
+from hive.lab.interfaces.aliquot import IAliquotSupport
+from hive.lab.interfaces.aliquot import IAliquotFilter
 from hive.lab.interfaces.specimen import IViewableSpecimen
 from hive.lab.interfaces.specimen import ISpecimenLabel
 from hive.lab.content.factories import LabelGenerator
 from hive.lab import MessageFactory as _
 
-# @grok.adapter(IAliquot)
-# @grok.implementer(ISpecimen)
-# def SpecimenOfAliquot(context):
-#     """ Translates an Aliquot into its parent Specimen
-#     """
-#     sm = zope.component.getSiteManager(self)
-#     ds = sm.queryUtility(IDatastore, 'fia')
-#     specimen_manager = ds.getSpecimenManager()
-#     specimen = specimen_manager.get(context.specimen_dsid)
-#     return specimen
 
 class ViewableSpecimen(grok.Adapter):
     grok.context(ISpecimen)
@@ -313,3 +307,49 @@ class LabelPrinter(grok.Adapter):
         content = stream.getvalue()
         stream.close()
         return content
+        
+        
+# --------------------------------------------------------------------------
+# Adapters to provide an AliquotFilter to various object types
+# --------------------------------------------------------------------------
+
+class PatientAliquotFilter(grok.Adapter):
+    """
+    Filter Aliquot by Patient
+    """
+    grok.implements(IAliquotFilter)
+    grok.context(IPatient)
+        
+    def getAliquotFilter(self):
+        """
+        return a dictionary with keywords for this item
+        """
+        intids = zope.component.getUtility(IIntIds)
+        zid = intids.getId(self.context)
+        kw={'subject_zid':zid}
+        return kw
+    
+
+class VisitAliquotFilter(grok.Adapter):
+    """
+    Filter Aliquot by Patient
+    """
+    grok.implements(IAliquotFilter)
+    grok.context(IVisit)
+
+    def getAliquotFilter(self):
+        """
+        return a dictionary with keywords for this item
+        """
+        intids = zope.component.getUtility(IIntIds)
+        visit = self.context
+        patient = visit.aq_parent
+        patient_zid = intids.getId(patient)
+        #for cycle in self.cycles:
+        ## TODO: After we get list support, modify this
+        zidlist = []
+        for cycle in visit.cycles:
+            zidlist.append(cycle.to_id)
+        
+        kw={'subject_zid':patient_zid, 'protocol_zid':zidlist}
+        return kw

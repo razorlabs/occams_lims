@@ -49,4 +49,12 @@
         for="hive.lab.interfaces.lab.ILab"
         />
 
+      <plone:behavior
+        title="Aliquot View"
+        description="Make this item Show Filtered Aliquot"
+        provides="hive.lab.interfaces.aliquot.IAliquotSupport"
+        for="plone.dexterity.interfaces.IDexterityContent"
+        />
+
+
 </configure>
