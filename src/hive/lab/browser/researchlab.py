@@ -295,7 +295,16 @@ class AliquotCreator(SpecimenButtonCore):
 
 class AliquotButtonCore(crud.EditForm):
     label=_(u"")
-    
+    def render_batch_navigation(self):
+        """
+        Render the batch navigation to include the default styles for Plone
+        """
+        navigation = BatchNavigation(self.batch, self.request)
+        def make_link(page):
+            return "%s?%spage=%s" % (self.request.getURL(), self.prefix, page)
+        navigation.make_link = make_link
+        return navigation()
+        
     def changeAliquotState(self, action, state, acttitle):
         success = SUCCESS_MESSAGE
         no_changes = NO_CHANGES
@@ -347,11 +356,15 @@ class AliquotButtonCore(crud.EditForm):
         else:
             self.status = _(u"Please select aliquot to que.")
 
+
 # ----------------------------------------------
 
 class AliquotVerifier(AliquotButtonCore):
     label=_(u"")
-
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+        
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
@@ -379,8 +392,13 @@ class AliquotVerifier(AliquotButtonCore):
         self._update_subforms()
         return
 
+        
 class AliquotRecoverer(AliquotButtonCore):
-
+    label=_(u"")
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+        
     @button.buttonAndHandler(_('Recover Aliquot'), name='recover')
     def handleRecoverAliquot(self, action):
         self.changeAliquotState(action, 'pending', 'Recover')

@@ -133,7 +133,10 @@ class AllSpecimen(SpecimenRequestor):
 
 class AllSpecimenManager(SpecimenButtonCore):
     label=_(u"")
-    
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+
     @button.buttonAndHandler(_('Recover selected'), name='recover')
     def handleCompleteDraw(self, action):
         self.changeState(action, 'pending-draw','recover')

@@ -1,6 +1,7 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
     xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     i18n_domain="hive.lab">
 
@@ -11,5 +12,6 @@
       description="Installs components necessary for providing HIVe Lab services."
       provides="Products.GenericSetup.interfaces.EXTENSION"
       />
-
+  <browser:resourceDirectory
+      name="hive.lab" directory="static" />
 </configure>

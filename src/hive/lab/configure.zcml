@@ -20,6 +20,11 @@
     -->
   <grok:grok package="." />
 
+ <utility 
+    name="hive.lab.session"
+    provides="lovely.memcached.interfaces.IMemcachedClient"
+    factory="lovely.memcached.utility.MemcachedClient" />
+    
   <!-- -*- extra stuff goes here -*- -->
       <plone:behavior
         title="Available Specimen"

@@ -258,6 +258,8 @@ class SpecimenButtonCore(crud.EditForm):
         self.request.RESPONSE.setHeader("Cache-Control","no-cache")
         self.request.RESPONSE.write(content)
         self.status = _(u"You print is on its way. Refresh the page to view only unprinted labels.")
+        
+
 
 
 # ------------------------------------------------------------------------------
@@ -279,6 +281,9 @@ class NewSpecimen(SpecimenRequestor):
 
 class NewSpecimenManager(SpecimenButtonCore):
     label=_(u"")
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
         
     @button.buttonAndHandler(_('Save All Changes'), name='update')
     def handleUpdate(self, action):
@@ -338,6 +343,9 @@ class BatchedSpecimen(SpecimenRequestor):
 
 class BatchedSpecimenManager(SpecimenButtonCore):
     label=_(u"")
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
     @button.buttonAndHandler(_('Save All Changes'), name='update')
     def handleUpdate(self, action):
         self.saveChanges(action)
@@ -374,6 +382,10 @@ class PostponedSpecimen(SpecimenRequestor):
 
 class PostponedSpecimenManager(SpecimenButtonCore):
     label=_(u"")
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+        
     @button.buttonAndHandler(_('Save All Changes'), name='update')
     def handleUpdate(self, action):
         self.saveChanges(action)

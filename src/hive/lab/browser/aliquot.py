@@ -71,6 +71,9 @@ from hive.lab.interfaces.labels import ILabelPrinter
 from hive.lab.browser.clinicallab import SpecimenRequestor
 from hive.lab.browser.clinicallab import SpecimenButtonCore
 from hive.lab.browser.labels import LabelView
+from hive.lab.browser.researchlab import AliquotButtonCore
+
+from hive.lab import utilities as utils
 
 class AliquotFilter(dexterity.DisplayForm):
     """
@@ -85,16 +88,6 @@ class AliquotFilter(dexterity.DisplayForm):
 
         self.form_requestor = self.getFormRequestor()
         self.filter_aliquot = self.filterAliquot()
-#         try:
-#             cooklist=[]
-#             testcookie = self.context.REQUEST['testcookie']
-#             import pdb;pdb.set_trace()
-#             items = testcookie.strip('{}"').split(',')
-#             for kv in items:
-#                 cooklist.append(kv.split(':'))
-#             self.testcookie=cooklist
-#         except:
-#             self.testcookie = 'no cookie'
         
     def getFormRequestor(self):
         """
@@ -165,9 +158,9 @@ class AliquotList(crud.CrudForm):
         manager += self.displaycells
         return  manager + self.display2 + self.display3 + self.display4
 
-#     @property
-#     def editform_factory(self):
-#         raise NotImplementedError
+    @property
+    def editform_factory(self):
+        return AllAliquotManager
 
     @property
     def display_state(self):
@@ -205,24 +198,61 @@ class AliquotList(crud.CrudForm):
         return aliquotlist
 
 
-#from zope.publisher.interfaces.browser import IBrowserView
+
+class AllAliquotManager(AliquotButtonCore):
+    label=_(u"")
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+
+    @button.buttonAndHandler(_('Recover selected'), name='recover')
+    def handleCompleteDraw(self, action):
+        self.changeState(action, 'pending-draw','recover')
+        self._update_subforms()
+        return
+
+    @button.buttonAndHandler(_('Print Selected'), name='print',)
+    def handlePrint(self, action):
+        self.queLabels(action)
+        return
+
+
+
 class AliquotFilterForm(form.Form):
     """
     Take form data and apply it to the session so that filtering takes place.
     """
+    def __init__(self, context, request):
+        super(AliquotFilterForm, self).__init__(context, request)
+        self.session = utils.getSession(context, request)
+        print self.session
+        
     grok.context(IAliquotSupport)
     grok.require('zope2.View')
     ignoreContext = True
-    
+       
     fields = field.Fields(IAliquotFilterForm)
-    
+
     @button.buttonAndHandler(u'Filter')
     def handleFilter(self, action):
         data, errors = self.extractData()
         if errors:
             self.status=_(u"Sorry.")
             return
-        self.request.RESPONSE.appendCookie('testcookie',data['patient'])
+        for key, value in data.items():
+            self.session[key] = value
+        return
+        
+    @button.buttonAndHandler(u'Remove Filter')
+    def handleClearFilter(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status=_(u"Sorry.")
+            return
+        self.session = data
+        self.session['foo'] = 'baz'
+        self.session['stuff'] = 'junk'
+        return
         
         
         

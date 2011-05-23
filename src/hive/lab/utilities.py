@@ -5,6 +5,7 @@ from zope.site.hooks import getSite
 from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
+from lovely.session.memcached import MemCachedSessionDataContainer
 
 from plone.memoize import ram
 
@@ -79,3 +80,14 @@ def get_patient_initials(zid):
         return unicode(patient.initials)
     else:
         return None
+        
+        
+        
+def getSession(context, request):
+    """
+    """
+    session_manager = MemCachedSessionDataContainer()
+    session_manager.cacheName = u'hive.lab.session'
+    session_manager.__name__ = 'session_manager'
+    return session_manager[str(request['__ac']) + str(context)]
+    
