@@ -51,6 +51,7 @@ src/hive/lab/interfaces/aliquot.py
 src/hive/lab/interfaces/lab.py
 src/hive/lab/interfaces/labels.py
 src/hive/lab/interfaces/specimen.py
+src/hive/lab/profiles/default/jsregistry.xml
 src/hive/lab/profiles/default/metadata.xml
 src/hive/lab/profiles/default/rolemap.xml
 src/hive/lab/profiles/default/types.xml
@@ -62,3 +63,4 @@ src/hive/lab/profiles/default/types/hive.lab.aliquotblueprint.xml
 src/hive/lab/profiles/default/types/hive.lab.cliniclab.xml
 src/hive/lab/profiles/default/types/hive.lab.researchlab.xml
 src/hive/lab/profiles/default/types/hive.lab.specimenblueprint.xml
+src/hive/lab/static/js/selectall.js

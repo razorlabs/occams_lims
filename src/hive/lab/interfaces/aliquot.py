@@ -6,8 +6,8 @@ from plone.directives import form
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
 from hive.lab import vocabularies
-
-class IViewableAliquot(form.Schema):
+from avrc.data.store.interfaces import IAliquot
+class IViewableAliquot(IAliquot, form.Schema):
     """
     """
     aliquot_id = zope.schema.TextLine(
@@ -49,10 +49,12 @@ class IViewableAliquot(form.Schema):
 
 class IAliquotFilter(interface.Interface):
 
-    def getAliquotFilter():
+    def getAliquotFilter(basekw, states):
         """
         Return a dictionary of keywords to use in filtering available aliquot
         """
+        
+        
 class IAliquotSupport(interface.Interface):
     """
     Marker interface to search for aliquot associated with a specific item
@@ -127,22 +129,18 @@ class IAliquotFilterForm(form.Schema):
         required=False
         )
 
-    type = zope.schema.List(
-        title=u"Type of Aliquot",
-        value_type=zope.schema.Choice(title=u"",
-        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
-        ),
-        required=False
+    type = zope.schema.Choice(title=u"Type of Aliquot",
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type"),        required=False
         )
         
-    before_date = zope.schema.Date(
+    after_date = zope.schema.Date(
         title=_(u"Aliquot Date"),
         description=_(u"Aliquot on this date. If Limit Date is set as well, will show aliquot between those dates"),
         required=False
 
         )
  
-    after_date = zope.schema.Date(
+    before_date = zope.schema.Date(
         title=_(u"Aliquot Limit Date"),
         description=_(u"Aliquot before this date. Only applies if Aliquot Date is also set"),
         required=False

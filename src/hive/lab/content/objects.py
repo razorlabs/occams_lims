@@ -10,8 +10,8 @@ from avrc.data.store.lab import Aliquot
 
 from hive.lab.interfaces.specimen import ISpecimenBlueprint
 from hive.lab.interfaces.aliquot import IAliquotBlueprint
-
-
+from hive.lab.interfaces.aliquot import IAliquotFilterForm
+from hive.lab import utilities as utils
 
 class SpecimenBlueprint(content.Container):
     zope.interface.implements(ISpecimenBlueprint)
@@ -86,9 +86,24 @@ class AliquotBlueprint(content.Item):
 
         return Aliquot(**kwargs)
         
-    def getAliquotFilter(self):
+    def getAliquotFilter(self, basekw={}, states=[]):
         """
-        return a dictionary with keywords for this item
+        return a dictionary with keywords for this item based on an existing set of keys
         """
-        kw={'type':self.aliquot_type}
-        return kw
+        retkw = {}
+        if basekw.has_key('after_date') and basekw['after_date'] is not None and (not basekw.has_key('before_date') or basekw['before_date'] is None):
+            basekw['before_date'] = basekw['after_date']
+        for key in IAliquotFilterForm.names():
+            if basekw.has_key(key) and basekw[key] is not None:
+                if key == 'show_all':
+                    continue
+                elif key == 'patient':
+                    retkw['subject_zid'] = utils.getPatientForFilter(self, basekw[key])
+                elif key == 'after_date':
+                    retkw[key] = basekw[key]
+                    if not basekw.has_key('before_date') or basekw['before_date'] is None:
+                        retkw['before_date'] = basekw[key]
+                else:
+                    retkw[key] = basekw[key]
+        retkw.update({'type':self.aliquot_type})
+        return retkw

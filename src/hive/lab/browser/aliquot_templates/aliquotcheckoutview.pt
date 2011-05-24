@@ -27,8 +27,7 @@
        <div tal:replace="python:dict(view.testcookie)">
        </div>
  -->
-       <div
-          tal:content="structure view/filter_aliquot" />
+       <div>
         <p>
           Please enter the number of tubes, date collected, time collected, and
           any notes for the specimen below.
@@ -49,9 +48,8 @@
           tal:content="structure view/aliquot_molder" />
  
  -->        <br
-          class="visualClear" />a  
-        <div
-          tal:content="structure view/aliquot_que" />
+          class="visualClear" />
+        </div>
 
         <h4>Instructions, Description of Buttons</h4>
         <ol>

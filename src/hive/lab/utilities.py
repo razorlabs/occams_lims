@@ -90,4 +90,30 @@ def getSession(context, request):
     session_manager.cacheName = u'hive.lab.session'
     session_manager.__name__ = 'session_manager'
     return session_manager[str(request['__ac']) + str(context)]
+
+from Products.CMFCore.utils import getToolByName
+
+## TODO: Move this to aeh
+def getPatientForFilter(context, pid):
+    """
+    given some property of a patient, find the resulting 
+    """
+    catalog = getToolByName(context, 'portal_catalog')
+    intids = component.getUtility(IIntIds)
     
+    results = catalog(portal_type='avrc.aeh.patient',
+                                  getId=pid)
+    if results and len(results):
+        return intids.getId(results[0].getObject())
+        
+    results = catalog(portal_type='avrc.aeh.patient',
+                                  aeh_number=pid)
+    if results and len(results):
+        return intids.getId(results[0].getObject())
+        
+    results = catalog(portal_type='avrc.aeh.patient',
+                                  master_book_number=pid)
+    if results and len(results):
+        return intids.getId(results[0].getObject())
+
+    return None

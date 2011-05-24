@@ -20,6 +20,7 @@ from hive.lab.interfaces.aliquot import IAliquotGenerator
 from hive.lab.interfaces.specimen import IBlueprintForSpecimen
 from hive.lab.interfaces.labels import ILabelSheet
 from hive.lab.interfaces.labels import ILabel
+from hive.lab.interfaces.aliquot import IAliquotFilterForm
 
 from hive.lab.interfaces.labels import ILabelPrinter
 from hive.lab.interfaces.aliquot import IAliquotSupport
@@ -68,6 +69,10 @@ class ViewableAliquot(grok.Adapter):
     grok.provides(IViewableAliquot)
 
     @property
+    def dsid(self):
+        return self.context.dsid
+        
+    @property
     def patient_title(self):
         specimenobj = utils.get_specimen(self.context.specimen_dsid)
         return utils.get_patient_title(specimenobj.subject_zid)
@@ -92,9 +97,41 @@ class ViewableAliquot(grok.Adapter):
         return self.context.type
 
     @property
-    def special_instruction(self):
-        return self.context.special_instruction
+    def notes(self):
+        return self.context.notes
+        
+    @property
+    def box(self):
+        return self.context.box
+        
+    @property
+    def volume(self):
+        return self.context.volume
 
+    @property
+    def cell_amount(self):
+        return self.context.cell_amount
+        
+    @property
+    def store_date(self):
+        return self.context.store_date
+        
+    @property
+    def freezer(self):
+        return self.context.freezer
+
+    @property
+    def rack(self):
+        return self.context.rack
+
+    @property
+    def box(self):
+        return self.context.box
+        
+    @property
+    def state(self):
+        return self.context.state
+        
 class AliquotGenerator(grok.Adapter):
     grok.context(IAliquot)
     grok.provides(IAliquotGenerator)
@@ -320,14 +357,25 @@ class PatientAliquotFilter(grok.Adapter):
     grok.implements(IAliquotFilter)
     grok.context(IPatient)
         
-    def getAliquotFilter(self):
+    def getAliquotFilter(self, basekw={}, states=[]):
         """
-        return a dictionary with keywords for this item
+        return a dictionary with keywords for this item based on an existing set of keys
         """
         intids = zope.component.getUtility(IIntIds)
         zid = intids.getId(self.context)
-        kw={'subject_zid':zid}
-        return kw
+        retkw = {}
+        for key in IAliquotFilterForm.names():
+            if basekw.has_key(key) and basekw[key] is not None:
+                if key == 'show_all' or key == 'patient':
+                    continue
+                elif key == 'after_date':
+                    retkw[key] = basekw[key]
+                    if not basekw.has_key('before_date') or basekw['before_date'] is None:
+                        retkw['before_date'] = basekw[key]
+                else:
+                    retkw[key] = basekw[key]
+        retkw.update({'subject_zid':zid})
+        return retkw
     
 
 class VisitAliquotFilter(grok.Adapter):
@@ -336,8 +384,8 @@ class VisitAliquotFilter(grok.Adapter):
     """
     grok.implements(IAliquotFilter)
     grok.context(IVisit)
-
-    def getAliquotFilter(self):
+        
+    def getAliquotFilter(self, basekw={}, states=[]):
         """
         return a dictionary with keywords for this item
         """
@@ -345,11 +393,20 @@ class VisitAliquotFilter(grok.Adapter):
         visit = self.context
         patient = visit.aq_parent
         patient_zid = intids.getId(patient)
-        #for cycle in self.cycles:
-        ## TODO: After we get list support, modify this
+
         zidlist = []
         for cycle in visit.cycles:
             zidlist.append(cycle.to_id)
-        
-        kw={'subject_zid':patient_zid, 'protocol_zid':zidlist}
-        return kw
+        retkw = {}
+        for key in IAliquotFilterForm.names():
+            if basekw.has_key(key) and basekw[key] is not None:
+                if key == 'show_all' or key == 'patient':
+                    continue
+                elif key == 'after_date':
+                    retkw[key] = basekw[key]
+                    if not basekw.has_key('before_date') or basekw['before_date'] is None:
+                        retkw['before_date'] = basekw[key]
+                else:
+                    retkw[key] = basekw[key]
+        retkw.update({'subject_zid':patient_zid, 'protocol_zid':zidlist})
+        return retkw
