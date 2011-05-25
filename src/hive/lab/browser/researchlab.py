@@ -485,6 +485,33 @@ class AliquotEditManager(AliquotButtonCore):
         self._update_subforms()
         return
 
+class AliquotCheckoutManager(AliquotButtonCore):
+    label=_(u"")
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+
+    @button.buttonAndHandler(_('Complete Check Out'), name='checkout')
+    def handleCheckinAliquot(self, action):
+        self.saveChanges(action)
+        self.changeAliquotState(action, 'checked-out', 'checkout')
+        self._update_subforms()
+        return
+
+    @button.buttonAndHandler(_('Return To Hold'), name='hold')
+    def handleCheckinAliquot(self, action):
+        self.changeAliquotState(action, 'hold', 'Hold')
+        self._update_subforms()
+        return
+        
+    @button.buttonAndHandler(_('Check Back In'), name='checkin')
+    def handleCheckinAliquot(self, action):
+        self.changeAliquotState(action, 'checked-in', 'Check In')
+        self._update_subforms()
+        return
+
+
+
 class AliquotRecoverer(AliquotButtonCore):
     label=_(u"")
     @button.buttonAndHandler(_('Select All'), name='selectall')
@@ -523,7 +550,7 @@ class AliquotRequestorCore(crud.CrudForm):
     
         self.display3 = field.Fields(IViewableAliquot).\
             select('special_instruction')
-           
+
         self.display4 = field.Fields(IAliquot).\
         select('notes')
         
@@ -770,7 +797,7 @@ class AliquotCheckout(crud.CrudForm):
            
         self.display4 = field.Fields(IAliquot, mode=DISPLAY_MODE).\
         select('notes')
-    editform_factory =  AliquotVerifier
+    editform_factory =  AliquotCheckoutManager
     ignoreContext=True
     addform_factory = crud.NullForm
     

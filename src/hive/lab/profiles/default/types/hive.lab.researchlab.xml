@@ -45,7 +45,8 @@
 
   <alias from="prepared" to="@@prepared" />
   <alias from="completed" to="@@completed" />
-
+  <alias from="edit-aliquot" to="@@edit-aliquot" />
+    <alias from="checkout-aliquot" to="@@checkout-aliquot" />
   <!-- Actions -->
   <action title="View" action_id="view" category="object" condition_expr=""
     url_expr="string:${object_url}/" visible="True">

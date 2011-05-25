@@ -227,7 +227,12 @@ class AliquotList(crud.CrudForm):
         kw = IAliquotFilter(self.context).getAliquotFilter(sessionkeys)
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             kw['state'] = self.display_state
+        print kw
+
         aliquot = self.aliquot_manager.filter_aliquot(**kw)
+        if (len(kw) < 3 or (len(kw) < 4 and kw.has_key('show_all'))) and len(aliquot) > 1:
+            self.status = _(u"This Search returned too many aliquot. Please select another filter criteria")
+            return []
 
         for aliquotobj in aliquot:
             aliquotlist.append((aliquotobj.dsid, aliquotobj))
