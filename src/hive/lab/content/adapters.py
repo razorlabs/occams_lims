@@ -370,6 +370,33 @@ class LabelPrinter(grok.Adapter):
 # Adapters to provide an AliquotFilter to various object types
 # --------------------------------------------------------------------------
 
+class LabAliquotFilter(grok.Adapter):
+    """
+    Filter Aliquot by Patient
+    """
+    grok.implements(IAliquotFilter)
+    grok.context(IResearchLab)
+        
+    def getAliquotFilter(self, basekw={}, states=[]):
+        """
+        return a dictionary with keywords for this item based on an existing set of keys
+        """
+        intids = zope.component.getUtility(IIntIds)
+        zid = intids.getId(self.context)
+        retkw = {}
+        for key in IAliquotFilterForm.names():
+            if basekw.has_key(key) and basekw[key] is not None:
+                if key == 'show_all' or key == 'patient':
+                    continue
+                elif key == 'after_date':
+                    retkw[key] = basekw[key]
+                    if not basekw.has_key('before_date') or basekw['before_date'] is None:
+                        retkw['before_date'] = basekw[key]
+                else:
+                    retkw[key] = basekw[key]
+        retkw.update({'subject_zid':zid})
+        return retkw
+
 class PatientAliquotFilter(grok.Adapter):
     """
     Filter Aliquot by Patient
@@ -409,24 +436,19 @@ class VisitAliquotFilter(grok.Adapter):
         """
         return a dictionary with keywords for this item
         """
-        intids = zope.component.getUtility(IIntIds)
-        visit = self.context
-        patient = visit.aq_parent
-        patient_zid = intids.getId(patient)
-
-        zidlist = []
-        for cycle in visit.cycles:
-            zidlist.append(cycle.to_id)
         retkw = {}
+        if basekw.has_key('after_date') and basekw['after_date'] is not None and (not basekw.has_key('before_date') or basekw['before_date'] is None):
+            basekw['before_date'] = basekw['after_date']
         for key in IAliquotFilterForm.names():
             if basekw.has_key(key) and basekw[key] is not None:
-                if key == 'show_all' or key == 'patient':
+                if key == 'show_all':
                     continue
+                elif key == 'patient':
+                    retkw['subject_zid'] = utils.getPatientForFilter(self, basekw[key])
                 elif key == 'after_date':
                     retkw[key] = basekw[key]
                     if not basekw.has_key('before_date') or basekw['before_date'] is None:
                         retkw['before_date'] = basekw[key]
                 else:
                     retkw[key] = basekw[key]
-        retkw.update({'subject_zid':patient_zid, 'protocol_zid':zidlist})
         return retkw

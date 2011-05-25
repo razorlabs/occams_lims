@@ -1,0 +1,17 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="hive.lab"
+      xml:lang="en"
+      lang="en">
+  <metal:content-core fill-slot="content-core">
+    <metal:content-core define-macro="content-core">
+        <tal:crud replace="structure view/crudform" />
+        <br class="visualClear" />
+        <tal:crud replace="structure view/labelque" />
+        <br class="visualClear" />
+    </metal:content-core>
+  </metal:content-core>
+</html>

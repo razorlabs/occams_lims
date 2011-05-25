@@ -1,0 +1,71 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="hive.lab"
+      xml:lang="en"
+      lang="en">
+  <metal:content-core fill-slot="body">
+    <metal:content-core define-macro="body">
+
+     <a href="./">return to Checkout</a>
+        <h1
+          class="documentFirstHeading">Specimen Pending Aliquot</h1>
+
+        <table class="listing">
+            <tr>
+                <th>
+                    Status
+                </th>
+                <th>
+                    Check Out / Inventory
+                </th>
+                <th>
+                    Aliquot ID
+                </th>
+                <th>
+                    OUR#
+                </th>
+                <th>
+                    AEHID
+                </th>
+                <th>
+                    Store Date
+                </th>
+                <th>
+                    Type
+                </th>
+                <th>
+                    Volume / # of Cells
+                </th>
+                <th>
+                    Freezer / Rack / Box
+                </th>
+            </tr>
+            <div tal:repeat="aliquot view/getaliquot" tal:omit-tag="">
+                <tr tal:define="odd repeat/aliquot/odd" tal:attributes="class python: odd and 'odd' or 'even'">
+                    <td style="border:solid black medium">
+                    </td>
+                    <td tal:content="python:aliquot.state == u'hold' and 'Check Out' or 'Inventory'" />
+
+                    <td tal:content="aliquot/dsid" />
+                    <td tal:content="aliquot/patient_title" />
+                    <td tal:content="aliquot/patient_legacy_number" />
+                    <td tal:content="aliquot/store_date" />
+                    <td tal:content="aliquot/pretty_aliquot_type" />
+                    <td >
+                        <span tal:condition="aliquot/volume" tal:replace="aliquot/volume" />
+                        <span tal:condition="aliquot/cell_amount" tal:replace="aliquot/cell_amount" />
+                    </td>
+                    <td>
+                        <span tal:replace="aliquot/freezer|string:?" /> /                         <span tal:replace="aliquot/rack|string:?" /> /                         <span tal:replace="aliquot/box|string:?" />
+
+
+                    </td>
+                </tr>
+            </div>
+        </table>
+    </metal:content-core>
+  </metal:content-core>
+</html>

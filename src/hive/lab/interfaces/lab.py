@@ -5,7 +5,7 @@ import zope.interface
 
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabelSheet
-
+from hive.lab.interfaces.aliquot import IAliquotFilter
 
 class IContainsSpecimen(zope.interface.Interface):
     """
@@ -26,7 +26,7 @@ class IClinicalLab(ILab):
     """
     pass
     
-class IResearchLab(ILab):
+class IResearchLab(ILab,  IAliquotFilter):
     """
     An Interface for the Labs
     """
