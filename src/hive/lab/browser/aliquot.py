@@ -153,57 +153,6 @@ class AliquotCheckList(dexterity.DisplayForm):
 
 
 
-class AliquotEditView(dexterity.DisplayForm):
-    """
-    Primary view for a clinical lab object.
-    """
-    grok.context(IAliquotSupport)
-    grok.require('zope2.View')
-    grok.name('edit-aliquot')
-    
-    def __init__(self, context, request):
-        super(AliquotEditView, self).__init__(context, request)
-
-        self.form_requestor = self.getFormRequestor()
-
-        
-    def getFormRequestor(self):
-        """
-        Create a form instance.
-        @return: z3c.form wrapped for Plone 3 view
-        """
-        context = self.context.aq_inner
-        form = AliquotEditor(context, self.request)
-        view = NestedFormView(context, self.request)
-        view = view.__of__(context)
-        view.form_instance=form
-        return view
-
-class AliquotCheckoutView(dexterity.DisplayForm):
-    """
-    Primary view for a clinical lab object.
-    """
-    grok.context(IAliquotSupport)
-    grok.require('zope2.View')
-    grok.name('checkout-aliquot')
-    
-    def __init__(self, context, request):
-        super(AliquotCheckoutView, self).__init__(context, request)
-
-        self.form_requestor = self.getFormRequestor()
-
-        
-    def getFormRequestor(self):
-        """
-        Create a form instance.
-        @return: z3c.form wrapped for Plone 3 view
-        """
-        context = self.context.aq_inner
-        form = AliquotCheckout(context, self.request)
-        view = NestedFormView(context, self.request)
-        view = view.__of__(context)
-        view.form_instance=form
-        return view
 
 
 # ------------------------------------------------------------------------------
@@ -373,6 +322,12 @@ class QueManager(AliquotButtonCore):
 #         self.changeAliquotState(action, 'incorrect','incorrect')
 #         self._update_subforms()
         return self.request.response.redirect('%s/%s' %(self.context.context.absolute_url(), 'checklist' ))
+
+    @button.buttonAndHandler(_('Check Out'), name='checkout')
+    def handleCheckout(self, action):
+        self.changeAliquotState(action, 'pending-checkout','checkout')
+        self._update_subforms()
+        return
         
     @button.buttonAndHandler(_('Release Hold'), name='release')
     def handleInaccurate(self, action):
@@ -386,9 +341,9 @@ class QueManager(AliquotButtonCore):
         self._update_subforms()
         return
 
-    @button.buttonAndHandler(_('Check Out'), name='checkout')
-    def handleCheckout(self, action):
-        self.changeAliquotState(action, 'pending-checkout','checkout')
+    @button.buttonAndHandler(_('Mark Missing'), name='missing')
+    def handleInaccurate(self, action):
+        self.changeAliquotState(action, 'missing','missing')
         self._update_subforms()
         return
 
@@ -497,147 +452,4 @@ class QueView(crud.CrudForm):
         
 
         
-class AliquotEditor(crud.CrudForm):
-    """
-    Base Crud form for editing specimen. Some specimen will need to be 
-    """
-    
-    def __init__(self,context, request):
-        super(AliquotEditor, self).__init__(context, request)
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        self.aliquot_manager = ds.getAliquotManager()
-        self.display0 = field.Fields(IAliquot, mode=DISPLAY_MODE).\
-            select('dsid')
-            
-        self.display1 = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
-            select('patient_title', 'patient_legacy_number', 'study_title','pretty_aliquot_type')
-            
-        self.displayvolume = field.Fields(IAliquot).\
-            select('volume')   
-            
-        self.displaycells = field.Fields(IAliquot).\
-            select('cell_amount')
-            
-        self.display2 = field.Fields(IAliquot).\
-            select('store_date','freezer','rack','box')
-    
-        self.display3 = field.Fields(IViewableAliquot).\
-            select('special_instruction')
-           
-        self.display4 = field.Fields(IAliquot).\
-        select('notes')
-        
-    ignoreContext=True
-    addform_factory = crud.NullForm
-    batch_size = 20
-
-    @property
-    def update_schema(self):
-        manager = self.display0 + self.display1
-#         if self.context.volume is not None:
-        manager += self.displayvolume
-#         if self.context.cell_amount is not None:
-        manager += self.displaycells
-        return  manager + self.display2 + self.display3 + self.display4
-
-    @property
-    def editform_factory(self):
-        return AllAliquotManager
-        
-    def updateWidgets(self):
-        super(AliquotEditor, self).updateWidgets()
-        self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
-        self.update_schema['cell_amount'].widgetFactory = widgets.AmountFieldWidget
-        self.update_schema['freezer'].widgetFactory = widgets.StorageFieldWidget
-        self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
-        self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
-        
-    @property
-    def display_state(self):
-        return u"incorrect"
-
-    @property
-    def action(self):
-        raise NotImplementedError
-
-#     def getFilterCookie(self):
-#         session_manager = getToolByName(self.context,'session_data_manager')
-#         session = session_manager.getSessionData(create=False)
-
-    def get_items(self):
-        aliquotlist = []
-        kw = {}
-        kw['state'] = self.display_state
-        aliquot = self.aliquot_manager.filter_aliquot(**kw)
-        for aliquotobj in aliquot:
-            aliquotlist.append((aliquotobj.dsid, aliquotobj))
-        return aliquotlist
    
-        
-        
-class AliquotCheckout(crud.CrudForm):
-    """
-    """
-
-    def __init__(self,context, request):
-        super(AliquotCheckout, self).__init__(context, request)
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        self.aliquot_manager = ds.getAliquotManager()
-        self.display0 = field.Fields(IAliquot, mode=DISPLAY_MODE).\
-            select('state','dsid')
-            
-        self.display1 = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
-            select('patient_title', 'patient_legacy_number', 'study_title','pretty_aliquot_type')
-            
-        self.displayvolume = field.Fields(IAliquot, mode=DISPLAY_MODE).\
-            select('volume')   
-            
-        self.displaycells = field.Fields(IAliquot, mode=DISPLAY_MODE).\
-            select('cell_amount')
-            
-        self.display2 = field.Fields(IAliquot, mode=DISPLAY_MODE).\
-            select('store_date','freezer','rack','box')
-    
-        self.display3 = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
-            select('special_instruction')
-           
-        self.display4 = field.Fields(IAliquot, mode=DISPLAY_MODE).\
-        select('notes')
-    editform_factory =  QueManager
-    ignoreContext=True
-    addform_factory = crud.NullForm
-    
-    batch_size = 70
-    
-    @property
-    def update_schema(self):
-        manager = self.display0 + self.display1
-#         if self.context.volume is not None:
-        manager += self.displayvolume
-#         if self.context.cell_amount is not None:
-        manager += self.displaycells
-        return  manager + self.display2 + self.display3 + self.display4
- 
-    @property
-    def display_state(self):
-        return u"pending-checkout"
-
-    @property
-    def action(self):
-        raise NotImplementedError
-
-#     def getFilterCookie(self):
-#         session_manager = getToolByName(self.context,'session_data_manager')
-#         session = session_manager.getSessionData(create=False)
-
-    def get_items(self):
-        aliquotlist = []
-        kw={}
-        kw['state'] = self.display_state
-        aliquot = self.aliquot_manager.filter_aliquot(**kw)
-
-        for aliquotobj in aliquot:
-            aliquotlist.append((aliquotobj.dsid, aliquotobj))
-        return aliquotlist        

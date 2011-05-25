@@ -1,5 +1,7 @@
 from Products.CMFCore.utils import getToolByName
 from plone.directives import dexterity
+from plone.directives import form
+
 from zope.security import checkPermission
 from datetime import date
 from five import grok
@@ -198,6 +200,7 @@ class AliquotCheckoutView(dexterity.DisplayForm):
         super(AliquotCheckoutView, self).__init__(context, request)
 
         self.form_requestor = self.getFormRequestor()
+        self.form_updater = self.getUpdater()
 
         
     def getFormRequestor(self):
@@ -213,6 +216,19 @@ class AliquotCheckoutView(dexterity.DisplayForm):
         return view
 
 
+
+    def getUpdater(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotCheckoutUpdate(context, self.request)
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance=form
+        return view
+        
 # ------------------------------------------------------------------------------
 # Specific Specimen forms
 # ------------------------------------------------------------------------------
@@ -443,7 +459,32 @@ class AliquotVerifier(AliquotButtonCore):
         self._update_subforms()
         return
 
+class AliquotEditManager(AliquotButtonCore):
+    label=_(u"")
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
         
+    @button.buttonAndHandler(_('Save Changes'), name='save')
+    def handleSaveChanges(self, action):
+        self.saveChanges(action)
+        self._update_subforms()
+        return
+        
+    @button.buttonAndHandler(_('Check Back In'), name='checkin')
+    def handleCheckinAliquot(self, action):
+        self.saveChanges(action)
+        self.changeAliquotState(action, 'checked-in', 'Check In')
+        self._update_subforms()
+        return
+
+    @button.buttonAndHandler(_('Check Out'), name='checkout')
+    def handleCheckinAliquot(self, action):
+        self.saveChanges(action)
+        self.changeAliquotState(action, 'pending-checkout', 'checkout')
+        self._update_subforms()
+        return
+
 class AliquotRecoverer(AliquotButtonCore):
     label=_(u"")
     @button.buttonAndHandler(_('Select All'), name='selectall')
@@ -667,7 +708,7 @@ class AliquotEditor(crud.CrudForm):
 
     @property
     def editform_factory(self):
-        return AliquotVerifier
+        return AliquotEditManager
         
     def updateWidgets(self):
         super(AliquotEditor, self).updateWidgets()
@@ -719,10 +760,10 @@ class AliquotCheckout(crud.CrudForm):
             select('volume')   
             
         self.displaycells = field.Fields(IAliquot, mode=DISPLAY_MODE).\
-            select('cell_amount')
+            select('cell_amount','store_date')
             
-        self.display2 = field.Fields(IAliquot, mode=DISPLAY_MODE).\
-            select('store_date','freezer','rack','box')
+        self.display2 = field.Fields(IViewableAliquot).\
+            select('sent_date', 'sent_name', 'sent_notes')
     
         self.display3 = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
             select('special_instruction')
@@ -766,6 +807,53 @@ class AliquotCheckout(crud.CrudForm):
             aliquotlist.append((aliquotobj.dsid, aliquotobj))
         return aliquotlist     
 
+
+
+class AliquotCheckoutUpdate(form.Form):
+    """
+    Take form data and apply it to the session so that filtering takes place.
+    """
+    grok.context(IResearchLab)
+    grok.require('zope2.View')
+    def __init__(self, context, request):
+        super(AliquotCheckoutUpdate, self).__init__(context, request)
+        sm = getSiteManager(self)
+        ds = sm.queryUtility(IDatastore, 'fia')
+        self.aliquot_manager = ds.getAliquotManager()
+
+    ignoreContext = True
+
+    @property
+    def fields(self):
+        selectables=['sent_date', 'sent_name', 'sent_notes']
+        return field.Fields(IViewableAliquot).select(*selectables)
+
+    @button.buttonAndHandler(u'Update All')
+    def handleUpdate(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status=_(u"Sorry.")
+            return
+        kw={}
+#         import pdb;pdb.set_trace()
+        kw['state'] = u'pending-checkout'
+        aliquot = self.aliquot_manager.filter_aliquot(**kw)
+        for aliquotobj in aliquot:  
+            updated = False
+            for prop, value in data.items():
+                if hasattr(aliquotobj, prop) and getattr(aliquotobj, prop) != value:
+                    setattr(aliquotobj, prop, value)
+                    updated = True
+                    
+            if updated:
+                newaliquot = self.aliquot_manager.put(aliquotobj)                    
+        return self.request.response.redirect(self.action)
+        
+    @button.buttonAndHandler(u'Clear All')
+    def handleClear(self, action):
+
+
+        return self.request.response.redirect(self.action)
 
 
 # -----------------------------------------------------------------------------

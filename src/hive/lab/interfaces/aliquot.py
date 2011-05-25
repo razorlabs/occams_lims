@@ -2,11 +2,12 @@ from datetime import date
 from zope import interface
 import zope.schema
 from plone.directives import form
-
+from beast.browser import widgets
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
 from hive.lab import vocabularies
 from avrc.data.store.interfaces import IAliquot
+
 class IViewableAliquot(IAliquot, form.Schema):
     """
     """
@@ -46,6 +47,39 @@ class IViewableAliquot(IAliquot, form.Schema):
         default=u'na',
         required=False,
         )
+
+    sent_date = zope.schema.Date(
+        title=_(u"Date sent"),
+        required=False
+        )
+
+    thawed_num = zope.schema.Int(
+        title=_(u"Number of times thawed."),
+        default=0,
+        required=False,
+        )
+
+    storage_site = zope.schema.Choice(
+        title=_(u"Where was it sent?"),
+        description=_(u"Please select the appropriate location:"),
+        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_destination"),
+        required=False
+        )
+
+    sent_name = zope.schema.TextLine(
+        title=_(u"Who was it sent to?"),
+        description=_(u"Please enter the name of the person the aliquot was "
+                      u"sent to OR the name of the person who placed the "
+                      u"sample on hold:"),
+        required=False,
+        )
+
+    form.widget(sent_notes=widgets.SmallTextAreaFieldWidget)
+    sent_notes = zope.schema.Text(
+        title=_(u"Notes about delivery:"),
+        required=False
+        )
+
 
 class IAliquotFilter(interface.Interface):
 
@@ -118,7 +152,7 @@ class IAliquotLabel(ILabel):
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         ) 
-
+        
 
 class IAliquotFilterForm(form.Schema):
     """

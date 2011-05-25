@@ -36,6 +36,11 @@
         </p>
 
        <div
+          tal:content="structure view/form_updater" />
+          
+          <br class="visualClear" />
+          
+       <div
           tal:content="structure view/form_requestor" />
  
 <!-- 

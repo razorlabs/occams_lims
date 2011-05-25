@@ -73,4 +73,14 @@
     <permission value="View" />
   </action>
 
+  <action title="Edit Aliquot" action_id="editaliquot" category="object" condition_expr=""
+    url_expr="string:${object_url}/@@edit-aliquot" visible="True">
+    <permission value="View" />
+  </action>
+
+  <action title="Checkout" action_id="checkout" category="object" condition_expr=""
+    url_expr="string:${object_url}/@@checkout-aliquot" visible="True">
+    <permission value="View" />
+  </action>
+
 </object>

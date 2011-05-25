@@ -132,6 +132,26 @@ class ViewableAliquot(grok.Adapter):
     def state(self):
         return self.context.state
         
+    @property
+    def sent_date(self):
+        return self.context.sent_date
+        
+    @property
+    def thawed_num(self):
+        return self.context.thawed_num
+        
+    @property
+    def storage_site(self):
+        return self.context.storage_site
+        
+    @property
+    def sent_name(self):
+        return self.context.sent_name
+        
+    @property
+    def sent_notes(self):
+        return self.context.sent_notes
+        
 class AliquotGenerator(grok.Adapter):
     grok.context(IAliquot)
     grok.provides(IAliquotGenerator)
