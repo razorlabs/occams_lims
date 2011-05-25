@@ -36,6 +36,7 @@ setup(name='hive.lab',
         'avrc.aeh',
         'reportlab',                        # PDF label generator
         'xlutils',                          # Excel Export
+        'z3c.form == 2.4.1',                 # For attributes to work correctly 
           # -*- Extra requirements: -*-
       ],
       entry_points="""
