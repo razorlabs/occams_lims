@@ -26,7 +26,7 @@ from hive.lab.interfaces.specimen import ISpecimen
 from hive.lab.interfaces.specimen import ISpecimenManager
 from hive.lab.interfaces.aliquot import IAliquotManager
 from hive.lab.interfaces.aliquot import IAliquot
-
+from avrc.data.store.interfaces import IAliquot
 # ------------------------------------------------------------------------------
 # Base Forms |
 # --------------

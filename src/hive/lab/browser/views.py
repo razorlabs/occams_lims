@@ -13,10 +13,6 @@ from plone.directives import dexterity
 from zope.component import getSiteManager
 
 
-
-
-
-
 # ------------------------------------------------------------------------------
 # Clinical Lab Views |
 # --------------
@@ -220,7 +216,7 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
     grok.name('prepared')
 
     def __init__(self, context, request):
-        super(ResearchLabAliquotReady, self).__init__(context, request)
+        super(ResearchLabAliquotPrepared, self).__init__(context, request)
         self.crudform = self.getCrudForm()
         self.labelque = self.getLabelQue()
 

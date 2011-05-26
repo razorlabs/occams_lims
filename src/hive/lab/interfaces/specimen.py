@@ -12,7 +12,6 @@ from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
 from hive.lab import vocabularies
 
-from avrc.data.store.interfaces import IManager
 
 class ISpecimen(zope.interface.Interface):
     """ Mostly copied from aeh forms. Tons of work to do still. """
@@ -67,12 +66,6 @@ class ISpecimen(zope.interface.Interface):
         title=_(u'Notes'),
         required=False,
         )
-
-class ISpecimenManager(IManager):
-    """ Marker interface for managing specimen """
-
-    def list(start=None, num=None):
-        """ """
 
 class IViewableSpecimen(form.Schema):
 

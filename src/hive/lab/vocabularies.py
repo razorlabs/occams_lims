@@ -9,7 +9,15 @@ from hive.lab import model
 from avrc.data.store.interfaces import IDatastore
 from five import grok
 
-from hive.lab.interfaces.specimen import ISpecimenManager
+#from hive.lab.interfaces.managers import ISpecimenManager
+
+from avrc.data.store.interfaces import IManager
+
+class ISpecimenManager(IManager):
+    """ Marker interface for managing specimen """
+
+    def list(start=None, num=None):
+        """ """
 
 class SpecimenVocabulary(object):
     """
