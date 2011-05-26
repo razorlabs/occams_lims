@@ -1,13 +1,13 @@
 from zope.component import  getSiteManager
-from z3c.form import button
+from z3c.form import button, field
 from z3c.form import form as z3cform
 from plone.z3cform.crud import crud
 
 from avrc.data.store.interfaces import IDatastore
 from beast.browser.crud import BatchNavigation
+from z3c.form.interfaces import  DISPLAY_MODE
 
 from hive.lab import MessageFactory as _
-from hive.lab.browser.researchlab import AliquotButtonCore
 from hive.lab.interfaces.labels import ILabelPrinter
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
@@ -21,6 +21,33 @@ NO_CHANGES = _(u"No changes made.")
 # product.
 # ------------------------------------------------------------------------------
 
+class OrderedSubForm(crud.EditSubForm):
+    """
+        # Brought over from to exchange the order of the view and update schemas
+
+    """
+    @property
+    def fields(self):
+        fields = field.Fields(self._select_field())
+
+        crud_form = self.context.context
+
+        view_schema = crud_form.view_schema
+        if view_schema is not None:
+            view_fields = field.Fields(view_schema)
+            for f in view_fields.values():
+                f.mode = DISPLAY_MODE
+                # This is to allow a field to appear in both view
+                # and edit mode at the same time:
+                if not f.__name__.startswith('view_'):
+                    f.__name__ = 'view_' + f.__name__
+            fields += view_fields
+
+        update_schema = crud_form.update_schema
+        if update_schema is not None:
+            fields += field.Fields(update_schema)
+        return fields    
+
 class ButtonCore(crud.EditForm):
     """
     Core for all buttons
@@ -28,6 +55,8 @@ class ButtonCore(crud.EditForm):
     dsmanager = None
     sampletype = None
     
+    editsubform_factory = OrderedSubForm
+
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone
@@ -81,9 +110,7 @@ class ButtonCore(crud.EditForm):
                 newobj = self.dsmanager.put(obj)
         self.status = status         
 
-    @button.buttonAndHandler(_('Select All'), name='selectall')
-    def handleSelectAll(self, action):
-        pass
+
         
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -93,7 +120,6 @@ class SpecimenButtonCore(ButtonCore):
     """
         
     label=_(u"")
-    z3cform.extends(ButtonCore)
     
     def __init__(self, context, request):
         """
@@ -127,6 +153,10 @@ class SpecimenButtonCore(ButtonCore):
         self.request.RESPONSE.write(content)
         self.status = _(u"Your print is on its way. Refresh the page to view only unprinted labels.")
 
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+        
     @button.buttonAndHandler(_('Print Selected'), name='printed')
     def handlePrint(self, action):
         self.saveChanges(action)
@@ -145,7 +175,6 @@ class AliquotButtonCore(ButtonCore):
     Core functionality for aliquot buttons
     """
     label=_(u"")
-    z3cform.extends(ButtonCore)
 
     def __init__(self, context, request):
         """
@@ -173,7 +202,10 @@ class AliquotButtonCore(ButtonCore):
         else:
             self.status = _(u"Please select %s to que." % self.sampletype)
 
-
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+        
 # ------------------------------------------------------------------------------
 # Specimen Buttons |
 # --------------
@@ -300,6 +332,8 @@ class AliquotCreator(crud.EditForm):
         ds = sm.queryUtility(IDatastore, 'fia')
         self.specimen_manager = ds.getSpecimenManager()
         self.aliquot_manager = ds.getAliquotManager()
+        
+    editsubform_factory = OrderedSubForm
 
     def changeState(self, action, state, acttitle):
         """
@@ -526,6 +560,8 @@ class AliquotHoldButtons(AliquotButtonCore):
 class LabelButtons(crud.EditForm):
     """
     """
+    editsubform_factory = OrderedSubForm
+
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone

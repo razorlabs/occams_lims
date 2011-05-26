@@ -21,6 +21,7 @@ from zope.schema.vocabulary import SimpleTerm, SimpleVocabulary
 import datetime
 import os.path
 import zope.component
+from avrc.data.store.interfaces import ISpecimen
 
 # ------------------------------------------------------------------------------
 # Base Forms |
@@ -39,6 +40,9 @@ class SpecimenCoreForm(crud.CrudForm):
         ds = sm.queryUtility(IDatastore, 'fia')
         self.dsmanager = ds.getSpecimenManager()
         
+        self.update_schema = self.edit_schema
+        
+        
     ignoreContext=True
     addform_factory = crud.NullForm
     
@@ -46,18 +50,20 @@ class SpecimenCoreForm(crud.CrudForm):
 
     @property
     def view_schema(self):
-        return field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
-        select('patient_title', 'patient_initials', 'study_title',
-       'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
-       
-    @property
-    def update_schema(self):
-        return field.Fields(IViewableSpecimen).\
-        select('tubes','date_collected', 'time_collected',  'notes')
+        fields = field.Fields(IViewableSpecimen).\
+            select('patient_title', 'patient_initials', 'study_title', 'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+        return fields
 
+    @property
+    def edit_schema(self):
+        fields = field.Fields(ISpecimen).\
+            select('tubes','date_collected', 'time_collected',  'notes')
+        return fields
+#        
+    
     def link(self, item, field):
         if field == 'patient_title':
-            return './%s/@@aliquot' % item.patient_title
+            return './%s/@@specimen' % IViewableSpecimen(item).patient_title
     
     @property
     def editform_factory(self):
@@ -68,9 +74,9 @@ class SpecimenCoreForm(crud.CrudForm):
         raise NotImplementedError
         
     def updateWidgets(self):
-        super(SpecimenCoreForm, self).updateWidgets()
-        self.update_schema['time_collected'].widgetFactory = widgets.TimeFieldWidget
-        self.update_schema['tubes'].widgetFactory = widgets.StorageFieldWidget
+        if self.update_schema is not None:
+            self.update_schema['time_collected'].widgetFactory = widgets.TimeFieldWidget
+            self.update_schema['tubes'].widgetFactory = widgets.StorageFieldWidget
 
     def getkwargs(self):
         kw = {'state':self.display_state,
@@ -97,20 +103,28 @@ class AliquotCoreForm(crud.CrudForm):
         sm = getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
         self.dsmanager = ds.getAliquotManager()
-        
+        self.update_schema = self.edit_schema
+
     ignoreContext=True
     addform_factory = crud.NullForm
     batch_size = 25
 
     @property
     def view_schema(self):
-        return field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
+        fields = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
             select('dsid','patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
-            
+        return fields
+        
     @property
-    def update_schema(self):
-        return field.Fields(IViewableAliquot).\
+    def edit_schema(self):
+        fields = field.Fields(IAliquot).\
             select('volume','cell_amount', 'store_date', 'freezer','rack','box', 'special_instruction', 'notes')
+        return fields
+
+    def link(self, item, field):
+        if field == 'patient_title':
+            return './%s/@@aliquot' % IViewableAliquot(item).patient_title
+        
     @property
     def editform_factory(self):
         raise NotImplementedError
@@ -121,11 +135,13 @@ class AliquotCoreForm(crud.CrudForm):
 
     def updateWidgets(self):
         super(AliquotCoreForm, self).updateWidgets()
-        self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
-        self.update_schema['cell_amount'].widgetFactory = widgets.AmountFieldWidget
-        self.update_schema['freezer'].widgetFactory = widgets.StorageFieldWidget
-        self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
-        self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
+        if self.update_schema is not None:
+
+            self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
+            self.update_schema['cell_amount'].widgetFactory = widgets.AmountFieldWidget
+            self.update_schema['freezer'].widgetFactory = widgets.StorageFieldWidget
+            self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
+            self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
 
     def getkwargs(self):
         kw = {'state':self.display_state}
@@ -183,12 +199,15 @@ class SpecimenPostponedForm(SpecimenCoreForm):
 class SpecimenRecoverForm(SpecimenCoreForm):  
     @property
     def view_schema(self):
-        return field.Fields(IViewableSpecimen).\
+        fields =  field.Fields(IViewableSpecimen).\
         select('state', 'patient_title', 'patient_initials', 'study_title',
-       'protocol_title', 'pretty_specimen_type', 'pretty_tube_type', 'tubes','date_collected', 'time_collected',  'notes')
-
+       'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+        fields += field.Fields(ISpecimen).\
+        select('tubes','date_collected', 'time_collected',  'notes')
+        return fields
+        
     @property
-    def update_schema(self):
+    def edit_schema(self):
         return None 
 
     @property
@@ -233,12 +252,13 @@ class SpecimenTodayForm(SpecimenCoreForm):
     """
     @property
     def view_schema(self):
-        return field.Fields(IViewableSpecimen).\
-        select('state', 'patient_title', 'patient_initials', 'study_title',
-       'protocol_title', 'pretty_specimen_type', 'pretty_tube_type', 'tubes','date_collected', 'time_collected',  'notes')
+        fields = field.Fields(IViewableSpecimen).\
+            select('state', 'patient_title', 'patient_initials', 'study_title', 'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+        fields += field.Fields(ISpecimen).\
+            select('tubes','date_collected', 'time_collected',  'notes')
 
     @property
-    def update_schema(self):
+    def edit_schema(self):
         return None 
 
     @property
@@ -253,14 +273,15 @@ class ReadySpecimenForm(SpecimenCoreForm):
 
     @property
     def view_schema(self):
-        return field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
-        select('patient_title', 'patient_initials', 'study_title',
-       'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
-       
+        fields = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
+            select('patient_title', 'patient_initials', 'study_title', 'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+        return fields
+        
     @property
-    def update_schema(self):
-        return field.Fields(IViewableSpecimen).\
-        select('tubes','date_collected', 'time_collected',  'notes')
+    def edit_schema(self):
+        fields = field.Fields(ISpecimen).\
+            select('tubes','date_collected', 'time_collected',  'notes')
+        return fields
         
     @property
     def editform_factory(self):
@@ -300,15 +321,16 @@ class AliquotCreator(AliquotCoreForm):
         return None
             
     @property
-    def update_schema(self):
-        fieldset = field.Fields(IAliquotGenerator).\
+    def edit_schema(self):
+        fields = field.Fields(IAliquotGenerator).\
         select('count')
-        fieldset += field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
+        fields += field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
             select('patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
             
-        return field.Fields(IViewableAliquot).\
+        fields += field.Fields(IAliquot).\
             select('volume','cell_amount', 'store_date', 'freezer','rack','box', 'special_instruction', 'notes')
-
+        return fields
+        
     def updateWidgets(self):
         self.update_schema['count'].widgetFactory = widgets.StorageFieldWidget
         super(AliquotCreator, self).updateWidgets()
@@ -342,11 +364,13 @@ class AliquotCompletedForm(AliquotCoreForm):
     """
     @property
     def view_schema(self):
-        return field.Fields(IViewableAliquot).\
-            select('dsid','patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type', 'volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction', 'notes')
-            
+        fields = field.Fields(IViewableAliquot).\
+            select('dsid','patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+        fields += field.Fields(IAliquot).\
+            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction', 'notes')
+        return fields    
     @property
-    def update_schema(self):
+    def edit_schema(self):
         return None
         
     editform_factory = buttons.AliquotRecoverButtons
@@ -384,14 +408,18 @@ class AliquotCheckoutForm(AliquotCoreForm):
 
     @property
     def view_schema(self):
-        return field.Fields(IViewableAliquot).\
-            select('dsid','patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type', 'volume', 'cell_amount', 'store_date', 'freezer','rack','box', 'special_instruction')
-            
+        fields = field.Fields(IViewableAliquot).\
+            select('dsid','patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+        fields += field.Fields(IViewableAliquot).\
+            select('volume', 'cell_amount', 'store_date', 'freezer','rack','box', 'special_instruction')
+        return fields
+        
     @property
-    def update_schema(self):
-        return field.Fields(IViewableAliquot).\
+    def edit_schema(self):
+        fields = field.Fields(IViewableAliquot).\
             select('sent_date', 'sent_name', 'sent_notes')
-            
+        return fields
+        
     @property
     def display_state(self):
         return u"pending-checkout"
@@ -409,10 +437,13 @@ class AliquotListForm(AliquotCoreForm):
 
     @property
     def view_schema(self):
-        return field.Fields(IViewableAliquot).\
-            select('dsid','patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type', 'volume', 'cell_amount', 'store_date', 'freezer','rack','box', 'special_instruction')
-           
-    update_schema = None
+        fields = field.Fields(IViewableAliquot).\
+            select('dsid','patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+        fields +=  field.Fields(IAliquot).\
+            select('volume', 'cell_amount', 'store_date', 'freezer','rack','box', 'special_instruction')
+        return fields
+        
+    edit_schema = None
     @property
     def display_state(self):
         return u"checked-in"
@@ -430,10 +461,13 @@ class AliquotQueForm(AliquotCoreForm):
     """
     @property
     def view_schema(self):
-        return field.Fields(IViewableAliquot).\
-            select('dsid','patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type', 'volume', 'cell_amount', 'store_date', 'freezer','rack','box', 'special_instruction')
-           
-    update_schema = None
+        fields = field.Fields(IViewableAliquot).\
+            select('dsid','patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+        fields += field.Fields(IAliquot).\
+            select('volume', 'cell_amount', 'store_date', 'freezer','rack','box', 'special_instruction')
+        return fields
+        
+    edit_schema = None
     
     editform_factory =  buttons.AliquotHoldButtons
     
@@ -466,7 +500,7 @@ class AliquotCheckoutUpdate(form.Form):
     @property
     def fields(self):
         selectables=['sent_date', 'sent_name', 'sent_notes']
-        return field.Fields(IViewableAliquot).select(*selectables)
+        return field.Fields(IAliquot).select(*selectables)
 
     @button.buttonAndHandler(u'Update All')
     def handleUpdate(self, action):

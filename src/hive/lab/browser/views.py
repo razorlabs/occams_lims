@@ -30,7 +30,7 @@ class ClinicalLabView(dexterity.DisplayForm):
     """
     grok.context(IClinicalLab)
     grok.require('zope2.View')
-    grok.name('edit-aliquot')
+    grok.name('clinical-view')
 
     def __init__(self, context, request):
         super(ClinicalLabView, self).__init__(context, request)
@@ -56,7 +56,7 @@ class ClinicalLabBatched(dexterity.DisplayForm):
     """
     grok.context(IClinicalLab)
     grok.require('zope2.View')
-    grok.name('edit-aliquot')
+    grok.name('batched')
 
     def __init__(self, context, request):
         super(ClinicalLabBatched, self).__init__(context, request)
@@ -82,7 +82,7 @@ class ClinicalLabPostponed(dexterity.DisplayForm):
     """
     grok.context(IClinicalLab)
     grok.require('zope2.View')
-    grok.name('edit-aliquot')
+    grok.name('postponed')
 
     def __init__(self, context, request):
         super(ClinicalLabPostponed, self).__init__(context, request)
@@ -108,7 +108,7 @@ class ClinicalLabCompleted(dexterity.DisplayForm):
     """
     grok.context(IClinicalLab)
     grok.require('zope2.View')
-    grok.name('edit-aliquot')
+    grok.name('complete')
 
     def __init__(self, context, request):
         super(ClinicalLabCompleted, self).__init__(context, request)
@@ -139,10 +139,10 @@ class ResearchLabView(dexterity.DisplayForm):
     """
     grok.context(IResearchLab)
     grok.require('zope2.View')
-    grok.name('edit-aliquot')
+    grok.name('research-view')
 
     def __init__(self, context, request):
-        super(ClinicalLabCompleted, self).__init__(context, request)
+        super(ResearchLabView, self).__init__(context, request)
         self.crudform = self.getCrudForm()
         self.preview = self.getTodaySpecimen()
 
@@ -178,7 +178,7 @@ class ResearchLabAliquotReady(dexterity.DisplayForm):
     """
     grok.context(IResearchLab)
     grok.require('zope2.View')
-    grok.name('edit-aliquot')
+    grok.name('ready')
 
     def __init__(self, context, request):
         super(ResearchLabAliquotReady, self).__init__(context, request)
@@ -217,7 +217,7 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
     """
     grok.context(IResearchLab)
     grok.require('zope2.View')
-    grok.name('edit-aliquot')
+    grok.name('prepared')
 
     def __init__(self, context, request):
         super(ResearchLabAliquotReady, self).__init__(context, request)
@@ -254,7 +254,7 @@ class ResearchLabAliquotCompleted(dexterity.DisplayForm):
     """
     grok.context(IResearchLab)
     grok.require('zope2.View')
-    grok.name('edit-aliquot')
+    grok.name('checkedin')
 
     def __init__(self, context, request):
         super(ResearchLabAliquotCompleted, self).__init__(context, request)
@@ -303,7 +303,7 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
     """
     grok.context(IResearchLab)
     grok.require('zope2.View')
-    grok.name('checkout-aliquot')
+    grok.name('checkout')
     
     def __init__(self, context, request):
         super(ResearchLabAliquotCheckoutView, self).__init__(context, request)
