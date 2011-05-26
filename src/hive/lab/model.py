@@ -2,7 +2,6 @@
 """
 
 from sqlalchemy import text
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import ForeignKey
 from sqlalchemy.schema import UniqueConstraint
@@ -16,6 +15,8 @@ from sqlalchemy.types import Unicode
 
 from sqlalchemy.orm import relation as Relationship
 
+from avrc.data.store.model import Model
+
 
 __all__ = ('SpecimenAliquotTerm', 'Specimen', 'Aliquot', 'AliquotHistory',)
 
@@ -24,9 +25,6 @@ NOW = text('CURRENT_TIMESTAMP')
 
 FALSE = text('FALSE')
 
-
-# Base class for declarative syntax on our models
-Model = declarative_base()
 
 
 class SpecimenAliquotTerm(Model):
