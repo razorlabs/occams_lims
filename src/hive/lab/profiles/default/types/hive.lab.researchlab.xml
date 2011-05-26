@@ -47,6 +47,7 @@
   <alias from="checkedin" to="@@checkedin" />
   <alias from="edit-aliquot" to="@@edit-aliquot" />
   <alias from="checkout" to="@@checkout" />
+  
   <!-- Actions -->
   <action title="View" action_id="view" category="object" condition_expr=""
     url_expr="string:${object_url}/" visible="True">

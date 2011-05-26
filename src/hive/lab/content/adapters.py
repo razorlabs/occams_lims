@@ -442,7 +442,8 @@ class PatientAliquotFilter(grok.Adapter):
         return a dictionary with keywords for this item based on an existing set of keys
         """
         intids = zope.component.getUtility(IIntIds)
-        zid = intids.getId(self.context)
+        subject = self.context
+        subject_zid = intids.getId(subject)
         retkw = {}
         for key in IAliquotFilterForm.names():
             if basekw.has_key(key) and basekw[key] is not None:
@@ -454,7 +455,7 @@ class PatientAliquotFilter(grok.Adapter):
                         retkw['before_date'] = basekw[key]
                 else:
                     retkw[key] = basekw[key]
-        retkw.update({'subject_zid':zid})
+        retkw['subject_zid'] = subject_zid
         return retkw
 
 
@@ -470,20 +471,28 @@ class VisitAliquotFilter(grok.Adapter):
         return a dictionary with keywords for this item
         """
         retkw = {}
+        intids = zope.component.getUtility(IIntIds)
+        subject = self.context.aq_parent
+        subject_zid = intids.getId(subject)
+        protocols = self.context.cycles
+        date_collected = self.context.visit_date
+        cyclelist = []
+        for protocol in protocols:
+            cyclelist.append(protocol.to_id)
         if basekw.has_key('after_date') and basekw['after_date'] is not None and (not basekw.has_key('before_date') or basekw['before_date'] is None):
             basekw['before_date'] = basekw['after_date']
         for key in IAliquotFilterForm.names():
             if basekw.has_key(key) and basekw[key] is not None:
-                if key == 'show_all':
+                if key == 'show_all' or key == 'patient':
                     continue
-                elif key == 'patient':
-                    retkw['subject_zid'] = utils.getPatientForFilter(self, basekw[key])
                 elif key == 'after_date':
                     retkw[key] = basekw[key]
                     if not basekw.has_key('before_date') or basekw['before_date'] is None:
                         retkw['before_date'] = basekw[key]
                 else:
                     retkw[key] = basekw[key]
+        retkw['subject_zid'] = subject_zid
+        retkw['protocol_zid'] = cyclelist
         return retkw
 
 
@@ -555,6 +564,59 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapte
         SpecimenModel = self._model
         SubjectModel = dsmodel.Subject
         ProtocolModel = dsmodel.Protocol
+        
+        specimen_q = Session.query(SpecimenModel)
+
+        if 'subject_zid' in kw and 'our_id' in kw:
+            del kw['our_id']
+
+        for key, item in kw.items():
+            if not isinstance(item, list):
+                item = [item]
+
+            filters = []
+
+            for value in item:
+                if value is not None:
+                    if key == 'state':
+                        filter = SpecimenModel.state.has(value=unicode(value))
+                    elif key == 'specimen_type':
+                        filter = SpecimenModel.type.has(value=unicode(value))
+                        
+                        
+                        
+                    elif key == 'before_date':
+                        filter = AliquotModel.store_date <= value
+                    elif key == 'after_date':
+                        filter = AliquotModel.store_date >= value
+                    elif key == 'protocol_zid':
+                        filter = SpecimenModel.protocol.has(zid=value)
+                    elif key == 'our_id':
+                        filter = SpecimenModel.subject.has(uid=value)
+                    elif key == 'subject_zid':
+                        filter = SpecimenModel.subject.has(zid=value)
+                    else:
+                        print '%s is not a valid filter' % key
+                        filter = None
+
+                    if filter is not None:
+                        filters.append(filter)
+
+            filter = or_(*filters)
+            query = query.filter(filter)
+
+        query = query.order_by(SpecimenModel.id.desc())
+        result = [Aliquot.from_rslt(r) for r in query.all()]
+        return result
+
+
+
+
+
+        Session = self._datastore.getScopedSession()
+        SpecimenModel = self._model
+        SubjectModel = dsmodel.Subject
+        ProtocolModel = dsmodel.Protocol
         specimen_q = Session.query(SpecimenModel)
 
         for key, value in kw.items():
@@ -600,24 +662,6 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapte
             'after_date':after_date
         }
         return self.filter_specimen(**kw)
-#         Session = self._datastore.getScopedSession()
-#         SpecimenModel = self._model
-# 
-#         specimen_q = Session.query(SpecimenModel)\
-#                         .join(SpecimenModel.state)\
-#                         .filter_by(value=unicode(state))
-# 
-#         if before_date:
-#             exp_q = SpecimenModel.collect_date <= before_date
-#             specimen_q = specimen_q.filter(exp_q)
-# 
-#         if after_date:
-#             exp_q = SpecimenModel.collect_date >= after_date
-#             specimen_q = specimen_q.filter(exp_q)
-# 
-#         specimen_q = specimen_q.order_by(SpecimenModel.id.desc())
-# 
-#         return [Specimen.from_rslt(r) for r in specimen_q.all()]
 
     def list_specimen_by_group(self,
                                protocol_zid=None,
@@ -635,36 +679,6 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapte
         }
         return self.filter_specimen(**kw)
 
-#         Session = self._datastore.getScopedSession()
-#         SpecimenModel = self._model
-#         SubjectModel = model.Subject
-#         ProtocolModel = model.Protocol
-#         specimen_q = Session.query(SpecimenModel)
-# 
-#         if state:
-#             specimen_q = specimen_q\
-#                         .join(SpecimenModel.state)\
-#                         .filter_by(value=unicode(state))
-# 
-#         if specimen_type:
-#             specimen_q = specimen_q\
-#                         .join(SpecimenModel.type)\
-#                         .filter_by(value=unicode(specimen_type))
-# 
-#         if protocol_zid:
-#             specimen_q = specimen_q\
-#                             .join(ProtocolModel)\
-#                             .filter(ProtocolModel.zid == protocol_zid)
-# 
-#         if subject_zid:
-#             specimen_q = specimen_q\
-#                             .join(SubjectModel)\
-#                             .filter(SubjectModel.zid == subject_zid)
-# 
-# 
-#         specimen_q = specimen_q.order_by(SpecimenModel.id.desc())
-# 
-#         return [Specimen.from_rslt(r) for r in specimen_q.all()]
 
     def put(self, source):
 

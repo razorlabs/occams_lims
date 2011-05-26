@@ -11,8 +11,10 @@
 
         <tal:crud replace="structure view/crudform" />
         <br class="visualClear" />
+<!-- 
         <tal:crud replace="strsucture view/requestmore" />
         <br class="visualClear" />
+ -->
     </metal:content-core>
   </metal:content-core>
 </html>

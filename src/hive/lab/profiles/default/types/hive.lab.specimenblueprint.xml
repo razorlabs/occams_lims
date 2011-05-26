@@ -35,10 +35,10 @@
   </property>
 
   <!-- Method aliases -->
-  <alias from="(Default)" to="view" />
+  <alias from="(Default)" to="@@specimen" />
   <alias from="edit" to="@@edit" />
   <alias from="sharing" to="@@sharing" />
-  <alias from="view" to="@@view" />
+  <alias from="view" to="@@specimen" />
 
 
   <!-- Actions -->

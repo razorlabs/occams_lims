@@ -8,8 +8,10 @@
       lang="en">
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
+
         <tal:crud replace="structure view/formhelper" />
         <br class="visualClear" />
+ 
         <tal:crud replace="structure view/crudform" />
         <br class="visualClear" />
 

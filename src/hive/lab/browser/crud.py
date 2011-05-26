@@ -79,8 +79,10 @@ class SpecimenCoreForm(crud.CrudForm):
 
     def updateWidgets(self):
         if self.update_schema is not None:
-            self.update_schema['time_collected'].widgetFactory = widgets.TimeFieldWidget
-            self.update_schema['tubes'].widgetFactory = widgets.StorageFieldWidget
+            if 'time_collected' in self.update_schema.keys():
+                self.update_schema['time_collected'].widgetFactory = widgets.TimeFieldWidget
+            if 'tubes' in self.update_schema.keys():
+                self.update_schema['tubes'].widgetFactory = widgets.StorageFieldWidget
 
     def getkwargs(self):
         kw = {'state':self.display_state,
@@ -140,12 +142,16 @@ class AliquotCoreForm(crud.CrudForm):
     def updateWidgets(self):
         super(AliquotCoreForm, self).updateWidgets()
         if self.update_schema is not None:
-
-            self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
-            self.update_schema['cell_amount'].widgetFactory = widgets.AmountFieldWidget
-            self.update_schema['freezer'].widgetFactory = widgets.StorageFieldWidget
-            self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
-            self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
+            if 'volume' in self.update_schema.keys():
+                self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
+            if 'cell_amount' in self.update_schema.keys():
+                self.update_schema['cell_amount'].widgetFactory = widgets.AmountFieldWidget
+            if 'freezer' in self.update_schema.keys():
+                self.update_schema['freezer'].widgetFactory = widgets.StorageFieldWidget
+            if 'rack' in self.update_schema.keys():
+                self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
+            if 'box' in self.update_schema.keys():
+                self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
 
     def getkwargs(self):
         kw = {'state':self.display_state}
@@ -154,7 +160,7 @@ class AliquotCoreForm(crud.CrudForm):
     def get_items(self):
         aliquotlist = []
         kw = self.getkwargs()
-        aliquot = self.aliquot_manager.filter_aliquot(**kw)
+        aliquot = self.dsmanager.filter_aliquot(**kw)
         for aliquotobj in aliquot:
             aliquotlist.append((aliquotobj.dsid, aliquotobj))
         return aliquotlist
@@ -246,7 +252,7 @@ class SpecimenByVisitForm(SpecimenCoreForm):
         cyclelist = []
         for protocol in protocols:
             cyclelist.append(protocol.to_id)
-        kw = {'state':self.display_state, 'subject_zid':subject_zid, 'protocol_zid':cyclelist, 'date_collected':date_collected}
+        kw = {'subject_zid':subject_zid, 'protocol_zid':cyclelist, 'date_collected':date_collected}
         return kw
 
 # ------------------------------------------------------------------------------

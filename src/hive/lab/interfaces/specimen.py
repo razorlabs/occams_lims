@@ -104,7 +104,16 @@ class IViewableSpecimen(form.Schema):
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_tube_type"),
         )
 
-class ISpecimenBlueprint(form.Schema):
+class ISpecimenSupport(interface.Interface):
+    """
+    Marker class for items that have specimen associated with them
+    """
+    def getSpecimen():
+        """
+        Function that provides specimen associated with the object
+        """
+
+class ISpecimenBlueprint(form.Schema, ISpecimenSupport):
     """
     Blueprint the system can use to create specimen
     """
@@ -183,14 +192,7 @@ zope.interface.alsoProvides(IRequiredSpecimen, form.IFormFieldProvider)
 
 
 
-class ISpecimenSupport(interface.Interface):
-    """
-    Marker class for items that have specimen associated with them
-    """
-    def getSpecimen():
-        """
-        Function that provides specimen associated with the object
-        """
+
 
 class IRequestedSpecimen(ISpecimenSupport):
     """
