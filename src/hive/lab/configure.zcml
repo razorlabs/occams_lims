@@ -18,7 +18,7 @@
        need configure.zcml files. (We also don't need to specify them in
        <include> tags.)
     -->
-  <grok:grok package="." />
+  <grok:grok package="." exclude="migrate" />
 
  <utility 
     name="hive.lab.session"

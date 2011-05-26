@@ -42,7 +42,7 @@ from hive.lab.content.objects import Aliquot
 
 from hive.lab import model
 from avrc.data.store._manager import AbstractDatastoreConventionalManager
-
+from avrc.data.store import model as dsmodel
 
 
 class ViewableSpecimen(grok.Adapter):
@@ -487,8 +487,8 @@ class VisitAliquotFilter(grok.Adapter):
         return retkw
 
 
-class DatastoreSpecimenManager(AbstractDatastoreConventionalManager):
-    grok.adapts(IDatastore)
+class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapter):
+    grok.context(IDatastore)
     grok.provides(ISpecimenManager)
 
     _model = model.Specimen
@@ -553,8 +553,8 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager):
         """
         Session = self._datastore.getScopedSession()
         SpecimenModel = self._model
-        SubjectModel = model.Subject
-        ProtocolModel = model.Protocol
+        SubjectModel = dsmodel.Subject
+        ProtocolModel = dsmodel.Protocol
         specimen_q = Session.query(SpecimenModel)
 
         for key, value in kw.items():
@@ -698,11 +698,11 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager):
                             .first()
         else:
             # which enrollment we get the subject from.
-            subject_rslt = Session.query(model.Subject)\
+            subject_rslt = Session.query(dsmodel.Subject)\
                             .filter_by(zid=source.subject_zid)\
                             .first()
 
-            protocol_rslt = Session.query(model.Protocol)\
+            protocol_rslt = Session.query(dsmodel.Protocol)\
                             .filter_by(zid=source.protocol_zid)\
                             .first()
 
@@ -735,8 +735,8 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager):
         return IAliquotManager(self._datastore, self.get(key))
 
 
-class DatastoreAliquotManager(AbstractDatastoreConventionalManager):
-    grok.adapts(IDatastore)
+class DatastoreAliquotManager(AbstractDatastoreConventionalManager, grok.Adapter):
+    grok.context(IDatastore)
     grok.provides(IAliquotManager)
 
     _model = model.Aliquot
