@@ -15,7 +15,7 @@ from five import grok
 from hive.lab import model
 from avrc.data.store.interfaces import IDatastore
 
-from hive.lab.interfaces.specimen import ISpecimenManager
+from hive.lab.interfaces.managers import ISpecimenManager
 
 # ------------------------------------------------------------------------------
 # Utilities to cache patient data for specimen and aliquot

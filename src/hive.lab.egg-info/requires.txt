@@ -9,4 +9,4 @@ plone.app.registry
 avrc.aeh
 reportlab
 xlutils
-z3c.form == 2.4.1
+z3c.form >= 2.4.1

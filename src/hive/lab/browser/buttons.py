@@ -9,8 +9,8 @@ from z3c.form.interfaces import  DISPLAY_MODE
 
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabelPrinter
-from hive.lab.interfaces.specimen import ISpecimenManager
-from hive.lab.interfaces.aliquot import IAliquotManager
+from hive.lab.interfaces.managers import ISpecimenManager
+from hive.lab.interfaces.managers import IAliquotManager
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -116,8 +116,6 @@ class ButtonCore(crud.EditForm):
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-
-from hive.lab.interfaces.specimen import ISpecimenManager
 
 class SpecimenButtonCore(ButtonCore):
     """

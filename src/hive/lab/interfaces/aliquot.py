@@ -7,8 +7,6 @@ from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
 from hive.lab import vocabularies
 
-from avrc.data.store.interfaces import IManager
-
 class IAliquot(interface.Interface):
     """ Mostly copied from aeh forms. Tons of work to do still. """
 
@@ -100,11 +98,6 @@ class IAliquot(interface.Interface):
         )
 
 
-class IAliquotManager(IManager):
-    """ Marker interface for managing specimen """
-
-    def list(start=None, num=None):
-        """ """
 
 
 class IViewableAliquot(IAliquot, form.Schema):

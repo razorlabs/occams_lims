@@ -13,7 +13,7 @@ from hive.lab.interfaces.labels import ILabelSheet
 from hive.lab.interfaces.labels import ILabel
 from hive.lab import MessageFactory as _
 
-from hive.lab.interfaces.specimen import ISpecimenManager
+from hive.lab.interfaces.managers import ISpecimenManager
 
 @grok.subscribe(ILabelSheet, IObjectAddedEvent)
 def handleLabelSheetAdded(sheet, event):
