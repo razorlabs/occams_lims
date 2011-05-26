@@ -9,6 +9,8 @@ from z3c.form.interfaces import  DISPLAY_MODE
 
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabelPrinter
+from hive.lab.interfaces.specimen import ISpecimenManager
+from hive.lab.interfaces.aliquot import IAliquotManager
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -46,7 +48,7 @@ class OrderedSubForm(crud.EditSubForm):
         update_schema = crud_form.update_schema
         if update_schema is not None:
             fields += field.Fields(update_schema)
-        return fields    
+        return fields
 
 class ButtonCore(crud.EditForm):
     """
@@ -54,7 +56,7 @@ class ButtonCore(crud.EditForm):
     """
     dsmanager = None
     sampletype = None
-    
+
     editsubform_factory = OrderedSubForm
 
     def render_batch_navigation(self):
@@ -62,10 +64,10 @@ class ButtonCore(crud.EditForm):
         Render the batch navigation to include the default styles for Plone
         """
         navigation = BatchNavigation(self.batch, self.request)
-        
+
         def make_link(page):
             return "%s?%spage=%s" % (self.request.getURL(), self.prefix, page)
-            
+
         navigation.make_link = make_link
         return navigation()
 
@@ -108,19 +110,22 @@ class ButtonCore(crud.EditForm):
                         status = success
             if updated:
                 newobj = self.dsmanager.put(obj)
-        self.status = status         
+        self.status = status
 
 
-        
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
+
+from hive.lab.interfaces.specimen import ISpecimenManager
+
 class SpecimenButtonCore(ButtonCore):
     """
     Core functionality for specimen buttons
     """
-        
-    label=_(u"")
-    
+
+    label = _(u"")
+
     def __init__(self, context, request):
         """
         Provide a specimen manager for these buttons
@@ -131,12 +136,12 @@ class SpecimenButtonCore(ButtonCore):
         else:
             sm = getSiteManager(self)
             ds = sm.queryUtility(IDatastore, 'fia')
-            self.dsmanager = ds.getSpecimenManager()
+            self.dsmanager = ISpecimenManager(ds)
         self.sampletype = _(u"specimen")
-        
+
     def printLabels(self, action):
         selected = self.selected_items()
-        label_list=[]
+        label_list = []
         labelsheet = ILabelPrinter(self.context.context)
         for id, item in selected:
             count = item.tubes
@@ -146,35 +151,35 @@ class SpecimenButtonCore(ButtonCore):
                 label_list.append(item)
         content = labelsheet.printLabelSheet(label_list)
 
-        self.request.RESPONSE.setHeader("Content-type","application/pdf")
+        self.request.RESPONSE.setHeader("Content-type", "application/pdf")
         self.request.RESPONSE.setHeader("Content-disposition",
                                         "attachment;filename=labels.pdf")
-        self.request.RESPONSE.setHeader("Cache-Control","no-cache")
+        self.request.RESPONSE.setHeader("Cache-Control", "no-cache")
         self.request.RESPONSE.write(content)
         self.status = _(u"Your print is on its way. Refresh the page to view only unprinted labels.")
 
     @button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
         pass
-        
+
     @button.buttonAndHandler(_('Print Selected'), name='printed')
     def handlePrint(self, action):
         self.saveChanges(action)
         self.queLabels(action)
         return
-        
+
     @button.buttonAndHandler(_('Save All Changes'), name='updated')
     def handleUpdate(self, action):
         self.saveChanges(action)
         return
-        
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class AliquotButtonCore(ButtonCore):
     """
     Core functionality for aliquot buttons
     """
-    label=_(u"")
+    label = _(u"")
 
     def __init__(self, context, request):
         """
@@ -186,7 +191,7 @@ class AliquotButtonCore(ButtonCore):
         else:
             sm = getSiteManager(self)
             ds = sm.queryUtility(IDatastore, 'fia')
-            self.dsmanager = ds.getAliquotManager()
+            self.dsmanager = ISpecimenManager(ds)
         self.sampletype = _(u"aliquot")
 
     def queLabels(self, action):
@@ -205,7 +210,7 @@ class AliquotButtonCore(ButtonCore):
     @button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
         pass
-        
+
 # ------------------------------------------------------------------------------
 # Specimen Buttons |
 # --------------
@@ -214,87 +219,87 @@ class AliquotButtonCore(ButtonCore):
 # ------------------------------------------------------------------------------
 
 class SpecimenPendingButtons(SpecimenButtonCore):
-    label=_(u"")
+    label = _(u"")
     z3cform.extends(SpecimenButtonCore)
-        
+
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'complete','completed')
+        self.changeState(action, 'complete', 'completed')
         self.printLabels(action)
         self._update_subforms()
         return
-        
+
     @button.buttonAndHandler(_('Batch Selected'), name='batched')
     def handleBatchDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'batched','batched')
+        self.changeState(action, 'batched', 'batched')
         self._update_subforms()
         return
-        
+
     @button.buttonAndHandler(_('Postpone Selected'), name='postponed')
     def handlePostponeDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'postponed','postponed')
+        self.changeState(action, 'postponed', 'postponed')
         self._update_subforms()
         return
 
     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='rejected')
     def handleCancelDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'rejected','canceled')
+        self.changeState(action, 'rejected', 'canceled')
         self._update_subforms()
         return
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class SpecimenBatchedButtons(SpecimenButtonCore):
-    label=_(u"")
+    label = _(u"")
     z3cform.extends(SpecimenButtonCore)
 
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'complete','completed')
+        self.changeState(action, 'complete', 'completed')
         self.queLabels(action)
         self._update_subforms()
         return
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class SpecimenPostponedButtons(SpecimenButtonCore):
-    label=_(u"Postponed Specimen")
+    label = _(u"Postponed Specimen")
     z3cform.extends(SpecimenButtonCore)
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'complete','completed')
+        self.changeState(action, 'complete', 'completed')
         self.queLabels(action)
         self._update_subforms()
         return
-        
+
     @button.buttonAndHandler(_('Batch Selected'), name='batched')
     def handleBatchDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'batched','batched')
+        self.changeState(action, 'batched', 'batched')
         self.queLabels(action)
         self._update_subforms()
         return
-        
+
     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='cancel')
     def handleCancelDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'rejected','canceled')
+        self.changeState(action, 'rejected', 'canceled')
         self._update_subforms()
         return
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class SpecimenRecoverButtons(SpecimenButtonCore):
-    label=_(u"")
+    label = _(u"")
     z3cform.extends(SpecimenButtonCore)
 
     @button.buttonAndHandler(_('Recover selected'), name='recover')
     def handleRecover(self, action):
-        self.changeState(action, 'pending-draw','recover')
+        self.changeState(action, 'pending-draw', 'recover')
         self._update_subforms()
         return
 
@@ -303,15 +308,15 @@ class SpecimenRecoverButtons(SpecimenButtonCore):
 # ------------------------------------------------------------------------------
 
 class ReadySpecimenButtons(SpecimenButtonCore):
-    label=_(u"")
-    
+    label = _(u"")
+
     @button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
         pass
-        
+
     @button.buttonAndHandler(_('Ready selected'), name='ready')
     def handleCompleteDraw(self, action):
-        self.changeState(action, 'pending-aliquot','ready')
+        self.changeState(action, 'pending-aliquot', 'ready')
         self._update_subforms()
         return
 
@@ -322,7 +327,7 @@ class ReadySpecimenButtons(SpecimenButtonCore):
 class AliquotCreator(crud.EditForm):
     """
     """
-    label=_(u"")
+    label = _(u"")
 
     def __init__(self, context, request):
         """
@@ -331,9 +336,9 @@ class AliquotCreator(crud.EditForm):
         super(AliquotCreator, self).__init__(context, request)
         sm = getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
-        self.specimen_manager = ds.getSpecimenManager()
-        self.aliquot_manager = ds.getAliquotManager()
-        
+        self.specimen_manager = ISpecimenManager(ds)
+        self.aliquot_manager = ISpecimenManager(ds)
+
     editsubform_factory = OrderedSubForm
 
     def changeState(self, action, state, acttitle):
@@ -348,7 +353,7 @@ class AliquotCreator(crud.EditForm):
                 newspecimen = self.context.specimen_manager.put(specimenobj)
             self.status = _(u"Your specimen have been %s." % (acttitle))
         else:
-            self.status = _(u"Please select aliquot templates."% (acttitle))
+            self.status = _(u"Please select aliquot templates." % (acttitle))
 
     @button.buttonAndHandler(_('Create Aliquot'), name='aliquot')
     def handleCreateAliquot(self, action):
@@ -383,7 +388,7 @@ class AliquotCreator(crud.EditForm):
             for i in range(count):
                 if hasattr(blueprint, 'dsid'):
                     # the put has updated blueprint. reset it.
-                    blueprint.dsid=None
+                    blueprint.dsid = None
                 newaliquot = self.context.aliquot_manager.put(blueprint)
             if status is no_changes:
                 status = success
@@ -393,10 +398,10 @@ class AliquotCreator(crud.EditForm):
 
     @button.buttonAndHandler(_('Mark Specimen Complete'), name='complete')
     def handleCompleteSpecimen(self, action):
-        self.changeSpecimenState(action, 'aliquoted','completed')
+        self.changeSpecimenState(action, 'aliquoted', 'completed')
         self._update_subforms()
         return
-        
+
 
 
 # ------------------------------------------------------------------------------
@@ -409,7 +414,7 @@ class AliquotCreator(crud.EditForm):
 #class AliquotVerifier(AliquotButtonCore):
 
 class AliquotPreparedButtons(AliquotButtonCore):
-    label=_(u"")
+    label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
     @button.buttonAndHandler(_('Save Changes'), name='save')
@@ -417,7 +422,7 @@ class AliquotPreparedButtons(AliquotButtonCore):
         self.saveChanges(action)
         self._update_subforms()
         return
-        
+
     @button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
@@ -442,9 +447,9 @@ class AliquotPreparedButtons(AliquotButtonCore):
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class AliquotRecoverButtons(AliquotButtonCore):
-    label=_(u"")
+    label = _(u"")
     z3cform.extends(AliquotButtonCore)
-        
+
     @button.buttonAndHandler(_('Recover Aliquot'), name='recover')
     def handleRecoverAliquot(self, action):
         self.changeAliquotState(action, 'pending', 'Recovered')
@@ -455,7 +460,7 @@ class AliquotRecoverButtons(AliquotButtonCore):
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class AliquotEditButtons(AliquotButtonCore):
-    label=_(u"")
+    label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
     @button.buttonAndHandler(_('Save Changes'), name='save')
@@ -463,7 +468,7 @@ class AliquotEditButtons(AliquotButtonCore):
         self.saveChanges(action)
         self._update_subforms()
         return
-        
+
     @button.buttonAndHandler(_('Check Back In'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
@@ -481,7 +486,7 @@ class AliquotEditButtons(AliquotButtonCore):
 # ------------------------------------------------------------------------------
 #class AliquotCheckoutManager(AliquotButtonCore):
 class AliquotCheckoutButtons(AliquotButtonCore):
-    label=_(u"")
+    label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
     @button.buttonAndHandler(_('Complete Check Out'), name='checkout')
@@ -496,7 +501,7 @@ class AliquotCheckoutButtons(AliquotButtonCore):
         self.changeAliquotState(action, 'hold', 'Held')
         self._update_subforms()
         return
-        
+
     @button.buttonAndHandler(_('Check Back In'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.changeAliquotState(action, 'checked-in', 'Checked In')
@@ -506,12 +511,12 @@ class AliquotCheckoutButtons(AliquotButtonCore):
 # ------------------------------------------------------------------------------        
 #class AllAliquotManager(AliquotButtonCore):
 class AliquotQueButtons(AliquotButtonCore):
-    label=_(u"")
+    label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
     @button.buttonAndHandler(_('Que & Hold'), name='que')
     def handleQue(self, action):
-        self.changeAliquotState(action, 'hold','Qued')
+        self.changeAliquotState(action, 'hold', 'Qued')
         self._update_subforms()
         return
 # ------------------------------------------------------------------------------
@@ -524,29 +529,29 @@ class AliquotHoldButtons(AliquotButtonCore):
 
     @button.buttonAndHandler(_('Print List'), name='print')
     def handleQue(self, action):
-        return self.request.response.redirect('%s/%s' %(self.context.context.absolute_url(), 'checklist' ))
+        return self.request.response.redirect('%s/%s' % (self.context.context.absolute_url(), 'checklist'))
 
     @button.buttonAndHandler(_('Check Out'), name='checkout')
     def handleCheckout(self, action):
-        self.changeAliquotState(action, 'pending-checkout','Checked Out')
+        self.changeAliquotState(action, 'pending-checkout', 'Checked Out')
         self._update_subforms()
         return
-        
+
     @button.buttonAndHandler(_('Release Hold'), name='release')
     def handleRelease(self, action):
-        self.changeAliquotState(action, 'checked-in','Released')
+        self.changeAliquotState(action, 'checked-in', 'Released')
         self._update_subforms()
         return self.request.response.redirect(self.action)
-        
+
     @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
     def handleInaccurate(self, action):
-        self.changeAliquotState(action, 'incorrect','incorrect')
+        self.changeAliquotState(action, 'incorrect', 'incorrect')
         self._update_subforms()
         return
 
     @button.buttonAndHandler(_('Mark Missing'), name='missing')
     def handleMissing(self, action):
-        self.changeAliquotState(action, 'missing','Missing')
+        self.changeAliquotState(action, 'missing', 'Missing')
         self._update_subforms()
         return
 
@@ -572,12 +577,12 @@ class LabelButtons(crud.EditForm):
             return "%s?%spage=%s" % (self.request.getURL(), self.prefix, page)
         navigation.make_link = make_link
         return navigation()
-        
+
     @button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
         pass
-        
-    label=_(u"Label Printer")
+
+    label = _(u"Label Printer")
     @button.buttonAndHandler(_('Print Selected'), name='print_pdf')
     def handlePDFPrint(self, action):
         selected = self.selected_items()
@@ -585,16 +590,16 @@ class LabelButtons(crud.EditForm):
             self.status = _(u"Please select items to Print.")
             return
         que = self.context.labeler.getLabelQue()
-        label_list=[]
+        label_list = []
         for id, label in selected:
             label_list.append(label)
             que.uncatalog_object(str(id))
         content = self.context.labeler.printLabelSheet(label_list)
 
-        self.request.RESPONSE.setHeader("Content-type","application/pdf")
+        self.request.RESPONSE.setHeader("Content-type", "application/pdf")
         self.request.RESPONSE.setHeader("Content-disposition",
                                         "attachment;filename=labels.pdf")
-        self.request.RESPONSE.setHeader("Cache-Control","no-cache")
+        self.request.RESPONSE.setHeader("Cache-Control", "no-cache")
         self.request.RESPONSE.write(content)
         self.status = _(u"You print is on its way. Refresh the page to view only unprinted labels.")
         return
@@ -613,4 +618,3 @@ class LabelButtons(crud.EditForm):
         for id, label in selected:
             self.context.labeler.purgeLabel(id)
         self._update_subforms()
-        

@@ -13,7 +13,8 @@ from hive.lab.interfaces.labels import ILabelSheet
 from hive.lab.interfaces.labels import ILabel
 from hive.lab import MessageFactory as _
 
-    
+from hive.lab.interfaces.specimen import ISpecimenManager
+
 @grok.subscribe(ILabelSheet, IObjectAddedEvent)
 def handleLabelSheetAdded(sheet, event):
     """ Clinical Lab added event handler.
@@ -36,15 +37,15 @@ def handleRequestedSpecimenAdded(visit, event):
     """
     intids = zope.component.getUtility(IIntIds)
     patient = visit.aq_parent
-    patient_zid = intids.getId(patient)    
-    sm =  zope.component.getSiteManager(visit)
+    patient_zid = intids.getId(patient)
+    sm = zope.component.getSiteManager(visit)
     ds = sm.queryUtility(IDatastore, 'fia')
-    specimen_manager = ds.getSpecimenManager()  
-    
+    specimen_manager = ISpecimenManager(ds)
+
     for cycle_relation in visit.cycles:
         cycle_zid = cycle_relation.to_id
         cycle = cycle_relation.to_object
-        
+
         if cycle.related_specimen is not None and len(cycle.related_specimen):
             for specimen_relation in cycle.related_specimen:
                 specimenBlueprint = specimen_relation.to_object
@@ -53,12 +54,12 @@ def handleRequestedSpecimenAdded(visit, event):
 
 ## TODO: make specimen includer for add cycle to visit
                 #We don't want duplicate specimen
-                
+
 #                 foundSpecimen = False
 # 
 #                 for spec in visit.requestedSpecimen():
 #                     if newSpecimen.specimen_type == spec.specimen_type \
 #                     and spec.protocol_zid == protocol_zid:
 #                 foundSpecimen = True
-  
+
 

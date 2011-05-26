@@ -5,9 +5,11 @@ from zope.schema.vocabulary import SimpleVocabulary
 
 from plone.memoize.instance import memoize
 from zope import component
-from avrc.data.store import model
+from hive.lab import model
 from avrc.data.store.interfaces import IDatastore
 from five import grok
+
+from hive.lab.interfaces.specimen import ISpecimenManager
 
 class SpecimenVocabulary(object):
     """
@@ -49,15 +51,15 @@ class SpecimenVisitVocabulary(object):
     Context source binder to provide a vocabulary of users in a given group.
     """
     grok.implements(IContextSourceBinder)
-    
+
     def __init__(self):
         self.property = 'related_specimen'
         self.study = None
-        
+
     def cycleVocabulary(self):
         context = self.context.aq_inner
         cycles = context.getCycles()
-        termlist=[]
+        termlist = []
         intids = component.getUtility(IIntIds)
         for cycle in cycles:
             int
@@ -78,6 +80,6 @@ class SpecimenAliquotVocabulary(object):
         self.vocabulary_name = unicode(vocabulary_name)
 
     def __call__(self, context):
-        ds =  component.getUtility(IDatastore, "fia")
-        vocab = ds.getSpecimenManager().get_vocabulary(self.vocabulary_name)
+        ds = component.getUtility(IDatastore, "fia")
+        vocab = ISpecimenManager(ds).get_vocabulary(self.vocabulary_name)
         return vocab

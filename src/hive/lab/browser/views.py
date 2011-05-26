@@ -45,7 +45,7 @@ class ClinicalLabView(dexterity.DisplayForm):
         form = crud.SpecimenPendingForm(context, self.request)
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
 # ------------------------------------------------------------------------------
@@ -69,11 +69,11 @@ class ClinicalLabBatched(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenBatchedForm(context, self.request)
-        view = NestedFormView(context,self.request)
+        view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
-        
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class ClinicalLabPostponed(dexterity.DisplayForm):
@@ -83,7 +83,7 @@ class ClinicalLabPostponed(dexterity.DisplayForm):
     grok.context(IClinicalLab)
     grok.require('zope2.View')
     grok.name('postponed')
-    
+
     def __init__(self, context, request):
         super(ClinicalLabPostponed, self).__init__(context, request)
         self.crudform = self.getCrudForm()
@@ -95,11 +95,11 @@ class ClinicalLabPostponed(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenPostponedForm(context, self.request)
-        view = NestedFormView(context,self.request)
+        view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
-        
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class ClinicalLabCompleted(dexterity.DisplayForm):
@@ -121,9 +121,9 @@ class ClinicalLabCompleted(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenRecoverForm(context, self.request)
-        view = NestedFormView(context,self.request)
+        view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
 # ------------------------------------------------------------------------------
@@ -155,7 +155,7 @@ class ResearchLabView(dexterity.DisplayForm):
         form = crud.ReadySpecimenForm(context, self.request)
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
     def getTodaySpecimen(self):
@@ -167,7 +167,7 @@ class ResearchLabView(dexterity.DisplayForm):
         form = crud.SpecimenTodayForm(context, self.request)
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
 # ------------------------------------------------------------------------------
@@ -194,7 +194,7 @@ class ResearchLabAliquotReady(dexterity.DisplayForm):
         form = crud.AliquotCreator(context, self.request)
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
     def getLabelQue(self):
@@ -206,9 +206,9 @@ class ResearchLabAliquotReady(dexterity.DisplayForm):
         form = crud.LabelForm(context, self.request)
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
-    
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class ResearchLabAliquotPrepared(dexterity.DisplayForm):
@@ -231,11 +231,11 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotPreparedForm(context, self.request)
-        view = NestedFormView(context,self.request)
+        view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
-        
+
     def getLabelQue(self):
         """
         Create a form instance.
@@ -245,7 +245,7 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         form = crud.LabelForm(context, self.request)
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
 class ResearchLabAliquotCompleted(dexterity.DisplayForm):
@@ -267,9 +267,9 @@ class ResearchLabAliquotCompleted(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotCompletedForm(context, self.request)
-        view = NestedFormView(context,self.request)
+        view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
 
@@ -280,7 +280,7 @@ class ResearchLabAliquotEditView(dexterity.DisplayForm):
     grok.context(IResearchLab)
     grok.require('zope2.View')
     grok.name('edit-aliquot')
-    
+
     def __init__(self, context, request):
         super(ResearchLabAliquotEditView, self).__init__(context, request)
         self.crudform = self.getCrudForm()
@@ -294,7 +294,7 @@ class ResearchLabAliquotEditView(dexterity.DisplayForm):
         form = crud.AliquotEditForm(context, self.request)
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
 class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
@@ -304,13 +304,13 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
     grok.context(IResearchLab)
     grok.require('zope2.View')
     grok.name('checkout')
-    
+
     def __init__(self, context, request):
         super(ResearchLabAliquotCheckoutView, self).__init__(context, request)
 
         self.crudform = self.getCrudForm()
         self.formhelper = self.getUpdater()
-        
+
     def getCrudForm(self):
         """
         Create a form instance.
@@ -320,7 +320,7 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
         form = crud.AliquotCheckoutForm(context, self.request)
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
     def getUpdater(self):
@@ -329,10 +329,10 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
         @return: z3c.form wrapped for Plone 3 view
         """
         context = self.context.aq_inner
-        form =crud.AliquotCheckoutUpdate(context, self.request)
+        form = crud.AliquotCheckoutUpdate(context, self.request)
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
 # ------------------------------------------------------------------------------
@@ -346,14 +346,14 @@ class AliquotList(dexterity.DisplayForm):
     grok.context(IAliquotSupport)
     grok.require('zope2.View')
     grok.name('aliquot')
-    
+
     def __init__(self, context, request):
         super(AliquotList, self).__init__(context, request)
 
         self.crudform = self.getCrudForm()
         self.filter = self.filterAliquot()
         self.aliquotque = self.aliquotQue()
-        
+
     def getCrudForm(self):
         """
         Create a form instance.
@@ -363,7 +363,7 @@ class AliquotList(dexterity.DisplayForm):
         form = crud.AliquotListForm(context, self.request)
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 # 
     def filterAliquot(self):
@@ -373,9 +373,9 @@ class AliquotList(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotFilterForm(context, self.request)
-        view = NestedFormView(context,self.request)
+        view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
     def aliquotQue(self):
@@ -385,9 +385,9 @@ class AliquotList(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotQueForm(context, self.request)
-        view = NestedFormView(context,self.request)
+        view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
 # ------------------------------------------------------------------------------
@@ -406,12 +406,12 @@ class AliquotCheckList(dexterity.DisplayForm):
         ds = sm.queryUtility(IDatastore, 'fia')
         self.aliquot_manager = ds.getAliquotManager()
         self.getaliquot = self.getAliquot()
-        
+
     def getAliquot(self):
         """
         Get me some aliquot
         """
-        kw={}
+        kw = {}
         kw['state'] = u'hold'
         for aliquot in self.aliquot_manager.filter_aliquot(**kw):
             yield IViewableAliquot(aliquot)
@@ -442,7 +442,7 @@ class SpecimenSupport(dexterity.DisplayForm):
         form = crud.SpecimenByVisitForm(context, self.request)
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view
 
     def requestSpecimen(self):
@@ -452,7 +452,7 @@ class SpecimenSupport(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenAddForm(context, self.request)
-        view = NestedFormView(context,self.request)
+        view = NestedFormView(context, self.request)
         view = view.__of__(context)
-        view.form_instance=form
+        view.form_instance = form
         return view

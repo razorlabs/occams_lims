@@ -1,0 +1,1 @@
+blueprint_zid = Column(Integer, nullable=True, unique=False)

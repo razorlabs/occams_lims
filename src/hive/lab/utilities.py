@@ -12,8 +12,10 @@ from plone.memoize import ram
 from z3c.saconfig import named_scoped_session
 from five import grok
 
-from avrc.data.store import model
+from hive.lab import model
 from avrc.data.store.interfaces import IDatastore
+
+from hive.lab.interfaces.specimen import ISpecimenManager
 
 # ------------------------------------------------------------------------------
 # Utilities to cache patient data for specimen and aliquot
@@ -69,20 +71,20 @@ def get_specimen(zid):
     site = getSite()
     sm = getSiteManager(site)
     ds = sm.queryUtility(IDatastore, 'fia')
-    specimen_manager = ds.getSpecimenManager()
+    specimen_manager = ISpecimenManager(ds)
     return specimen_manager.get(zid)
 
 @ram.cache(_render_details_cachekey)
 def get_patient_initials(zid):
     intids = component.getUtility(IIntIds)
-    patient =  intids.queryObject(zid, None)
+    patient = intids.queryObject(zid, None)
     if patient:
         return unicode(patient.initials)
     else:
         return None
-        
-        
-        
+
+
+
 def getSession(context, request):
     """
     """
@@ -100,17 +102,17 @@ def getPatientForFilter(context, pid):
     """
     catalog = getToolByName(context, 'portal_catalog')
     intids = component.getUtility(IIntIds)
-    
+
     results = catalog(portal_type='avrc.aeh.patient',
                                   getId=pid)
     if results and len(results):
         return intids.getId(results[0].getObject())
-        
+
     results = catalog(portal_type='avrc.aeh.patient',
                                   aeh_number=pid)
     if results and len(results):
         return intids.getId(results[0].getObject())
-        
+
     results = catalog(portal_type='avrc.aeh.patient',
                                   master_book_number=pid)
     if results and len(results):
