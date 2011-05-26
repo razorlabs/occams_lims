@@ -25,8 +25,8 @@ from hive.lab.interfaces.lab import IResearchLab
 from hive.lab.interfaces.labels import ILabelPrinter
 from hive.lab.interfaces.aliquot import IAliquotSupport
 from hive.lab.interfaces.aliquot import IAliquotFilter
-from hive.lab.interfaces.aliquot import IAliquotManager
-from hive.lab.interfaces.specimen import ISpecimenManager
+from hive.lab.interfaces.managers import IAliquotManager
+from hive.lab.interfaces.managers import ISpecimenManager
 from hive.lab.interfaces.specimen import IViewableSpecimen
 from hive.lab.interfaces.specimen import ISpecimenLabel
 from hive.lab.content.factories import LabelGenerator

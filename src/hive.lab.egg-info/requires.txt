@@ -1,0 +1,12 @@
+setuptools
+beast.browser
+collective.autopermission
+plone.dexterity
+avrc.data.store
+avrc.data.registry
+plone.behavior
+plone.app.registry
+avrc.aeh
+reportlab
+xlutils
+z3c.form == 2.4.1
