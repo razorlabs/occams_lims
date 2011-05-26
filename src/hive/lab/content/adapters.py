@@ -21,7 +21,7 @@ from hive.lab.interfaces.specimen import IBlueprintForSpecimen
 from hive.lab.interfaces.labels import ILabelSheet
 from hive.lab.interfaces.labels import ILabel
 from hive.lab.interfaces.aliquot import IAliquotFilterForm
-
+from hive.lab.interfaces.lab import IResearchLab
 from hive.lab.interfaces.labels import ILabelPrinter
 from hive.lab.interfaces.aliquot import IAliquotSupport
 from hive.lab.interfaces.aliquot import IAliquotFilter
@@ -62,7 +62,26 @@ class ViewableSpecimen(grok.Adapter):
     @property
     def pretty_tube_type(self):
         return self.context.tube_type
- 
+        
+    @property
+    def tubes(self):
+        return self.context.tubes
+        
+    @property
+    def date_collected(self):
+        return self.context.date_collected
+
+    @property
+    def time_collected(self):
+        return self.context.time_collected
+
+    @property
+    def destination(self):
+        return self.context.destination
+        
+    @property
+    def notes(self):
+        return self.context.notes
 
 class ViewableAliquot(grok.Adapter):
     grok.context(IAliquot)

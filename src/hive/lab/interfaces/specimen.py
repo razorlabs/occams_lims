@@ -11,7 +11,7 @@ from hive.lab.vocabularies import SpecimenVocabulary
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
 from hive.lab import vocabularies
-    
+
 class IViewableSpecimen(form.Schema):
  
     patient_title = zope.schema.TextLine(
@@ -48,7 +48,7 @@ class IViewableSpecimen(form.Schema):
         title=_(u"Tube Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_tube_type"),
         )
-
+        
 class ISpecimenBlueprint(form.Schema):
     """
     Blueprint the system can use to create specimen
