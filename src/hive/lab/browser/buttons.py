@@ -249,6 +249,7 @@ class SpecimenPendingButtons(SpecimenButtonCore):
 # ------------------------------------------------------------------------------
 class SpecimenBatchedButtons(SpecimenButtonCore):
     label=_(u"")
+    z3cform.extends(SpecimenButtonCore)
 
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
@@ -260,8 +261,8 @@ class SpecimenBatchedButtons(SpecimenButtonCore):
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class SpecimenPostponedButtons(SpecimenButtonCore):
-    label=_(u"")
-
+    label=_(u"Postponed Specimen")
+    z3cform.extends(SpecimenButtonCore)
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)

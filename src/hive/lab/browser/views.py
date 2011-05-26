@@ -83,7 +83,7 @@ class ClinicalLabPostponed(dexterity.DisplayForm):
     grok.context(IClinicalLab)
     grok.require('zope2.View')
     grok.name('postponed')
-
+    
     def __init__(self, context, request):
         super(ClinicalLabPostponed, self).__init__(context, request)
         self.crudform = self.getCrudForm()

@@ -205,7 +205,7 @@ class SpecimenRecoverForm(SpecimenCoreForm):
         fields += field.Fields(ISpecimen).\
         select('tubes','date_collected', 'time_collected',  'notes')
         return fields
-        
+
     @property
     def edit_schema(self):
         return None 
