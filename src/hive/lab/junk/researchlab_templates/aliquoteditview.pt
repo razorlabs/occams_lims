@@ -1,0 +1,83 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xml:lang="en"
+  xmlns:tal="http://xml.zope.org/namespaces/tal"
+  xmlns:metal="http://xml.zope.org/namespaces/metal"
+  xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  lang="en"
+  metal:use-macro="context/main_template/macros/master"
+  i18n:domain="avrc.aeh">
+  <body>
+    <metal:main
+      fill-slot="main">
+      <tal:main-macro
+        metal:define-macro="main">
+        <div
+          tal:replace="structure provider:plone.abovecontenttitle" />
+        <h1
+          class="documentFirstHeading">Specimen Pending Aliquot</h1>
+        <div
+          tal:replace="structure provider:plone.belowcontenttitle" />
+        <p
+          class="documentDescription"
+          tal:content="context/description" />
+        <div
+          tal:replace="structure provider:plone.abovecontentbody" />
+<!-- 
+       <div tal:replace="python:dict(view.testcookie)">
+       </div>
+ -->
+       <div>
+        <p>
+          Please enter the number of tubes, date collected, time collected, and
+          any notes for the specimen below.
+          <br /> Time may be entered in military format. You will see confirmation
+            of success below this text.
+        </p>
+
+       <div
+          tal:content="structure view/form_requestor" />
+ 
+<!-- 
+        <div
+          tal:content="structure view/form_requestor" />
+        <br
+          class="visualClear" />
+ 
+        <div
+          tal:content="structure view/aliquot_molder" />
+ 
+ -->        <br class="visualClear" />
+        </div>
+
+        <h4>Instructions, Description of Buttons</h4>
+        <ol>
+          <li>
+            <strong>Save All Changes:</strong>
+            Saves any entered data for both checked and unchecked specimen to
+            the database. Look for confirmation at the top of the page.
+          </li>
+          <li>
+            <strong>Print Selected:</strong>
+            Saves changes as above, and then prints a label per tube for each
+            selected specimen.
+          </li>
+          <li>
+            <strong>Complete Selected:</strong>
+            Saves changes as above, then moves the selected specimen to the next
+            screen for the Richman Lab.
+          </li>
+          <li>
+            <strong>Mark Selected Undrawn:</strong>
+            Sets any selected specimen as undrawn. Use this button when you
+            won't be collecting the selected specimen for the patient as part of
+            the listed protocol week. Note that changes are NOT saved in this
+            case.
+          </li>
+        </ol>
+        <div
+          tal:replace="structure provider:plone.belowcontentbody" />
+      </tal:main-macro>
+    </metal:main>
+  </body>
+</html>
