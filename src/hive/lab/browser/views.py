@@ -12,7 +12,7 @@ from hive.lab.interfaces.specimen import IViewableSpecimen
 from hive.lab.interfaces.lab import IResearchLab
 from hive.lab.interfaces.lab import IClinicalLab
 from hive.lab.interfaces.managers import ISpecimenManager
-
+from hive.lab.interfaces.managers import IAliquotManager
 from plone.directives import dexterity
 from zope.component import getSiteManager
 
@@ -411,9 +411,9 @@ class AliquotCheckList(dexterity.DisplayForm):
 
     def __init__(self, context, request):
         super(AliquotCheckList, self).__init__(context, request)
-        sm = getSiteManager(self)
+        sm = getSiteManager(context)
         ds = sm.queryUtility(IDatastore, 'fia')
-        self.aliquot_manager = ds.getAliquotManager()
+        self.dsmanager = IAliquotManager(ds)
         self.getaliquot = self.getAliquot()
 
     def getAliquot(self):
@@ -421,8 +421,8 @@ class AliquotCheckList(dexterity.DisplayForm):
         Get me some aliquot
         """
         kw = {}
-        kw['state'] = u'hold'
-        for aliquot in self.aliquot_manager.filter_aliquot(**kw):
+        kw['state'] = u'qued'
+        for aliquot in self.dsmanager.filter_aliquot(**kw):
             yield IViewableAliquot(aliquot)
 
 

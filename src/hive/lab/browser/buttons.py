@@ -335,7 +335,7 @@ class AliquotCreator(crud.EditForm):
         sm = getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
         self.specimen_manager = ISpecimenManager(ds)
-        self.aliquot_manager = ISpecimenManager(ds)
+        self.aliquot_manager = IAliquotManager(ds)
 
     editsubform_factory = OrderedSubForm
 
@@ -387,7 +387,7 @@ class AliquotCreator(crud.EditForm):
                 if hasattr(blueprint, 'dsid'):
                     # the put has updated blueprint. reset it.
                     blueprint.dsid = None
-                newaliquot = self.context.aliquot_manager.put(blueprint)
+                newaliquot = self.aliquot_manager.put(blueprint)
             if status is no_changes:
                 status = success
         self.status = status
@@ -494,9 +494,9 @@ class AliquotCheckoutButtons(AliquotButtonCore):
         self._update_subforms()
         return
 
-    @button.buttonAndHandler(_('Return To Hold'), name='hold')
+    @button.buttonAndHandler(_('Return To Hold'), name='qued')
     def handleRehold(self, action):
-        self.changeState(action, 'hold', 'Held')
+        self.changeState(action, 'qued', 'Held')
         self._update_subforms()
         return
 
@@ -514,9 +514,16 @@ class AliquotQueButtons(AliquotButtonCore):
 
     @button.buttonAndHandler(_('Que & Hold'), name='que')
     def handleQue(self, action):
-        self.changeState(action, 'hold', 'Qued')
+        self.changeState(action, 'qued', 'Qued')
         self._update_subforms()
         return
+
+    @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
+    def handleInaccurate(self, action):
+        self.changeState(action, 'incorrect', 'incorrect')
+        self._update_subforms()
+        return
+        
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 #class QueManager(AliquotButtonCore):

@@ -108,7 +108,7 @@ class IAliquot(interface.Interface):
 class IViewableAliquot(IAliquot, form.Schema):
     """
     """
-    aliquot_id = zope.schema.TextLine(
+    dsid = zope.schema.TextLine(
         title=u"Aliquot #",
         readonly=True
         )
@@ -144,7 +144,12 @@ class IViewableAliquot(IAliquot, form.Schema):
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         )
 
-
+    form.omitted('special_instruction')
+    special_instruction = zope.schema.Choice(
+        title=_(u"Special"),
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_special_instruction"),
+        required=True,
+        )
 class IAliquotFilter(interface.Interface):
 
     def getAliquotFilter(basekw, states):

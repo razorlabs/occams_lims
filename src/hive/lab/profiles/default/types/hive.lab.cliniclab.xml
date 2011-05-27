@@ -7,7 +7,7 @@
   <property name="title" i18n:translate="">HIVe: Clinical Laboratory</property>
   <property name="description"
     i18n:translate="">A Clinical Laboratory for Collection of Specimen</property>
-  <property name="content_icon">/misc_/Archetypes/tool.gif</property> <!-- navigation_icon.png</property>-->
+  <property name="content_icon">++resource++hive.lab/images/nurse-icon.png</property> <!-- navigation_icon.png</property>-->
   <property name="global_allow">False</property>
   <property name="filter_content_types">True</property>  
   <property name="allowed_content_types">

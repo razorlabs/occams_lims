@@ -116,13 +116,17 @@ class AliquotCoreForm(crud.CrudForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
-            select('aliquot_id', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
         return fields
 
     @property
     def edit_schema(self):
         fields = field.Fields(IAliquot).\
-            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction', 'notes')
+            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box')
+        fields += field.Fields(IViewableAliquot).\
+            select('special_instruction')
+        fields += field.Fields(IAliquot).\
+            select('notes')
         return fields
 
     def link(self, item, field):
@@ -369,9 +373,13 @@ class AliquotCompletedForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('aliquot_id', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
         fields += field.Fields(IAliquot).\
-            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction', 'notes')
+            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box')
+        fields += field.Fields(IViewableAliquot).\
+            select('special_instruction')
+        fields += field.Fields(IAliquot).\
+            select('notes')
         return fields
     @property
     def edit_schema(self):
@@ -413,9 +421,13 @@ class AliquotCheckoutForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('aliquot_id', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+        fields += field.Fields(IAliquot).\
+            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box')
         fields += field.Fields(IViewableAliquot).\
-            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction')
+            select('special_instruction')
+        fields += field.Fields(IAliquot).\
+            select('notes')
         return fields
 
     @property
@@ -436,22 +448,36 @@ class AliquotListForm(AliquotCoreForm):
     """
     Filterable crud form based on session information
     """
+#     def __init__(self, context, request):
+#         super(AliquotCreator, self).__init__(context, request)
+#         sm = getSiteManager(self)
+#         ds = sm.queryUtility(IDatastore, 'fia')
+#         self.specimen_manager = ISpecimenManager(ds)
+        
 
     editform_factory = buttons.AliquotQueButtons
+
+#         fields = field.Fields(IAliquotGenerator).\
+#         select('count')
+#         fields = field.Fields(IAliquotGenerator).\
+#         select('stock') ?? 
 
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('aliquot_id', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('dsid', 'state','patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
         fields += field.Fields(IAliquot).\
-            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction')
+            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box')
+        fields += field.Fields(IViewableAliquot).\
+            select('special_instruction')
+        fields += field.Fields(IAliquot).\
+            select('notes')
         return fields
 
     edit_schema = None
     @property
     def display_state(self):
         return u"checked-in"
-
 
     def getkwargs(self):
         sessionkeys = utils.getSession(self.context, self.request)
@@ -460,15 +486,31 @@ class AliquotListForm(AliquotCoreForm):
             kw['state'] = self.display_state
         return kw
 
+## have this produce a count of available, order by patient uid, with the 
+## Entry box for the count wanted to place on hold
+
+    def get_items(self):
+        aliquotlist = []
+        kw = self.getkwargs()
+        aliquot = self.dsmanager.filter_aliquot(**kw)
+        for aliquotobj in aliquot:
+            aliquotlist.append((aliquotobj.dsid, aliquotobj))
+        return aliquotlist
+
+
 class AliquotQueForm(AliquotCoreForm):
     """
     """
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('aliquot_id', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('dsid', 'state', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
         fields += field.Fields(IAliquot).\
-            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction')
+            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box')
+        fields += field.Fields(IViewableAliquot).\
+            select('special_instruction')
+        fields += field.Fields(IAliquot).\
+            select('notes')
         return fields
 
     edit_schema = None
@@ -479,7 +521,7 @@ class AliquotQueForm(AliquotCoreForm):
 
     @property
     def display_state(self):
-        return u"hold"
+        return u"qued"
 
 # ------------------------------------------------------------------------------
 # Aliquot Support Forms |
@@ -514,7 +556,7 @@ class AliquotCheckoutUpdate(form.Form):
             return
         kw = {}
         kw['state'] = u'pending-checkout'
-        aliquot = self.aliquot_manager.filter_aliquot(**kw)
+        aliquot = self.dsmanager.filter_aliquot(**kw)
         for aliquotobj in aliquot:
             updated = False
             for prop, value in data.items():
@@ -523,7 +565,7 @@ class AliquotCheckoutUpdate(form.Form):
                     updated = True
 
             if updated:
-                newaliquot = self.aliquot_manager.put(aliquotobj)
+                newaliquot = self.dsmanager.put(aliquotobj)
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(u'Clear All')

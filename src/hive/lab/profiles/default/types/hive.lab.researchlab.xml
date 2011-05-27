@@ -7,7 +7,7 @@
   <property name="title" i18n:translate="">HIVe: Research Laboratory</property>
   <property name="description"
     i18n:translate="">A Research Laboratory for Inventory of Specimen Aliquot</property>
-  <property name="content_icon">/misc_/Archetypes/tool.gif</property> <!-- navigation_icon.png</property>-->
+  <property name="content_icon">++resource++hive.lab/images/microscope-icon.png</property> <!-- navigation_icon.png</property>-->
   <property name="global_allow">False</property>
   <property name="filter_content_types">True</property>  
   <property name="allowed_content_types">
@@ -80,7 +80,7 @@
     <permission value="View" />
   </action>
 
-  <action title="Checkout" action_id="checkout" category="object" condition_expr=""
+  <action title="Checkout Que" action_id="checkout" category="object" condition_expr=""
     url_expr="string:${object_url}/checkout" visible="True">
     <permission value="View" />
   </action>

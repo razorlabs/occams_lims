@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<object name="avrc.aeh.patient"
+   meta_type="Dexterity FTI"
+   i18n:domain="avrc.aeh" xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+    <property name="behaviors" purge="false">
+        <element value="hive.lab.interfaces.aliquot.IAliquotSupport"/>
+    </property>
+    <alias from="aliquot" to="@@aliquot" />
+
+    <action title="Aliquot" action_id="aliquot" category="object" condition_expr=""
+    url_expr="string:${object_url}/aliquot" visible="True">
+        <permission value="View" />
+    </action>    
+</object>

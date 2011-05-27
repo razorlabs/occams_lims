@@ -91,6 +91,10 @@ class ViewableAliquot(grok.Adapter):
         return self.context.dsid
 
     @property
+    def state(self):
+        return self.context.state
+
+    @property
     def patient_title(self):
         specimenobj = utils.get_specimen(self.context.specimen_dsid)
         return utils.get_patient_title(specimenobj.subject_zid)
@@ -115,13 +119,10 @@ class ViewableAliquot(grok.Adapter):
         return self.context.type
 
     @property
-    def notes(self):
-        return self.context.notes
+    def special_instructions(self):
+        return self.context.special_instructions
 
-    @property
-    def box(self):
-        return self.context.box
-
+##  For the checkout display
     @property
     def volume(self):
         return self.context.volume
@@ -146,29 +147,6 @@ class ViewableAliquot(grok.Adapter):
     def box(self):
         return self.context.box
 
-    @property
-    def state(self):
-        return self.context.state
-
-    @property
-    def sent_date(self):
-        return self.context.sent_date
-
-    @property
-    def thawed_num(self):
-        return self.context.thawed_num
-
-    @property
-    def storage_site(self):
-        return self.context.storage_site
-
-    @property
-    def sent_name(self):
-        return self.context.sent_name
-
-    @property
-    def sent_notes(self):
-        return self.context.sent_notes
 
 class AliquotGenerator(grok.Adapter):
     grok.context(IAliquot)
@@ -481,6 +459,17 @@ class VisitAliquotFilter(grok.Adapter):
         return retkw
 
 
+# class AliquotOfSpecimen(grok.Adapter):
+#     """
+#     Using a specimen, produce a list of Aliquot for that specimen.
+#     """
+#     grok.implements(IAliquotOfSpecimen)
+#     grok.context(ISpecimen)
+#     
+    
+
+
+
 class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapter):
     grok.context(IDatastore)
     grok.provides(ISpecimenManager)
@@ -590,49 +579,6 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapte
         query = query.order_by(SpecimenModel.id.desc())
         result = [Specimen.from_rslt(r) for r in query.all()]
         return result
-
-
-
-
-# 
-# 
-#         Session = self._datastore.getScopedSession()
-#         SpecimenModel = self._model
-#         SubjectModel = dsmodel.Subject
-#         ProtocolModel = dsmodel.Protocol
-#         specimen_q = Session.query(SpecimenModel)
-# 
-#         for key, value in kw.items():
-# 
-#             if key == 'state' and value != None:
-#                 specimen_q = specimen_q\
-#                             .join(SpecimenModel.state)\
-#                             .filter_by(value=unicode(value))
-# 
-#             if key == 'specimen_type' and value != None:
-#                 specimen_q = specimen_q\
-#                             .join(SpecimenModel.type)\
-#                             .filter_by(value=unicode(value))
-# 
-#             if key == 'protocol_zid' and value != None:
-#                 specimen_q = specimen_q\
-#                                 .join(ProtocolModel)\
-#                                 .filter(ProtocolModel.zid == value)
-# 
-#             if key == 'subject_zid' and value != None:
-#                 specimen_q = specimen_q\
-#                                 .join(SubjectModel)\
-#                                 .filter(SubjectModel.zid == value)
-# 
-#             if key == 'before_date' and value != None:
-#                 exp_q = SpecimenModel.collect_date <= value
-#                 specimen_q = specimen_q.filter(exp_q)
-# 
-#             if key == 'after_date' and value != None:
-#                 exp_q = SpecimenModel.collect_date >= value
-#                 specimen_q = specimen_q.filter(exp_q)
-# 
-#         return [Specimen.from_rslt(r) for r in specimen_q.all()]
 
 
     def list_by_state(self, state, before_date=None, after_date=None):
