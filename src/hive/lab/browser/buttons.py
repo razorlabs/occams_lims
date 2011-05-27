@@ -425,7 +425,7 @@ class AliquotPreparedButtons(AliquotButtonCore):
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
         self.queLabels(action)
-        self.changeAliquotState(action, 'checked-in', 'Checked In')
+        self.changeState(action, 'checked-in', 'Checked In')
         self._update_subforms()
         return
 
@@ -438,7 +438,7 @@ class AliquotPreparedButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
     def handleUnusedAliquot(self, action):
         self.saveChanges(action)
-        self.changeAliquotState(action, 'unused', 'Unused')
+        self.changeState(action, 'unused', 'Unused')
         self._update_subforms()
         return
 #class AliquotRecoverer(AliquotButtonCore):
@@ -450,7 +450,7 @@ class AliquotRecoverButtons(AliquotButtonCore):
 
     @button.buttonAndHandler(_('Recover Aliquot'), name='recover')
     def handleRecoverAliquot(self, action):
-        self.changeAliquotState(action, 'pending', 'Recovered')
+        self.changeState(action, 'pending', 'Recovered')
         self._update_subforms()
         return
 
@@ -470,14 +470,14 @@ class AliquotEditButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Check Back In'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
-        self.changeAliquotState(action, 'checked-in', 'Checked In')
+        self.changeState(action, 'checked-in', 'Checked In')
         self._update_subforms()
         return
 
     @button.buttonAndHandler(_('Check Out'), name='checkout')
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
-        self.changeAliquotState(action, 'pending-checkout', 'Checked Out')
+        self.changeState(action, 'pending-checkout', 'Checked Out')
         self._update_subforms()
         return
 # ------------------------------------------------------------------------------
@@ -490,19 +490,19 @@ class AliquotCheckoutButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Complete Check Out'), name='checkout')
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
-        self.changeAliquotState(action, 'checked-out', 'Checked Out')
+        self.changeState(action, 'checked-out', 'Checked Out')
         self._update_subforms()
         return
 
     @button.buttonAndHandler(_('Return To Hold'), name='hold')
     def handleRehold(self, action):
-        self.changeAliquotState(action, 'hold', 'Held')
+        self.changeState(action, 'hold', 'Held')
         self._update_subforms()
         return
 
     @button.buttonAndHandler(_('Check Back In'), name='checkin')
     def handleCheckinAliquot(self, action):
-        self.changeAliquotState(action, 'checked-in', 'Checked In')
+        self.changeState(action, 'checked-in', 'Checked In')
         self._update_subforms()
         return
 # ------------------------------------------------------------------------------
@@ -514,7 +514,7 @@ class AliquotQueButtons(AliquotButtonCore):
 
     @button.buttonAndHandler(_('Que & Hold'), name='que')
     def handleQue(self, action):
-        self.changeAliquotState(action, 'hold', 'Qued')
+        self.changeState(action, 'hold', 'Qued')
         self._update_subforms()
         return
 # ------------------------------------------------------------------------------
@@ -531,25 +531,25 @@ class AliquotHoldButtons(AliquotButtonCore):
 
     @button.buttonAndHandler(_('Check Out'), name='checkout')
     def handleCheckout(self, action):
-        self.changeAliquotState(action, 'pending-checkout', 'Checked Out')
+        self.changeState(action, 'pending-checkout', 'Checked Out')
         self._update_subforms()
         return
 
     @button.buttonAndHandler(_('Release Hold'), name='release')
     def handleRelease(self, action):
-        self.changeAliquotState(action, 'checked-in', 'Released')
+        self.changeState(action, 'checked-in', 'Released')
         self._update_subforms()
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
     def handleInaccurate(self, action):
-        self.changeAliquotState(action, 'incorrect', 'incorrect')
+        self.changeState(action, 'incorrect', 'incorrect')
         self._update_subforms()
         return
 
     @button.buttonAndHandler(_('Mark Missing'), name='missing')
     def handleMissing(self, action):
-        self.changeAliquotState(action, 'missing', 'Missing')
+        self.changeState(action, 'missing', 'Missing')
         self._update_subforms()
         return
 

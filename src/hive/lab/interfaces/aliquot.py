@@ -113,6 +113,12 @@ class IViewableAliquot(IAliquot, form.Schema):
         readonly=True
         )
 
+    state = zope.schema.Choice(
+        title=_(u"State"),
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_state"),
+        required=False
+        )
+
     patient_title = zope.schema.TextLine(
         title=u"Patient OUR#",
         readonly=True

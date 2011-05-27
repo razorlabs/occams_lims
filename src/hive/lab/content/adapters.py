@@ -50,6 +50,10 @@ class ViewableSpecimen(grok.Adapter):
     grok.provides(IViewableSpecimen)
 
     @property
+    def state(self):
+        return self.context.state
+        
+    @property
     def patient_title(self):
         return utils.get_patient_title(self.context.subject_zid)
 
@@ -77,25 +81,6 @@ class ViewableSpecimen(grok.Adapter):
     def pretty_tube_type(self):
         return self.context.tube_type
 
-    @property
-    def tubes(self):
-        return self.context.tubes
-
-    @property
-    def date_collected(self):
-        return self.context.date_collected
-
-    @property
-    def time_collected(self):
-        return self.context.time_collected
-
-    @property
-    def destination(self):
-        return self.context.destination
-
-    @property
-    def notes(self):
-        return self.context.notes
 
 class ViewableAliquot(grok.Adapter):
     grok.context(IAliquot)
@@ -565,7 +550,7 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapte
         SubjectModel = dsmodel.Subject
         ProtocolModel = dsmodel.Protocol
         
-        specimen_q = Session.query(SpecimenModel)
+        query = Session.query(SpecimenModel)
 
         if 'subject_zid' in kw and 'our_id' in kw:
             del kw['our_id']
@@ -582,13 +567,10 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapte
                         filter = SpecimenModel.state.has(value=unicode(value))
                     elif key == 'specimen_type':
                         filter = SpecimenModel.type.has(value=unicode(value))
-                        
-                        
-                        
                     elif key == 'before_date':
-                        filter = AliquotModel.store_date <= value
+                        filter = SpecimenModel.collect_date <= value
                     elif key == 'after_date':
-                        filter = AliquotModel.store_date >= value
+                        filter = SpecimenModel.collect_date >= value
                     elif key == 'protocol_zid':
                         filter = SpecimenModel.protocol.has(zid=value)
                     elif key == 'our_id':
@@ -606,50 +588,51 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapte
             query = query.filter(filter)
 
         query = query.order_by(SpecimenModel.id.desc())
-        result = [Aliquot.from_rslt(r) for r in query.all()]
+        result = [Specimen.from_rslt(r) for r in query.all()]
         return result
 
 
 
 
-
-        Session = self._datastore.getScopedSession()
-        SpecimenModel = self._model
-        SubjectModel = dsmodel.Subject
-        ProtocolModel = dsmodel.Protocol
-        specimen_q = Session.query(SpecimenModel)
-
-        for key, value in kw.items():
-
-            if key == 'state' and value != None:
-                specimen_q = specimen_q\
-                            .join(SpecimenModel.state)\
-                            .filter_by(value=unicode(value))
-
-            if key == 'specimen_type' and value != None:
-                specimen_q = specimen_q\
-                            .join(SpecimenModel.type)\
-                            .filter_by(value=unicode(value))
-
-            if key == 'protocol_zid' and value != None:
-                specimen_q = specimen_q\
-                                .join(ProtocolModel)\
-                                .filter(ProtocolModel.zid == value)
-
-            if key == 'subject_zid' and value != None:
-                specimen_q = specimen_q\
-                                .join(SubjectModel)\
-                                .filter(SubjectModel.zid == value)
-
-            if key == 'before_date' and value != None:
-                exp_q = SpecimenModel.collect_date <= value
-                specimen_q = specimen_q.filter(exp_q)
-
-            if key == 'after_date' and value != None:
-                exp_q = SpecimenModel.collect_date >= value
-                specimen_q = specimen_q.filter(exp_q)
-
-        return [Specimen.from_rslt(r) for r in specimen_q.all()]
+# 
+# 
+#         Session = self._datastore.getScopedSession()
+#         SpecimenModel = self._model
+#         SubjectModel = dsmodel.Subject
+#         ProtocolModel = dsmodel.Protocol
+#         specimen_q = Session.query(SpecimenModel)
+# 
+#         for key, value in kw.items():
+# 
+#             if key == 'state' and value != None:
+#                 specimen_q = specimen_q\
+#                             .join(SpecimenModel.state)\
+#                             .filter_by(value=unicode(value))
+# 
+#             if key == 'specimen_type' and value != None:
+#                 specimen_q = specimen_q\
+#                             .join(SpecimenModel.type)\
+#                             .filter_by(value=unicode(value))
+# 
+#             if key == 'protocol_zid' and value != None:
+#                 specimen_q = specimen_q\
+#                                 .join(ProtocolModel)\
+#                                 .filter(ProtocolModel.zid == value)
+# 
+#             if key == 'subject_zid' and value != None:
+#                 specimen_q = specimen_q\
+#                                 .join(SubjectModel)\
+#                                 .filter(SubjectModel.zid == value)
+# 
+#             if key == 'before_date' and value != None:
+#                 exp_q = SpecimenModel.collect_date <= value
+#                 specimen_q = specimen_q.filter(exp_q)
+# 
+#             if key == 'after_date' and value != None:
+#                 exp_q = SpecimenModel.collect_date >= value
+#                 specimen_q = specimen_q.filter(exp_q)
+# 
+#         return [Specimen.from_rslt(r) for r in specimen_q.all()]
 
 
     def list_by_state(self, state, before_date=None, after_date=None):

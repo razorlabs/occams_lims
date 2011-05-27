@@ -1,4 +1,6 @@
 from avrc.data.store.interfaces import IDatastore
+from zope.component import getSiteManager
+
 from beast.browser.crud import NestedFormView
 from five import grok
 from hive.lab import MessageFactory as _
@@ -6,8 +8,10 @@ from hive.lab.browser import crud
 from hive.lab.interfaces.aliquot import IViewableAliquot
 from hive.lab.interfaces.aliquot import IAliquotSupport
 from hive.lab.interfaces.specimen import ISpecimenSupport
+from hive.lab.interfaces.specimen import IViewableSpecimen
 from hive.lab.interfaces.lab import IResearchLab
 from hive.lab.interfaces.lab import IClinicalLab
+from hive.lab.interfaces.managers import ISpecimenManager
 
 from plone.directives import dexterity
 from zope.component import getSiteManager
@@ -140,7 +144,7 @@ class ResearchLabView(dexterity.DisplayForm):
     def __init__(self, context, request):
         super(ResearchLabView, self).__init__(context, request)
         self.crudform = self.getCrudForm()
-        self.preview = self.getTodaySpecimen()
+        self.preview = self.getPreview()
 
     def getCrudForm(self):
         """
@@ -154,17 +158,26 @@ class ResearchLabView(dexterity.DisplayForm):
         view.form_instance = form
         return view
 
-    def getTodaySpecimen(self):
+    def getPreview(self):
         """
         Create a form instance.
         @return: z3c.form wrapped for Plone 3 view
         """
-        context = self.context.aq_inner
-        form = crud.SpecimenTodayForm(context, self.request)
-        view = NestedFormView(context, self.request)
-        view = view.__of__(context)
-        view.form_instance = form
-        return view
+        sm = getSiteManager(self)
+        ds = sm.queryUtility(IDatastore, 'fia')
+        dsmanager = ISpecimenManager(ds)
+        kw = {'state':'pending-draw'}
+        specimenlist=[]
+        for specimen in dsmanager.filter_specimen(**kw):
+            vspecimen = IViewableSpecimen(specimen)
+            specimendict={}
+            for prop in ['patient_title','study_title','protocol_title','pretty_specimen_type', 'pretty_tube_type']:
+                specimendict[prop]=getattr(vspecimen, prop)
+            for prop in ['tubes','date_collected']:
+                specimendict[prop]=getattr(specimen, prop)
+            specimenlist.append(specimendict)
+            
+        return specimenlist
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------

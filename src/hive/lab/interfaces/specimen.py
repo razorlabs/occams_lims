@@ -7,7 +7,6 @@ from plone.directives import form
 from z3c.relationfield.schema import RelationList, RelationChoice
 from plone.formwidget.contenttree import ObjPathSourceBinder
 
-from hive.lab.vocabularies import SpecimenVocabulary
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
 from hive.lab import vocabularies
@@ -69,6 +68,11 @@ class ISpecimen(zope.interface.Interface):
 
 class IViewableSpecimen(form.Schema):
 
+    state = zope.schema.Choice(
+        title=_(u"State"),
+        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_state"),
+        )
+        
     patient_title = zope.schema.TextLine(
         title=u"Patient OUR#",
         readonly=True
@@ -186,7 +190,7 @@ class IRequiredSpecimen(form.Schema):
         title=_(u'label_related_specimen', default=u'Specimen'),
         default=[],
         value_type=zope.schema.Choice(title=u"Specimen",
-                      source=SpecimenVocabulary()),
+                      source=vocabularies.SpecimenVocabulary()),
         required=False)
 zope.interface.alsoProvides(IRequiredSpecimen, form.IFormFieldProvider)
 

@@ -85,9 +85,7 @@ class SpecimenCoreForm(crud.CrudForm):
                 self.update_schema['tubes'].widgetFactory = widgets.StorageFieldWidget
 
     def getkwargs(self):
-        kw = {'state':self.display_state,
-              'before_date':date.today(),
-              'after_date':date.today()}
+        kw = {'state':self.display_state}
         return kw
 
     def get_items(self):
@@ -118,7 +116,7 @@ class AliquotCoreForm(crud.CrudForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('aliquot_id', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
         return fields
 
     @property
@@ -228,6 +226,12 @@ class SpecimenRecoverForm(SpecimenCoreForm):
     def display_state(self):
         return [u'complete', u'rejected']
 
+    def getkwargs(self):
+        kw = {'state':self.display_state,
+              'before_date':date.today(),
+              'after_date':date.today()}
+        return kw
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class SpecimenByVisitForm(SpecimenCoreForm):
@@ -235,10 +239,17 @@ class SpecimenByVisitForm(SpecimenCoreForm):
     """
     @property
     def view_schema(self):
-        return field.Fields(IViewableSpecimen).\
+        fields = field.Fields(IViewableSpecimen).\
         select('state', 'patient_title', 'patient_initials', 'study_title',
        'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
-
+        fields += field.Fields(ISpecimen).\
+            select('tubes', 'date_collected', 'time_collected', 'notes')
+        return fields
+        
+    @property
+    def edit_schema(self):
+        return None
+        
     @property
     def editform_factory(self):
         return buttons.SpecimenRecoverButtons
@@ -252,46 +263,25 @@ class SpecimenByVisitForm(SpecimenCoreForm):
         cyclelist = []
         for protocol in protocols:
             cyclelist.append(protocol.to_id)
-        kw = {'subject_zid':subject_zid, 'protocol_zid':cyclelist, 'date_collected':date_collected}
+        kw = {'subject_zid':subject_zid, 'protocol_zid':cyclelist, 'after_date':date_collected}
         return kw
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-class SpecimenTodayForm(SpecimenCoreForm):
-    """
-    """
-    @property
-    def view_schema(self):
-        fields = field.Fields(IViewableSpecimen).\
-            select('state', 'patient_title', 'patient_initials', 'study_title', 'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
-        fields += field.Fields(ISpecimen).\
-            select('tubes', 'date_collected', 'time_collected', 'notes')
-
-    @property
-    def edit_schema(self):
-        return None
-
-    @property
-    def editform_factory(self):
-        return crud.NullForm
-
-    @property
-    def display_state(self):
-        return [u'pending-draw']
 
 class ReadySpecimenForm(SpecimenCoreForm):
 
     @property
     def view_schema(self):
         fields = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
-            select('patient_title', 'patient_initials', 'study_title', 'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+            select('patient_title', 'study_title', 'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+        fields += field.Fields(ISpecimen).\
+            select('tubes', 'date_collected', 'time_collected', 'notes')            
         return fields
 
     @property
     def edit_schema(self):
-        fields = field.Fields(ISpecimen).\
-            select('tubes', 'date_collected', 'time_collected', 'notes')
-        return fields
+        return None
 
     @property
     def editform_factory(self):
@@ -336,9 +326,12 @@ class AliquotCreator(AliquotCoreForm):
         select('count')
         fields += field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
             select('patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
-
         fields += field.Fields(IAliquot).\
-            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction', 'notes')
+            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box')
+        fields += field.Fields(IViewableAliquot).\
+            select('special_instruction')
+        fields += field.Fields(IAliquot).\
+            select('notes')
         return fields
 
     def updateWidgets(self):
@@ -349,7 +342,8 @@ class AliquotCreator(AliquotCoreForm):
     def get_items(self):
         aliquotlist = []
         count = 100
-        for specimenobj in self.specimen_manager.list_by_state(self.display_state):
+        kw = {'state':'complete'}
+        for specimenobj in self.specimen_manager.filter_specimen(**kw):
             blueprint = IBlueprintForSpecimen(specimenobj).getBlueprint(self.context)
             for aliquot in blueprint.createAliquotMold(specimenobj):
                 aliquotlist.append((count, aliquot))
@@ -375,7 +369,7 @@ class AliquotCompletedForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('aliquot_id', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
         fields += field.Fields(IAliquot).\
             select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction', 'notes')
         return fields
@@ -419,7 +413,7 @@ class AliquotCheckoutForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('aliquot_id', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
         fields += field.Fields(IViewableAliquot).\
             select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction')
         return fields
@@ -448,7 +442,7 @@ class AliquotListForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('aliquot_id', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
         fields += field.Fields(IAliquot).\
             select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction')
         return fields
@@ -472,7 +466,7 @@ class AliquotQueForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('aliquot_id', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
         fields += field.Fields(IAliquot).\
             select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'special_instruction')
         return fields

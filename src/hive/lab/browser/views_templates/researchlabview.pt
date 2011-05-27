@@ -8,7 +8,46 @@
       lang="en">
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
-        <tal:crud replace="structure view/preview" />
+        <table class="listing">
+            <thead>
+                <tr>
+                    <th>
+                        Patient ID
+                    </th>
+                    <th>
+                        Study
+                    </th>
+                    <th>
+                        Protocol Week
+                    </th>
+                    <th>
+                        Specimen Type
+                    </th>
+                    <th>
+                        Tube Type
+                    </th>
+                    <th>
+                        Tube Count
+                    </th>
+                    <th>
+                        Est Collection Date
+                    </th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                <tr tal:repeat="specimen view/preview">
+                    <td tal:content="specimen/patient_title" />
+                    <td tal:content="specimen/study_title" />
+                    <td tal:content="specimen/protocol_title" />
+                    <td tal:content="specimen/pretty_specimen_type" />
+                    <td tal:content="specimen/pretty_tube_type" />
+                    <td tal:content="specimen/tubes" />
+                    <td tal:content="specimen/date_collected" />
+
+                </tr>
+            </tbody>
+        </table>
         <br class="visualClear" />
         <tal:crud  replace="structure view/crudform" />
         <br class="visualClear" />
