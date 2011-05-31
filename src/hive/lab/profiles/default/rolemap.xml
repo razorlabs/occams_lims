@@ -5,64 +5,88 @@
       <role name="ExperimentalLab" />
   </roles>
   <permissions>
-    <!-- -*- extra stuff goes here -*- -->
 
-  <permission name="avrc: View Clinical Specimen Data" acquire="True">
+  <permission name="avrc: View an Institute" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="Nurse" />
+      <role name="Assistant" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+
+  </permission>
+
+  <permission name="hive: Add Lab" acquire="True">
+      <role name="Manager"/>  
+  </permission>
+  
+  <permission name="hive: Modify Lab" acquire="True">
+      <role name="Manager"/>  
+  </permission>
+  
+  <permission name="hive: Request Specimen" acquire="True">
       <role name="Manager"/>
       <role name="PrimaryInvestigator" />
       <role name="Nurse" />
       <role name="ClinicalLab" />
-      <role name="ExperimentalLab" />
   </permission>
 
-  <permission name="avrc: Add Clinical Specimen Data" acquire="True">
+  <permission name="hive: Manage Specimen" acquire="True">
       <role name="Manager"/>
-      <role name="PrimaryInvestigator" />
-      <role name="Nurse" />
       <role name="ClinicalLab" />
   </permission>
 
-  <permission name="avrc: Modify Clinical Specimen Data" acquire="True">
-      <role name="Manager"/>
-      <role name="PrimaryInvestigator" />
-      <role name="ClinicalLab" />
+  <permission name="hive: Aliquot Specimen" acquire="True">
+      <role name="Manager"/>  
       <role name="ExperimentalLab" />
   </permission>
 
-  <permission name="avrc: Review Clinical Specimen Data" acquire="True">
+  <permission name="hive: Manage Aliquot" acquire="True">
       <role name="Manager"/>
-      <role name="PrimaryInvestigator" />
-      <role name="ClinicalLab" />
       <role name="ExperimentalLab" />
   </permission>
 
-  <permission name="avrc: View Aliquot Data" acquire="True">
+  <permission name="hive: View Specimen" acquire="True">
       <role name="Manager"/>
-      <role name="PrimaryInvestigator" />
       <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+      <role name="PrimaryInvestigator" />
+  </permission>
+  
+  <permission name="hive: View Aliquot" acquire="True">
+      <role name="Manager"/>
+      <role name="ExperimentalLab" />
+      <role name="PrimaryInvestigator" />
+  </permission>
+
+  <permission name="hive: Add Blueprints" acquire="True">
+      <role name="Manager"/>
+  </permission>
+
+  <permission name="hive: Modify Blueprints" acquire="True">
+      <role name="Manager"/>
+  </permission>
+
+  <permission name="hive: Hold Aliquot" acquire="True">
+      <role name="Manager"/>
+      <role name="ExperimentalLab" />
+      <role name="PrimaryInvestigator" />
+  </permission>
+
+  <permission name="hive: Check In Aliquot" acquire="True">
+      <role name="Manager"/>
       <role name="ExperimentalLab" />
   </permission>
 
-  <permission name="avrc: Add Aliquot Data" acquire="True">
+  <permission name="hive: Modify Aliquot" acquire="True">
       <role name="Manager"/>
-      <role name="PrimaryInvestigator" />
-      <role name="ClinicalLab" />
       <role name="ExperimentalLab" />
   </permission>
 
-  <permission name="avrc: Modify Aliquot Data" acquire="True">
+  <permission name="hive: Check Out Aliquot" acquire="True">
       <role name="Manager"/>
-      <role name="PrimaryInvestigator" />
-      <role name="ClinicalLab" />
       <role name="ExperimentalLab" />
   </permission>
-
-  <permission name="avrc: Review Aliquot Data" acquire="True">
-      <role name="Manager"/>
-      <role name="PrimaryInvestigator" />
-      <role name="ClinicalLab" />
-      <role name="ExperimentalLab" />
-  </permission>
-
- </permissions>
+  
+  </permissions>
 </rolemap>

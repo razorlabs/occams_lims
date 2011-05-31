@@ -116,7 +116,7 @@ class AliquotCoreForm(crud.CrudForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type')
         return fields
 
     @property
@@ -154,6 +154,8 @@ class AliquotCoreForm(crud.CrudForm):
                 self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
             if 'box' in self.update_schema.keys():
                 self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
+            if 'thawed_num' in self.update_schema.keys():
+                self.update_schema['thawed_num'].widgetFactory = widgets.StorageFieldWidget
 
     def getkwargs(self):
         kw = {'state':self.display_state}
@@ -318,7 +320,7 @@ class AliquotCreator(AliquotCoreForm):
 
     @property
     def display_state(self):
-        return u'pending-aliquot'
+        return u'pending'
 
     @property
     def view_schema(self):
@@ -373,11 +375,11 @@ class AliquotCompletedForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type', 'vol_count')
         fields += field.Fields(IAliquot).\
-            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box')
+            select('store_date')
         fields += field.Fields(IViewableAliquot).\
-            select('special_instruction')
+            select('frb','special_instruction')
         fields += field.Fields(IAliquot).\
             select('notes')
         return fields
@@ -408,6 +410,16 @@ class AliquotEditForm(AliquotCoreForm):
         return buttons.AliquotEditButtons
 
     @property
+    def edit_schema(self):
+        fields = field.Fields(IAliquot).\
+            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box','thawed_num')
+        fields += field.Fields(IViewableAliquot).\
+            select('special_instruction')
+        fields += field.Fields(IAliquot).\
+            select('notes')
+        return fields
+
+    @property
     def display_state(self):
         return u"incorrect"
 
@@ -421,11 +433,11 @@ class AliquotCheckoutForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type', 'vol_count',)
         fields += field.Fields(IAliquot).\
-            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box')
+            select( 'store_date')
         fields += field.Fields(IViewableAliquot).\
-            select('special_instruction')
+            select('frb', 'special_instruction')
         fields += field.Fields(IAliquot).\
             select('notes')
         return fields
@@ -441,33 +453,51 @@ class AliquotCheckoutForm(AliquotCoreForm):
         return u"pending-checkout"
 
 
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------   
+class AliquotCheckinForm(AliquotCoreForm):
+    """
+    """
+    editform_factory = buttons.AliquotCheckinButtons
+
+    @property
+    def view_schema(self):
+        fields = field.Fields(IViewableAliquot).\
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type')
+        fields += field.Fields(IAliquot).\
+            select( 'store_date')
+        fields += field.Fields(IViewableAliquot).\
+            select('special_instruction', 'sent_date', 'sent_name', 'sent_notes')
+        return fields
+
+    @property
+    def edit_schema(self):
+        fields = field.Fields(IViewableAliquot).\
+            select('thawed')
+        fields += field.Fields(IAliquot).\
+            select('freezer', 'rack', 'box', 'notes')
+        return fields
+
+    @property
+    def display_state(self):
+        return u"pending-checkout"
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------   
 class AliquotListForm(AliquotCoreForm):
     """
     Filterable crud form based on session information
-    """
-#     def __init__(self, context, request):
-#         super(AliquotCreator, self).__init__(context, request)
-#         sm = getSiteManager(self)
-#         ds = sm.queryUtility(IDatastore, 'fia')
-#         self.specimen_manager = ISpecimenManager(ds)
-        
+    """        
 
     editform_factory = buttons.AliquotQueButtons
-
-#         fields = field.Fields(IAliquotGenerator).\
-#         select('count')
-#         fields = field.Fields(IAliquotGenerator).\
-#         select('stock') ?? 
 
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'state','patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('dsid', 'state','patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type', 'vol_count',
+            'frb')
         fields += field.Fields(IAliquot).\
-            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box')
+            select('thawed_num', 'store_date')
         fields += field.Fields(IViewableAliquot).\
             select('special_instruction')
         fields += field.Fields(IAliquot).\
@@ -504,11 +534,11 @@ class AliquotQueForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'state', 'patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('dsid', 'state', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type', 'vol_count')
         fields += field.Fields(IAliquot).\
-            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box')
+            select( 'store_date')
         fields += field.Fields(IViewableAliquot).\
-            select('special_instruction')
+            select('frb', 'special_instruction')
         fields += field.Fields(IAliquot).\
             select('notes')
         return fields
@@ -590,7 +620,7 @@ class AliquotFilterForm(form.Form):
     def update(self):
         super(AliquotFilterForm, self).update()
         for key, value in self.session.items():
-            if value is None:
+            if value is None or key not in self.fields.keys():
                 continue
             elif type(value) == datetime.date:
                 self.widgets[key].value = (unicode(value.year), unicode(value.month), unicode(value.day))

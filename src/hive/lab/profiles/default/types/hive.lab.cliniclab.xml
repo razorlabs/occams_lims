@@ -21,7 +21,7 @@
  <!-- class used for content items -->
  <property name="klass">plone.dexterity.content.Container</property>
 
- <property name="add_permission">cmf.AddPortalContent</property>
+ <property name="add_permission">hive.lab.AddLab</property>
  
  <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
@@ -49,26 +49,26 @@
   <!-- Actions -->
   <action title="View" action_id="view" category="object" condition_expr=""
     url_expr="string:${object_url}/" visible="True">
-    <permission value="View" />
+    <permission value="hive: Manage Specimen" />
   </action>
 
   <action title="Edit" action_id="edit" category="object" condition_expr=""
     url_expr="string:${object_url}/edit" visible="True">
-    <permission value="View" />
+    <permission value="hive: Modify Lab" />
   </action>
 
   <action title="Batched" action_id="batched" category="object" condition_expr=""
     url_expr="string:${object_url}/batched" visible="True">
-    <permission value="View" />
+    <permission value="hive: Manage Specimen" />
   </action>
 
   <action title="Postponed" action_id="postponed" category="object" condition_expr=""
     url_expr="string:${object_url}/postponed" visible="True">
-    <permission value="View" />
+    <permission value="hive: Manage Specimen" />
   </action>
 
   <action title="Completed Today" action_id="completed" category="object" condition_expr=""
     url_expr="string:${object_url}/complete" visible="True">
-    <permission value="View" />
+    <permission value="hive: Manage Specimen" />
   </action>
 </object>

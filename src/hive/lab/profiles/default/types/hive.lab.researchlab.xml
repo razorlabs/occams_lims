@@ -21,7 +21,7 @@
  <!-- class used for content items -->
  <property name="klass">plone.dexterity.content.Container</property>
 
- <property name="add_permission">cmf.AddPortalContent</property>
+ <property name="add_permission">hive.lab.AddLab</property>
  
  <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
@@ -47,42 +47,54 @@
   <alias from="checkedin" to="@@checkedin" />
   <alias from="edit-aliquot" to="@@edit-aliquot" />
   <alias from="checkout" to="@@checkout" />
+  <alias from="checkin" to="@@checkin" />
   
   <!-- Actions -->
   <action title="View" action_id="view" category="object" condition_expr=""
     url_expr="string:${object_url}/" visible="True">
-    <permission value="View" />
+    <permission value="hive: Aliquot Specimen" />
   </action>
-
+  
+  <action title="View" action_id="research-view" category="object" condition_expr=""
+    url_expr="string:${object_url}/@@research-view" visible="False">
+    <permission value="hive: Aliquot Specimen" />
+  </action>
+  
   <action title="Edit" action_id="edit" category="object" condition_expr=""
     url_expr="string:${object_url}/edit" visible="True">
-    <permission value="View" />
+    <permission value="hive: Modify Lab" />
   </action>
 
   <action title="Ready to Aliquot" action_id="ready" category="object" condition_expr=""
     url_expr="string:${object_url}/ready" visible="True">
-    <permission value="View" />
+    <permission value="hive: Aliquot Specimen" />
   </action>
 
  
   <action title="Prepared" action_id="prepared" category="object" condition_expr=""
     url_expr="string:${object_url}/prepared" visible="True">
-    <permission value="View" />
+    <permission value="hive: Manage Aliquot" />
   </action>
 
   <action title="Completed Today" action_id="checkedin" category="object" condition_expr=""
     url_expr="string:${object_url}/checkedin" visible="True">
-    <permission value="View" />
+    <permission value="hive: Manage Aliquot" />
   </action>
 
   <action title="Edit Aliquot" action_id="editaliquot" category="object" condition_expr=""
     url_expr="string:${object_url}/edit-aliquot" visible="True">
-    <permission value="View" />
+    <permission value="hive: Modify Aliquot" />
   </action>
 
   <action title="Checkout Que" action_id="checkout" category="object" condition_expr=""
     url_expr="string:${object_url}/checkout" visible="True">
-    <permission value="View" />
+    <permission value="hive: Check Out Aliquot" />
   </action>
+
+  <action title="Checkin" action_id="checkin" category="object" condition_expr=""
+    url_expr="string:${object_url}/checkin" visible="True">
+    <permission value="hive: Check In Aliquot" />
+  </action>
+
 
 </object>

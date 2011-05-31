@@ -29,7 +29,7 @@ class ClinicalLabView(dexterity.DisplayForm):
     Primary view for a clinical lab object.
     """
     grok.context(IClinicalLab)
-    grok.require('zope2.View')
+    grok.require('hive.lab.ManageSpecimen')
     grok.name('clinical-view')
 
     def __init__(self, context, request):
@@ -43,6 +43,8 @@ class ClinicalLabView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenPendingForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -55,7 +57,7 @@ class ClinicalLabBatched(dexterity.DisplayForm):
     Primary view for a clinical lab object.
     """
     grok.context(IClinicalLab)
-    grok.require('zope2.View')
+    grok.require('hive.lab.ManageSpecimen')
     grok.name('batched')
 
     def __init__(self, context, request):
@@ -69,6 +71,8 @@ class ClinicalLabBatched(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenBatchedForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -81,7 +85,7 @@ class ClinicalLabPostponed(dexterity.DisplayForm):
     Primary view for a clinical lab object.
     """
     grok.context(IClinicalLab)
-    grok.require('zope2.View')
+    grok.require('hive.lab.ManageSpecimen')
     grok.name('postponed')
 
     def __init__(self, context, request):
@@ -95,6 +99,8 @@ class ClinicalLabPostponed(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenPostponedForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -107,7 +113,7 @@ class ClinicalLabCompleted(dexterity.DisplayForm):
     Primary view for a clinical lab object.
     """
     grok.context(IClinicalLab)
-    grok.require('zope2.View')
+    grok.require('hive.lab.ManageSpecimen')
     grok.name('complete')
 
     def __init__(self, context, request):
@@ -121,6 +127,8 @@ class ClinicalLabCompleted(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenRecoverForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -138,7 +146,7 @@ class ResearchLabView(dexterity.DisplayForm):
     Primary view for a research lab object.
     """
     grok.context(IResearchLab)
-    grok.require('zope2.View')
+    grok.require('hive.lab.AliquotSpecimen')
     grok.name('research-view')
 
     def __init__(self, context, request):
@@ -153,6 +161,8 @@ class ResearchLabView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.ReadySpecimenForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -186,7 +196,7 @@ class ResearchLabAliquotReady(dexterity.DisplayForm):
     Primary view for a research lab object.
     """
     grok.context(IResearchLab)
-    grok.require('zope2.View')
+    grok.require('hive.lab.AliquotSpecimen')
     grok.name('ready')
 
     def __init__(self, context, request):
@@ -201,6 +211,8 @@ class ResearchLabAliquotReady(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotCreator(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -213,6 +225,8 @@ class ResearchLabAliquotReady(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.LabelForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -225,7 +239,7 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
     Primary view for a clinical lab object.
     """
     grok.context(IResearchLab)
-    grok.require('zope2.View')
+    grok.require('hive.lab.ManageAliquot')
     grok.name('prepared')
 
     def __init__(self, context, request):
@@ -240,6 +254,8 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotPreparedForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -252,6 +268,8 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.LabelForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -262,7 +280,7 @@ class ResearchLabAliquotCompleted(dexterity.DisplayForm):
     Primary view for a clinical lab object.
     """
     grok.context(IResearchLab)
-    grok.require('zope2.View')
+    grok.require('hive.lab.ManageAliquot')
     grok.name('checkedin')
 
     def __init__(self, context, request):
@@ -276,6 +294,8 @@ class ResearchLabAliquotCompleted(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotCompletedForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -287,7 +307,7 @@ class ResearchLabAliquotEditView(dexterity.DisplayForm):
     Primary view for a clinical lab object.
     """
     grok.context(IResearchLab)
-    grok.require('zope2.View')
+    grok.require('hive.lab.ModifyAliquot')
     grok.name('edit-aliquot')
 
     def __init__(self, context, request):
@@ -301,6 +321,8 @@ class ResearchLabAliquotEditView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotEditForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -311,7 +333,7 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
     Primary view for a clinical lab object.
     """
     grok.context(IResearchLab)
-    grok.require('zope2.View')
+    grok.require('hive.lab.CheckoutAliquot')
     grok.name('checkout')
 
     def __init__(self, context, request):
@@ -319,6 +341,7 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
 
         self.crudform = self.getCrudForm()
         self.formhelper = self.getUpdater()
+        self.aliquotque = self.aliquotQue()
 
     def getCrudForm(self):
         """
@@ -327,6 +350,8 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotCheckoutForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -339,11 +364,68 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotCheckoutUpdate(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
         return view
 
+    def aliquotQue(self):
+        """ Create a form instance.
+            Returns:
+                z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = crud.AliquotQueForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+        
+class ResearchLabAliquotCheckinView(dexterity.DisplayForm):
+    """
+    Primary view for a clinical lab object.
+    """
+    grok.context(IResearchLab)
+    grok.require('hive.lab.CheckinAliquot')
+    grok.name('checkin')
+
+    def __init__(self, context, request):
+        super(ResearchLabAliquotCheckinView, self).__init__(context, request)
+
+        self.crudform = self.getCrudForm()
+        self.filter = self.filterAliquot()
+
+    def getCrudForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = crud.AliquotCheckinForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+        
+    def filterAliquot(self):
+        """ Create a form instance.
+            Returns:
+                z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = crud.AliquotFilterForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
 # ------------------------------------------------------------------------------
 # Crud Forms
 # ------------------------------------------------------------------------------
@@ -353,7 +435,7 @@ class AliquotList(dexterity.DisplayForm):
     Primary view for a clinical lab object.
     """
     grok.context(IAliquotSupport)
-    grok.require('zope2.View')
+    grok.require('hive.lab.ViewAliquot')
     grok.name('aliquot')
 
     def __init__(self, context, request):
@@ -370,6 +452,8 @@ class AliquotList(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotListForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -382,6 +466,8 @@ class AliquotList(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotFilterForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -394,6 +480,8 @@ class AliquotList(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotQueForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -406,7 +494,7 @@ class AliquotCheckList(dexterity.DisplayForm):
     Primary view for a clinical lab object.
     """
     grok.context(IAliquotSupport)
-    grok.require('zope2.View')
+    grok.require('hive.lab.ViewAliquot')
     grok.name('checklist')
 
     def __init__(self, context, request):
@@ -434,7 +522,7 @@ class SpecimenSupport(dexterity.DisplayForm):
     Primary view for a clinical lab object.
     """
     grok.context(ISpecimenSupport)
-    grok.require('zope2.View')
+    grok.require('hive.lab.RequestSpecimen')
     grok.name('specimen')
 
     def __init__(self, context, request):
@@ -449,6 +537,8 @@ class SpecimenSupport(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenByVisitForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form

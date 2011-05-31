@@ -2,45 +2,70 @@
     xmlns="http://namespaces.zope.org/zope"
     i18n_domain="avrc.aeh">
 
-
   <permission
-      id="avrc.aeh.ViewClinicalSpecimen"
-      title="avrc: View Clinical Specimen Data"
+      id="hive.lab.ModifyLab"
+      title="hive: Modify Lab"
+      />
+  <permission
+      id="hive.lab.AddLab"
+      title="hive: Add Lab"
+      />
+  <permission
+      id="hive.lab.RequestSpecimen"
+      title="hive: Request Specimen"
       />
 
   <permission
-      id="avrc.aeh.AddClinicalSpecimen"
-      title="avrc: Add Clinical Specimen Data"
+      id="hive.lab.ManageSpecimen"
+      title="hive: Manage Specimen"
+      />
+      
+  <permission
+      id="hive.lab.AliquotSpecimen"
+      title="hive: Aliquot Specimen"
       />
 
   <permission
-      id="avrc.aeh.ModifyClinicalSpecimen"
-      title="avrc: Modify Clinical Specimen Data"
+      id="hive.lab.ManageAliquot"
+      title="hive: Manage Aliquot"
       />
 
   <permission
-      id="avrc.aeh.ReviewClinicalSpecimen"
-      title="avrc: Review Clinical Specimen Data"
+      id="hive.lab.CheckoutAliquot"
+      title="hive: Check Out Aliquot"
       />
 
   <permission
-      id="avrc.aeh.ViewAliquotData"
-      title="avrc: View Aliquot Data"
-      />
-  
-  <permission
-      id="avrc.aeh.AddAliquotData"
-      title="avrc: Add Aliquot Data"
+      id="hive.lab.ModifyAliquot"
+      title="hive: Modify Aliquot"
       />
 
   <permission
-      id="avrc.aeh.ModifyAliquotData"
-      title="avrc: Modify Aliquot Data"
+      id="hive.lab.CheckinAliquot"
+      title="hive: Check In Aliquot"
       />
-            
+
   <permission
-      id="avrc.aeh.ReviewAliquotData"
-      title="avrc: Review Aliquot Data"
+      id="hive.lab.HoldAliquot"
+      title="hive: Hold Aliquot"
       />
- 
+
+  <permission
+      id="hive.lab.AddBlueprints"
+      title="hive: Add Blueprints"
+      />
+
+  <permission
+      id="hive.lab.ModifyBlueprints"
+      title="hive: Modify Blueprints"
+      />
+
+  <permission
+      id="hive.lab.ViewAliquot"
+      title="hive: View Aliquot"
+      />
+   <permission
+      id="hive.lab.ViewSpecimen"
+      title="hive: View Specimen"
+      />     
 </configure>

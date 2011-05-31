@@ -115,6 +115,10 @@ class ViewableAliquot(grok.Adapter):
         return utils.get_protocol_title(specimenobj.protocol_zid)
 
     @property
+    def study_week(self):
+        return "%s - %s" % (self.study_title, self.protocol_title)
+
+    @property
     def pretty_aliquot_type(self):
         return self.context.type
 
@@ -124,28 +128,39 @@ class ViewableAliquot(grok.Adapter):
 
 ##  For the checkout display
     @property
-    def volume(self):
-        return self.context.volume
-
-    @property
-    def cell_amount(self):
-        return self.context.cell_amount
+    def vol_count(self):
+        if self.context.volume is not None:
+            return self.context.volume
+        else:
+            return self.context_cell_amount
 
     @property
     def store_date(self):
         return self.context.store_date
 
     @property
-    def freezer(self):
-        return self.context.freezer
-
-    @property
-    def rack(self):
-        return self.context.rack
-
-    @property
-    def box(self):
-        return self.context.box
+    def frb(self):
+        f = '?'
+        r = '?'
+        b = '?'
+        if self.context.freezer is not None:
+            f = self.context.freezer
+        if self.context.rack is not None:
+            r = self.context.rack
+        if self.context.box is not None:
+            b = self.context.box
+        return "%s/%s/%s" % (f, r, b)
+#     @property
+#     def freezer(self):
+#         return self.context.freezer
+# 
+#     @property
+#     def rack(self):
+#         return self.context.rack
+# 
+#     @property
+#     def box(self):
+#         return self.context.box
 
 
 class AliquotGenerator(grok.Adapter):
@@ -390,7 +405,6 @@ class LabAliquotFilter(grok.Adapter):
                         retkw['before_date'] = basekw[key]
                 else:
                     retkw[key] = basekw[key]
-        retkw.update({'subject_zid':zid})
         return retkw
 
 class PatientAliquotFilter(grok.Adapter):

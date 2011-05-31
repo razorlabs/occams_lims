@@ -9,6 +9,6 @@
 
     <action title="Aliquot" action_id="aliquot" category="object" condition_expr=""
     url_expr="string:${object_url}/aliquot" visible="True">
-        <permission value="View" />
+        <permission value="hive: View Aliquot" />
     </action>    
 </object>

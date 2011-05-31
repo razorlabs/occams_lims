@@ -27,7 +27,7 @@ class IClinicalLab(ILab):
     """
     pass
 
-class IResearchLab(ILab, IAliquotFilter):
+class IResearchLab(ILab):
     """
     An Interface for the Labs
     """

@@ -163,7 +163,7 @@ class SpecimenButtonCore(ButtonCore):
     @button.buttonAndHandler(_('Print Selected'), name='printed')
     def handlePrint(self, action):
         self.saveChanges(action)
-        self.queLabels(action)
+        self.printLabels(action)
         return
 
     @button.buttonAndHandler(_('Save All Changes'), name='updated')
@@ -224,7 +224,6 @@ class SpecimenPendingButtons(SpecimenButtonCore):
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'complete', 'completed')
-        self.printLabels(action)
         self._update_subforms()
         return
 
@@ -258,7 +257,6 @@ class SpecimenBatchedButtons(SpecimenButtonCore):
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'complete', 'completed')
-        self.queLabels(action)
         self._update_subforms()
         return
 # ------------------------------------------------------------------------------
@@ -270,7 +268,6 @@ class SpecimenPostponedButtons(SpecimenButtonCore):
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'complete', 'completed')
-        self.queLabels(action)
         self._update_subforms()
         return
 
@@ -278,7 +275,6 @@ class SpecimenPostponedButtons(SpecimenButtonCore):
     def handleBatchDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'batched', 'batched')
-        self.queLabels(action)
         self._update_subforms()
         return
 
@@ -314,7 +310,7 @@ class ReadySpecimenButtons(SpecimenButtonCore):
 
     @button.buttonAndHandler(_('Ready selected'), name='ready')
     def handleCompleteDraw(self, action):
-        self.changeState(action, 'pending-aliquot', 'ready')
+        self.changeState(action, 'pending', 'ready')
         self._update_subforms()
         return
 
@@ -480,6 +476,58 @@ class AliquotEditButtons(AliquotButtonCore):
         self.changeState(action, 'pending-checkout', 'Checked Out')
         self._update_subforms()
         return
+        
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+class AliquotCheckinButtons(AliquotButtonCore):
+    label = _(u"")
+    z3cform.extends(AliquotButtonCore)
+
+    def saveChanges(self, action):
+        """
+        Apply changes to all items on the page
+        """
+        success = SUCCESS_MESSAGE
+        partly_success = _(u"Some of your changes could not be applied.")
+        status = no_changes = NO_CHANGES
+        for subform in self.subforms:
+            data, errors = subform.extractData()
+            if errors:
+                if status is no_changes:
+                    status = subform.formErrorsMessage
+                elif status is success:
+                    status = partly_success
+                continue
+            self.context.before_update(subform.content, data)
+            obj = subform.content
+            updated = False
+            for prop, value in data.items():
+                if prop == 'thawed':
+                    if value:
+                        obj.thawed_num += 1
+                        updated = True
+                elif hasattr(obj, prop) and getattr(obj, prop) != value:
+                    setattr(obj, prop, value)
+                    updated = True
+                    if status is no_changes:
+                        status = success
+            if updated:
+                newobj = self.dsmanager.put(obj)
+        self.status = status
+
+    @button.buttonAndHandler(_('Save Changes'), name='save')
+    def handleSaveChanges(self, action):
+        self.saveChanges(action)
+        self._update_subforms()
+        return
+
+    @button.buttonAndHandler(_('Check In'), name='checkin')
+    def handleCheckinAliquot(self, action):
+        self.saveChanges(action)
+        self.changeState(action, 'checked-in', 'Checked In')
+        self._update_subforms()
+        return
+        
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 #class AliquotCheckoutManager(AliquotButtonCore):
@@ -487,7 +535,7 @@ class AliquotCheckoutButtons(AliquotButtonCore):
     label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
-    @button.buttonAndHandler(_('Complete Check Out'), name='checkout')
+    @button.buttonAndHandler(_('Complete Check Out'), name='checkedout')
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-out', 'Checked Out')

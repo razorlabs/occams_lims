@@ -75,12 +75,13 @@ class IAliquot(interface.Interface):
         )
 
     storage_site = zope.schema.TextLine(
-        title=_(u'Enter the site where aliquot was sent'),
+        title=_(u'The site where aliquot was sent'),
         required=False
         )
 
     sent_name = zope.schema.TextLine(
-        title=_(u'Please enter the name of the person the aliquot was sent to '
+        title=_(u'Who recieved the aliquot'),
+        description=_(u'Please enter the name of the person the aliquot was sent to '
                 u'OR the name of the person who placed the sample '
                 u'on hold:'),
         required=False,
@@ -101,9 +102,6 @@ class IAliquot(interface.Interface):
         description=u'',
         required=False,
         )
-
-
-
 
 class IViewableAliquot(IAliquot, form.Schema):
     """
@@ -139,17 +137,36 @@ class IViewableAliquot(IAliquot, form.Schema):
         readonly=True
         )
 
+    study_week = zope.schema.TextLine(
+        title=u"Study/Week",
+        readonly=True
+        )
+    vol_count = zope.schema.TextLine(
+        title=_(u'Volume / Cell Count'),
+        readonly=True,
+        )
+
+    frb = zope.schema.TextLine(
+        title=_(u'Freezer / Rack / Box'),
+        readonly=True,
+        )
+
     pretty_aliquot_type = zope.schema.Choice(
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         )
 
-    form.omitted('special_instruction')
     special_instruction = zope.schema.Choice(
         title=_(u"Special"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_special_instruction"),
         required=True,
         )
+ 
+    thawed = zope.schema.Bool(
+        title=_(u'Thawed'),
+        required = False
+        )
+    
 class IAliquotFilter(interface.Interface):
 
     def getAliquotFilter(basekw, states):
