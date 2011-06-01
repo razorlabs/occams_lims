@@ -29,43 +29,43 @@ class ILabelSheet(form.Schema):
                   'no_across',
                   'no_down'])
                   
-    page_height = zope.schema.Decimal(
+    page_height = zope.schema.Float(
         title=_(u"Page Height"),
         required=True
         )
         
-    page_width = zope.schema.Decimal(
+    page_width = zope.schema.Float(
         title=_(u"Page Width"),
         required=True
         )
 
-    top_margin = zope.schema.Decimal(
+    top_margin = zope.schema.Float(
         title=_(u"Top Margin"),
         required=True
         )
-    side_margin = zope.schema.Decimal(
+    side_margin = zope.schema.Float(
         title=_(u"Side Margin"),
         required=True
         )
-    vert_pitch = zope.schema.Decimal(
+    vert_pitch = zope.schema.Float(
         title=_(u"Vertical Pitch"),
         required=True
         )
         
-    horz_pitch = zope.schema.Decimal(
+    horz_pitch = zope.schema.Float(
         title=_(u"Horizontal Pitch"),
         required=True
         )
-    label_height = zope.schema.Decimal(
+    label_height = zope.schema.Float(
         title=_(u"Label Height"),
         required=True
         )
-    label_width = zope.schema.Decimal(
+    label_width = zope.schema.Float(
         title=_(u"Label Width"),
         required=True
         )
         
-    label_round = zope.schema.Decimal(
+    label_round = zope.schema.Float(
         title=_(u"Label Round"),
         required=True
         )
