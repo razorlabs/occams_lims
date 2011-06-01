@@ -102,9 +102,6 @@ class Aliquot(AbstractItem):
         obj.sent_name = rslt.sent_name
         obj.notes = rslt.notes
         obj.special_instruction = rslt.special_instruction.value
-#         obj.create_name = rslt.create_name
-#         obj.modify_name = rslt.modify_name
-#         obj.inventory_date = rslt.inventory_date
         return obj
 
 
