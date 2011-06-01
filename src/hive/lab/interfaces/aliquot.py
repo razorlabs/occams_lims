@@ -6,6 +6,7 @@ from beast.browser import widgets
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
 from hive.lab import vocabularies
+from hive.lab.interfaces.lab import IFilter
 from hive.lab.interfaces.lab import IFilterForm
 
 class IAliquot(interface.Interface):
@@ -182,7 +183,7 @@ class IAliquotSupport(interface.Interface):
     """
 
 
-class IAliquotBlueprint(IAliquotSupport, IAliquotFilter, form.Schema):
+class IAliquotBlueprint(IAliquotSupport, IFilter, form.Schema):
     """
     Blueprint the system can use to create aliquot
     """
@@ -242,9 +243,7 @@ class IAliquotLabel(ILabel):
         
 class IAliquotFilterForm(IFilterForm):
     """
-    """
+    """  
     type = zope.schema.Choice(title=u"Type of Aliquot",
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type"), required=False
         )
-
-

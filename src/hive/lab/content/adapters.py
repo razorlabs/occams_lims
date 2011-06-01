@@ -24,10 +24,14 @@ from hive.lab.interfaces.aliquot import IAliquotFilterForm
 from hive.lab.interfaces.lab import IResearchLab
 from hive.lab.interfaces.labels import ILabelPrinter
 from hive.lab.interfaces.aliquot import IAliquotSupport
-from hive.lab.interfaces.aliquot import IAliquotFilter
 from hive.lab.interfaces.managers import IAliquotManager
 from hive.lab.interfaces.managers import ISpecimenManager
 from hive.lab.interfaces.specimen import IViewableSpecimen
+from hive.lab.interfaces.specimen import IFilter
+from hive.lab.interfaces.specimen import ISpecimenFilterForm
+from hive.lab.interfaces.lab import IFilter
+from hive.lab.interfaces.lab import IFilterForm
+
 from hive.lab.interfaces.specimen import ISpecimenLabel
 from hive.lab.content.factories import LabelGenerator
 from hive.lab import MessageFactory as _
@@ -381,21 +385,25 @@ class LabelPrinter(grok.Adapter):
 # Adapters to provide an AliquotFilter to various object types
 # --------------------------------------------------------------------------
 
-class LabAliquotFilter(grok.Adapter):
+class LabFilter(grok.Adapter):
     """
     Filter Aliquot by Patient
     """
-    grok.implements(IAliquotFilter)
+    grok.implements(IFilter)
     grok.context(IResearchLab)
 
-    def getAliquotFilter(self, basekw={}, states=[]):
+    def getOmittedFields(self):
+        omitted=[]
+        return omitted
+        
+    def getFilter(self, basekw={}, states=[]):
         """
         return a dictionary with keywords for this item based on an existing set of keys
         """
         intids = zope.component.getUtility(IIntIds)
         zid = intids.getId(self.context)
         retkw = {}
-        for key in IAliquotFilterForm.names():
+        for key in IFilterForm.names():
             if basekw.has_key(key) and basekw[key] is not None:
                 if key == 'show_all' or key == 'patient':
                     continue
@@ -407,14 +415,19 @@ class LabAliquotFilter(grok.Adapter):
                     retkw[key] = basekw[key]
         return retkw
 
-class PatientAliquotFilter(grok.Adapter):
+
+class PatientFilter(grok.Adapter):
     """
     Filter Aliquot by Patient
     """
-    grok.implements(IAliquotFilter)
+    grok.implements(IFilter)
     grok.context(IPatient)
 
-    def getAliquotFilter(self, basekw={}, states=[]):
+    def getOmittedFields(self):
+        omitted=['patient']
+        return omitted
+    
+    def getFilter(self, basekw={}, states=[]):
         """
         return a dictionary with keywords for this item based on an existing set of keys
         """
@@ -422,7 +435,7 @@ class PatientAliquotFilter(grok.Adapter):
         subject = self.context
         subject_zid = intids.getId(subject)
         retkw = {}
-        for key in IAliquotFilterForm.names():
+        for key in IFilterForm.names():
             if basekw.has_key(key) and basekw[key] is not None:
                 if key == 'show_all' or key == 'patient':
                     continue
@@ -436,14 +449,19 @@ class PatientAliquotFilter(grok.Adapter):
         return retkw
 
 
-class VisitAliquotFilter(grok.Adapter):
+class VisitFilter(grok.Adapter):
     """
     Filter Aliquot by Patient
     """
-    grok.implements(IAliquotFilter)
+    grok.implements(IFilter)
     grok.context(IVisit)
 
-    def getAliquotFilter(self, basekw={}, states=[]):
+
+    def getOmittedFields(self):
+        omitted=['patient', 'before_date','after_date']
+        return omitted
+        
+    def getFilter(self, basekw={}, states=[]):
         """
         return a dictionary with keywords for this item
         """
@@ -456,34 +474,21 @@ class VisitAliquotFilter(grok.Adapter):
         cyclelist = []
         for protocol in protocols:
             cyclelist.append(protocol.to_id)
-        if basekw.has_key('after_date') and basekw['after_date'] is not None and (not basekw.has_key('before_date') or basekw['before_date'] is None):
-            basekw['before_date'] = basekw['after_date']
-        for key in IAliquotFilterForm.names():
+        for key in IFilterForm.names():
             if basekw.has_key(key) and basekw[key] is not None:
                 if key == 'show_all' or key == 'patient':
                     continue
-                elif key == 'after_date':
-                    retkw[key] = basekw[key]
-                    if not basekw.has_key('before_date') or basekw['before_date'] is None:
-                        retkw['before_date'] = basekw[key]
                 else:
                     retkw[key] = basekw[key]
         retkw['subject_zid'] = subject_zid
         retkw['protocol_zid'] = cyclelist
         return retkw
 
-
-# class AliquotOfSpecimen(grok.Adapter):
-#     """
-#     Using a specimen, produce a list of Aliquot for that specimen.
-#     """
-#     grok.implements(IAliquotOfSpecimen)
-#     grok.context(ISpecimen)
-#     
-    
-
-
-
+# ----------------------------------------------------------------------
+#
+# Data Store Managers
+#
+# ----------------------------------------------------------------------
 class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapter):
     grok.context(IDatastore)
     grok.provides(ISpecimenManager)

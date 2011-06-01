@@ -10,10 +10,7 @@
       id="hive.lab.AddLab"
       title="hive: Add Lab"
       />
-  <permission
-      id="hive.lab.RequestSpecimen"
-      title="hive: Request Specimen"
-      />
+
 
   <permission
       id="hive.lab.ManageSpecimen"
@@ -67,5 +64,10 @@
    <permission
       id="hive.lab.ViewSpecimen"
       title="hive: View Specimen"
-      />     
+      />
+      
+  <permission
+      id="hive.lab.RequestSpecimen"
+      title="hive: Request Specimen"
+      />
 </configure>

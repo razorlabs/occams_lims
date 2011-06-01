@@ -12,6 +12,8 @@ from hive.lab.interfaces.specimen import ISpecimenBlueprint
 from hive.lab.interfaces.aliquot import IAliquotBlueprint
 from hive.lab.interfaces.aliquot import IAliquotFilterForm
 from hive.lab.interfaces.aliquot import IAliquot
+from hive.lab.interfaces.lab import IFilter
+from hive.lab.interfaces.lab import IFilterForm
 
 from hive.lab import utilities as utils
 
@@ -55,12 +57,7 @@ class Specimen(AbstractItem):
     def visit(self):    
         intids = zope.component.getUtility(IIntIds)
         return intids.getObject(self.visit_zid)
-#         for id, visit in subject.contentItems({'portal_type':'avrc.aeh.visit'}):
-#             for zid in visit.cycles:
-#                 if self.protocol_zid == zid.to_id:
-#                     return visit
-#         return None
-        
+
 class Aliquot(AbstractItem):
     """ See `IAliquot`
     """
@@ -143,7 +140,34 @@ class SpecimenBlueprint(content.Container):
 
         return Specimen(**kwargs)
 
-
+    def getOmittedFields(self):
+        omitted=['type']
+        return omitted
+        
+    def getFilter(self, basekw={}, states=[]):
+        """
+        return a dictionary with keywords for this item based on an existing set of keys
+        """
+        retkw = {}
+        if basekw.has_key('after_date') and basekw['after_date'] is not None and (not basekw.has_key('before_date') or basekw['before_date'] is None):
+            basekw['before_date'] = basekw['after_date']
+        for key in IFilterForm.names():
+            if basekw.has_key(key) and basekw[key] is not None:
+                if key == 'show_all':
+                    continue
+                elif key == 'patient':
+                    retkw['subject_zid'] = utils.getPatientForFilter(self, basekw[key])
+                elif key == 'type':
+                    retkw['specimen_type'] = basekw[key]
+                elif key == 'after_date':
+                    retkw[key] = basekw[key]
+                    if not basekw.has_key('before_date') or basekw['before_date'] is None:
+                        retkw['before_date'] = basekw[key]
+                else:
+                    retkw[key] = basekw[key]
+        retkw.update({'specimen_type':self.specimen_type})
+        return retkw
+        
     def createAliquotMold(self, specimen):
         """
         Loop through the aliquot in this folder, and 
@@ -184,14 +208,18 @@ class AliquotBlueprint(content.Item):
 
         return Aliquot(**kwargs)
 
-    def getAliquotFilter(self, basekw={}, states=[]):
+    def getOmittedFields(self):
+        omitted=['type']
+        return omitted
+        
+    def getFilter(self, basekw={}, states=[]):
         """
         return a dictionary with keywords for this item based on an existing set of keys
         """
         retkw = {}
         if basekw.has_key('after_date') and basekw['after_date'] is not None and (not basekw.has_key('before_date') or basekw['before_date'] is None):
             basekw['before_date'] = basekw['after_date']
-        for key in IAliquotFilterForm.names():
+        for key in IFilterForm.names():
             if basekw.has_key(key) and basekw[key] is not None:
                 if key == 'show_all':
                     continue

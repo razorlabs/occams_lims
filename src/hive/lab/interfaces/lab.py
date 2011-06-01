@@ -5,7 +5,7 @@ import zope.interface
 
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabelSheet
-from hive.lab.interfaces.aliquot import IAliquotFilter
+from hive.lab import vocabularies
 
 
 class IContainsSpecimen(zope.interface.Interface):
@@ -33,6 +33,18 @@ class IResearchLab(ILab):
     """
     pass
 
+class IFilter(zope.interface.Interface):
+
+    def getOmittedFields():
+        """
+        Return a dictionary of keywords to use in filtering available specimen
+        """
+        
+    def getFilter(basekw, states):
+        """
+        Return a dictionary of keywords to use in filtering available specimen
+        """
+        
 class IFilterForm(form.Schema):
     """
     """
@@ -40,6 +52,10 @@ class IFilterForm(form.Schema):
         title=_(u"Patient id"),
         description=_(u"Patient OUR#, Legacy AEH ID, or Masterbook Number"),
         required=False
+        )
+        
+    type = zope.schema.Choice(title=u"Type of Sample",
+        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type"), required=False
         )
 
     after_date = zope.schema.Date(

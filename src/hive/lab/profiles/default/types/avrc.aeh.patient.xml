@@ -11,7 +11,7 @@
     
     <action title="Specimen" action_id="specimen" category="object" condition_expr=""
     url_expr="string:${object_url}/specimen" visible="True">
-        <permission value="hive: Request Specimen" />
+        <permission value="hive: View Specimen" />
     </action>
     <action title="Aliquot" action_id="aliquot" category="object" condition_expr=""
     url_expr="string:${object_url}/aliquot" visible="True">

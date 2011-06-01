@@ -10,8 +10,8 @@ from plone.formwidget.contenttree import ObjPathSourceBinder
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
 from hive.lab import vocabularies
+from hive.lab.interfaces.lab import IFilter
 from hive.lab.interfaces.lab import IFilterForm
-
 
 class ISpecimen(zope.interface.Interface):
     """ Mostly copied from aeh forms. Tons of work to do still. """
@@ -122,7 +122,7 @@ class ISpecimenSupport(interface.Interface):
         Function that provides specimen associated with the object
         """
 
-class ISpecimenBlueprint(form.Schema, ISpecimenSupport):
+class ISpecimenBlueprint(form.Schema, ISpecimenSupport, IFilter):
     """
     Blueprint the system can use to create specimen
     """
@@ -200,15 +200,6 @@ class IRequiredSpecimen(form.Schema):
 zope.interface.alsoProvides(IRequiredSpecimen, form.IFormFieldProvider)
 
 
-
-class ISpecimenFilter(interface.Interface):
-
-    def getSpecimenFilter(basekw, states):
-        """
-        Return a dictionary of keywords to use in filtering available specimen
-        """
-
-
 class IRequestedSpecimen(ISpecimenSupport):
     """
     Marker class for items that require specimen
@@ -225,3 +216,4 @@ class ISpecimenFilterForm(IFilterForm):
     type = zope.schema.Choice(title=u"Type of Specimen",
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type"), required=False
         )
+
