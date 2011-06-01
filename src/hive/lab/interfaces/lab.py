@@ -1,11 +1,10 @@
-import zope.schema
+from hive.lab import MessageFactory as _,\
+                     vocabularies
 from plone.directives import form
-
 import zope.interface
+import zope.schema
 
-from hive.lab import MessageFactory as _
-from hive.lab.interfaces.labels import ILabelSheet
-from hive.lab import vocabularies
+
 
 
 class IContainsSpecimen(zope.interface.Interface):

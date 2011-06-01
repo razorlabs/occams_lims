@@ -1,16 +1,18 @@
-from zope.component import  getSiteManager
-from z3c.form import button, field
-from z3c.form import form as z3cform
-from plone.z3cform.crud import crud
-
 from avrc.data.store.interfaces import IDatastore
 from beast.browser.crud import BatchNavigation
-from z3c.form.interfaces import  DISPLAY_MODE
-
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabelPrinter
-from hive.lab.interfaces.managers import ISpecimenManager
-from hive.lab.interfaces.managers import IAliquotManager
+from hive.lab.interfaces.managers import IAliquotManager,\
+                                         ISpecimenManager
+from plone.z3cform.crud import crud
+from z3c.form import button,\
+                     field,\
+                     form as z3cform
+                     
+from z3c.form.interfaces import DISPLAY_MODE
+from zope.component import getSiteManager
+
+
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")

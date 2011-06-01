@@ -1,21 +1,18 @@
-from plone.dexterity import content
-import zope.interface
-from zope.schema.fieldproperty import FieldProperty
-import zope.component
-from zope.app.intid.interfaces import IIntIds
-from datetime import date
-
 from avrc.data.store._item import AbstractItem
-
-from hive.lab.interfaces.specimen import ISpecimen
-from hive.lab.interfaces.specimen import ISpecimenBlueprint
-from hive.lab.interfaces.aliquot import IAliquotBlueprint
-from hive.lab.interfaces.aliquot import IAliquotFilterForm
-from hive.lab.interfaces.aliquot import IAliquot
-from hive.lab.interfaces.lab import IFilter
-from hive.lab.interfaces.lab import IFilterForm
-
 from hive.lab import utilities as utils
+from hive.lab.interfaces.aliquot import IAliquot, IAliquotBlueprint
+from hive.lab.interfaces.lab import IFilterForm
+from hive.lab.interfaces.specimen import ISpecimen,\
+                                         ISpecimenBlueprint
+from plone.dexterity import content
+from zope.app.intid.interfaces import IIntIds
+from zope.schema.fieldproperty import FieldProperty
+
+import zope.component
+import zope.interface
+
+
+
 
 class Specimen(AbstractItem):
     """ See `ISpecimen`

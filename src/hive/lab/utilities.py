@@ -1,21 +1,13 @@
+from Products.CMFCore.utils import getToolByName
+from avrc.data.store.interfaces import IDatastore
+
+from hive.lab.interfaces.managers import ISpecimenManager
+from lovely.session.memcached import MemCachedSessionDataContainer
+from plone.memoize import ram
 from zope import component
 from zope.app.intid.interfaces import IIntIds
 from zope.component import getSiteManager
 from zope.site.hooks import getSite
-from zope.schema.interfaces import IContextSourceBinder
-from zope.schema.vocabulary import SimpleTerm
-from zope.schema.vocabulary import SimpleVocabulary
-from lovely.session.memcached import MemCachedSessionDataContainer
-
-from plone.memoize import ram
-
-from z3c.saconfig import named_scoped_session
-from five import grok
-
-from hive.lab import model
-from avrc.data.store.interfaces import IDatastore
-
-from hive.lab.interfaces.managers import ISpecimenManager
 
 # ------------------------------------------------------------------------------
 # Utilities to cache patient data for specimen and aliquot
@@ -93,7 +85,6 @@ def getSession(context, request):
     session_manager.__name__ = 'session_manager'
     return session_manager[str(request['__ac'])]
 
-from Products.CMFCore.utils import getToolByName
 
 ## TODO: Move this to aeh
 def getPatientForFilter(context, pid):

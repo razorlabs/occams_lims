@@ -1,15 +1,13 @@
-from plone.formwidget.contenttree import ObjPathSourceBinder
-from zope.schema.interfaces import IContextSourceBinder
-from zope.schema.vocabulary import SimpleTerm
-from zope.schema.vocabulary import SimpleVocabulary
-
-from plone.memoize.instance import memoize
-from zope import component
-from hive.lab import model
 from avrc.data.store.interfaces import IDatastore
 from five import grok
-
 from hive.lab.interfaces.managers import ISpecimenManager
+from zope import component
+from zope.intid.interfaces import IIntIds
+from zope.schema.interfaces import IContextSourceBinder
+from zope.schema.vocabulary import SimpleTerm,\
+                                   SimpleVocabulary
+
+
 
 
 class SpecimenVocabulary(object):

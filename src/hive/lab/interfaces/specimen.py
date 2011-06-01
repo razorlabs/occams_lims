@@ -1,17 +1,15 @@
-from datetime import datetime
-from datetime import date
-from zope import interface
-import zope.schema
-import zope.interface
-from plone.directives import form
-from z3c.relationfield.schema import RelationList, RelationChoice
-from plone.formwidget.contenttree import ObjPathSourceBinder
-
-from hive.lab import MessageFactory as _
+from hive.lab import MessageFactory as _,\
+                     vocabularies
+from hive.lab.interfaces.lab import IFilter,\
+                                    IFilterForm
 from hive.lab.interfaces.labels import ILabel
-from hive.lab import vocabularies
-from hive.lab.interfaces.lab import IFilter
-from hive.lab.interfaces.lab import IFilterForm
+from plone.directives import form
+from plone.formwidget.contenttree import ObjPathSourceBinder
+from z3c.relationfield.schema import RelationList,\
+                                     RelationChoice
+import zope.interface
+import zope.schema
+
 
 class ISpecimen(zope.interface.Interface):
     """ Mostly copied from aeh forms. Tons of work to do still. """
@@ -113,7 +111,7 @@ class IViewableSpecimen(form.Schema):
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_tube_type"),
         )
 
-class ISpecimenSupport(interface.Interface):
+class ISpecimenSupport(zope.interface.Interface):
     """
     Marker class for items that have specimen associated with them
     """

@@ -1,8 +1,7 @@
-import datetime, sys
-
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import inch, mm
 from reportlab.graphics.barcode import code39
+from reportlab.lib.units import inch
+from reportlab.pdfgen import canvas
+
 '''
 
 v0.1 by SL Kosakovsky Pond (spond@ucsd.edu)

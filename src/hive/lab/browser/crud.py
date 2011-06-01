@@ -1,37 +1,41 @@
-from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
 from avrc.data.store.interfaces import IDatastore
 from beast.browser import widgets
 from datetime import date
 from five import grok
-from hive.lab import  MessageFactory as _, utilities as utils
+from hive.lab import MessageFactory as _,\
+                     utilities as utils
 from hive.lab.browser import buttons
-from hive.lab.interfaces.aliquot import IAliquotFilterForm, IAliquotGenerator, IAliquotSupport, IViewableAliquot
-from hive.lab.interfaces.lab import IResearchLab
-from hive.lab.interfaces.labels import ILabelPrinter, ILabel
-from hive.lab.interfaces.specimen import IBlueprintForSpecimen, IViewableSpecimen
+from hive.lab.interfaces.aliquot import IAliquot,\
+                                        IAliquotGenerator,\
+                                        IAliquotSupport,\
+                                        IViewableAliquot
+from hive.lab.interfaces.lab import IFilter,\
+                                    IFilterForm,\
+                                    IResearchLab
+from hive.lab.interfaces.labels import ILabelPrinter,\
+                                       ILabel
+from hive.lab.interfaces.managers import IAliquotManager,\
+                                         ISpecimenManager
+from hive.lab.interfaces.specimen import IBlueprintForSpecimen,\
+                                         IViewableSpecimen,\
+                                         ISpecimen,\
+                                        ISpecimenSupport
 from plone.directives import form
-from plone.z3cform.crud import  crud
-from z3c.form import button, field, form as z3cform
-from z3c.form.interfaces import  DISPLAY_MODE
-from zope import schema
+from plone.z3cform.crud import crud
+from z3c.form import button,\
+                     field,\
+                     form as z3cform
+from z3c.form.interfaces import DISPLAY_MODE
 from zope.app.intid.interfaces import IIntIds
 from zope.component import getSiteManager
-from zope.schema.vocabulary import SimpleTerm, SimpleVocabulary
+from zope.schema.vocabulary import SimpleTerm,\
+                                   SimpleVocabulary
 import datetime
 import os.path
+import zope.schema
 import zope.component
-from hive.lab.interfaces.specimen import IRequestedSpecimen
-from hive.lab.interfaces.specimen import ISpecimen
-from hive.lab.interfaces.specimen import ISpecimenFilterForm
-from hive.lab.interfaces.specimen import ISpecimenSupport
-from hive.lab.interfaces.lab import IFilterForm
 
-from hive.lab.interfaces.managers import ISpecimenManager
-from hive.lab.interfaces.managers import IAliquotManager
-from hive.lab.interfaces.aliquot import IAliquot
-from zc.relation.interfaces import ICatalog
-from hive.lab.interfaces.lab import IFilter
 
 # ------------------------------------------------------------------------------
 # Base Forms |
@@ -790,9 +794,9 @@ class SpecimenAddForm(z3cform.Form):
         return SimpleVocabulary(terms=termlist)
 
     def update(self):
-        available_specimen = schema.List(
+        available_specimen = zope.schema.List(
             title=_(u'Available Specimen'),
-            value_type=schema.Choice(
+            value_type=zope.schema.Choice(
                            title=_(u'Available Specimen'),
                            description=_(u''),
                            source=self.specimenVocabulary()

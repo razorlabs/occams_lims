@@ -1,21 +1,20 @@
 from avrc.data.store.interfaces import IDatastore
-from zope.component import getSiteManager
-
 from beast.browser.crud import NestedFormView
 from five import grok
 from hive.lab import MessageFactory as _
 from hive.lab.browser import crud
-from hive.lab.interfaces.aliquot import IViewableAliquot
-from hive.lab.interfaces.aliquot import IAliquotSupport
-from hive.lab.interfaces.specimen import ISpecimenSupport
-from hive.lab.interfaces.specimen import IViewableSpecimen
-from hive.lab.interfaces.lab import IResearchLab
-from hive.lab.interfaces.lab import IClinicalLab
-from hive.lab.interfaces.managers import ISpecimenManager
-from hive.lab.interfaces.managers import IAliquotManager
+from hive.lab.interfaces.aliquot import IAliquotSupport,\
+                                        IViewableAliquot
+from hive.lab.interfaces.lab import IClinicalLab,\
+                                    IResearchLab
+from hive.lab.interfaces.managers import IAliquotManager,\
+                                         ISpecimenManager
+from hive.lab.interfaces.specimen import ISpecimenSupport,\
+                                         IViewableSpecimen
 from plone.directives import dexterity
 from zope.component import getSiteManager
 from zope.security import checkPermission
+
 
 
 
@@ -578,47 +577,3 @@ class SpecimenSupport(dexterity.DisplayForm):
         view = view.__of__(context)
         view.form_instance = form
         return view
-
-
-# class SpecimenSupport(dexterity.DisplayForm):
-#     """
-#     Primary view for a clinical lab object.
-#     """
-#     grok.context(ISpecimenSupport)
-#     grok.require('hive.lab.ViewSpecimen')
-#     grok.name('specimen')
-# 
-#     def __init__(self, context, request):
-#         super(SpecimenSupport, self).__init__(context, request)
-#         self.crudform = self.getCrudForm()
-#         self.requestmore = self.requestSpecimen()
-# 
-#     def getCrudForm(self):
-#         """
-#         Create a form instance.
-#         @return: z3c.form wrapped for Plone 3 view
-#         """
-#         context = self.context.aq_inner
-#         form = crud.SpecimenSupportForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
-#         view = NestedFormView(context, self.request)
-#         view = view.__of__(context)
-#         view.form_instance = form
-#         return view
-# 
-#     def canRequestSpecimen(self):
-#         context = self.context.aq_inner
-#         return checkPermission('hive.lab.ViewSpecimen', context) and hasattr(context, u'visit_date')
-# 
-#     def requestSpecimen(self):
-#         """ Create a form instance.
-#             Returns:
-#                 z3c.form wrapped for Plone 3 view
-#         """
-#         context = self.context.aq_inner
-#         form = crud.SpecimenAddForm(context, self.request)
-#         view = NestedFormView(context, self.request)
-#         view = view.__of__(context)
-#         view.form_instance = form
-#         return view

@@ -1,24 +1,24 @@
 """ Lab Models
 """
 
+from avrc.data.store.model import Model,\
+                                  Visit,\
+                                  visit_protocol_table
 from sqlalchemy import text
-from sqlalchemy.schema import Column
-from sqlalchemy.schema import ForeignKey
-from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.types import Boolean
-from sqlalchemy.types import Date
-from sqlalchemy.types import DateTime
-from sqlalchemy.types import Float
-from sqlalchemy.types import Integer
-from sqlalchemy.types import Time
-from sqlalchemy.types import Unicode
-
 from sqlalchemy.orm import relation as Relationship
+from sqlalchemy.schema import Column,\
+                              ForeignKey,\
+                              UniqueConstraint
+from sqlalchemy.types import Boolean,\
+                             Date,\
+                             DateTime,\
+                             Float,\
+                             Integer,\
+                             Time,\
+                             Unicode
 
-from avrc.data.store.model import Model
 
-from avrc.data.store.model import Visit
-from avrc.data.store.model import visit_protocol_table
+
 
 __all__ = ('SpecimenAliquotTerm', 'Specimen', 'Aliquot', 'AliquotHistory',)
 

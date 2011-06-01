@@ -1,19 +1,18 @@
+from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
+from Products.ZCatalog.ZCatalog import manage_addZCatalog
+from avrc.data.store.interfaces import IDatastore
 from five import grok
+from hive.lab import MessageFactory as _
+from hive.lab.interfaces.labels import ILabel,\
+                                       ILabelSheet
+from hive.lab.interfaces.managers import ISpecimenManager
+from hive.lab.interfaces.specimen import IRequestedSpecimen
 from zope.app.intid.interfaces import IIntIds
 from zope.lifecycleevent import IObjectAddedEvent
-from Products.ZCatalog.ZCatalog import manage_addZCatalog
-from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
-from Products.PluginIndexes.DateIndex.DateIndex import DateIndex
 import zope.component
 
-from avrc.data.store.interfaces import IDatastore
 
-from hive.lab.interfaces.specimen import IRequestedSpecimen
-from hive.lab.interfaces.labels import ILabelSheet
-from hive.lab.interfaces.labels import ILabel
-from hive.lab import MessageFactory as _
 
-from hive.lab.interfaces.managers import ISpecimenManager
 
 @grok.subscribe(ILabelSheet, IObjectAddedEvent)
 def handleLabelSheetAdded(sheet, event):

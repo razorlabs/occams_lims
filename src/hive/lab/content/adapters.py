@@ -1,53 +1,38 @@
-from five import grok
-import zope.component
-from zope.app.intid.interfaces import IIntIds
-import datetime, sys
-from cStringIO import StringIO
 from Products.ZCatalog.interfaces import ICatalogBrain
-
-
-from avrc.data.store.interfaces import IDatastore
-from hive.lab.interfaces.specimen import ISpecimen
-from hive.lab.interfaces.aliquot import IAliquot
-
-from avrc.aeh.content.visit import IVisit
 from avrc.aeh.content.patient import IPatient
-
-from hive.lab import utilities as utils
-from hive.lab.interfaces.aliquot import IViewableAliquot
-from hive.lab.interfaces.aliquot import IAliquotGenerator
-
-from hive.lab.interfaces.specimen import IBlueprintForSpecimen
-from hive.lab.interfaces.labels import ILabelSheet
-from hive.lab.interfaces.labels import ILabel
-from hive.lab.interfaces.aliquot import IAliquotFilterForm
-from hive.lab.interfaces.lab import IResearchLab
-from hive.lab.interfaces.labels import ILabelPrinter
-from hive.lab.interfaces.aliquot import IAliquotSupport
-from hive.lab.interfaces.managers import IAliquotManager
-from hive.lab.interfaces.managers import ISpecimenManager
-from hive.lab.interfaces.specimen import IViewableSpecimen
-from hive.lab.interfaces.specimen import IFilter
-from hive.lab.interfaces.specimen import ISpecimenFilterForm
-from hive.lab.interfaces.lab import IFilter
-from hive.lab.interfaces.lab import IFilterForm
-
-from hive.lab.interfaces.specimen import ISpecimenLabel
-from hive.lab.content.factories import LabelGenerator
-from hive.lab import MessageFactory as _
-
-from zope.schema.vocabulary import SimpleTerm
-from zope.schema.vocabulary import SimpleVocabulary
-
-from sqlalchemy import or_
-
-from hive.lab.content.objects import Specimen
-from hive.lab.content.objects import Aliquot
-
-from hive.lab import model
-from avrc.data.store._manager import AbstractDatastoreConventionalManager
+from avrc.aeh.content.visit import IVisit
 from avrc.data.store import model as dsmodel
-
+from avrc.data.store._manager import AbstractDatastoreConventionalManager
+from avrc.data.store.interfaces import IDatastore
+from cStringIO import StringIO
+from five import grok
+from hive.lab import MessageFactory as _,\
+                     model,\
+                     utilities as utils
+from hive.lab.content.factories import LabelGenerator
+from hive.lab.content.objects import Aliquot,\
+                                     Specimen
+from hive.lab.interfaces.aliquot import IAliquot,\
+                                        IAliquotGenerator,\
+                                        IViewableAliquot
+from hive.lab.interfaces.lab import IFilterForm,\
+                                    IResearchLab
+from hive.lab.interfaces.labels import ILabel,\
+                                       ILabelPrinter,\
+                                       ILabelSheet
+from hive.lab.interfaces.managers import IAliquotManager,\
+                                         ISpecimenManager
+from hive.lab.interfaces.specimen import IBlueprintForSpecimen,\
+                                         IFilter,\
+                                         ISpecimen,\
+                                         IViewableSpecimen
+from sqlalchemy import or_
+from zope.app.intid.interfaces import IIntIds
+from zope.schema.vocabulary import SimpleTerm,\
+                                   SimpleVocabulary
+                                   
+import datetime
+import zope.component
 
 class ViewableSpecimen(grok.Adapter):
     grok.context(ISpecimen)
@@ -401,7 +386,6 @@ class LabFilter(grok.Adapter):
         return a dictionary with keywords for this item based on an existing set of keys
         """
         intids = zope.component.getUtility(IIntIds)
-        zid = intids.getId(self.context)
         retkw = {}
         for key in IFilterForm.names():
             if basekw.has_key(key) and basekw[key] is not None:
@@ -470,7 +454,6 @@ class VisitFilter(grok.Adapter):
         subject = self.context.aq_parent
         subject_zid = intids.getId(subject)
         protocols = self.context.cycles
-        date_collected = self.context.visit_date
         cyclelist = []
         for protocol in protocols:
             cyclelist.append(protocol.to_id)
@@ -555,9 +538,7 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapte
         """
         Session = self._datastore.getScopedSession()
         SpecimenModel = self._model
-        SubjectModel = dsmodel.Subject
-        ProtocolModel = dsmodel.Protocol
-        
+
         query = Session.query(SpecimenModel)
 
         if 'subject_zid' in kw and 'our_id' in kw:
@@ -791,8 +772,8 @@ class DatastoreAliquotManager(AbstractDatastoreConventionalManager, grok.Adapter
 
         kw = {
             'state': state,
-            'protocol_zid':before_date,
-            'subject_zid':after_date
+            'protocol_zid':protocol_zid,
+            'subject_zid':subject_zid
         }
         return self.filter_aliquot(**kw)
 

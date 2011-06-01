@@ -1,15 +1,13 @@
-from datetime import date
-from zope import interface
-import zope.schema
-from plone.directives import form
-from beast.browser import widgets
-from hive.lab import MessageFactory as _
+from hive.lab import MessageFactory as _,\
+                     vocabularies
+from hive.lab.interfaces.lab import IFilter,\
+                                    IFilterForm
 from hive.lab.interfaces.labels import ILabel
-from hive.lab import vocabularies
-from hive.lab.interfaces.lab import IFilter
-from hive.lab.interfaces.lab import IFilterForm
+from plone.directives import form
+import zope.interface
+import zope.schema
 
-class IAliquot(interface.Interface):
+class IAliquot(zope.interface.Interface):
     """ Mostly copied from aeh forms. Tons of work to do still. """
 
     dsid = zope.schema.Int(
@@ -169,7 +167,7 @@ class IViewableAliquot(IAliquot, form.Schema):
         required = False
         )
     
-class IAliquotFilter(interface.Interface):
+class IAliquotFilter(zope.interface.Interface):
 
     def getAliquotFilter(basekw, states):
         """
@@ -177,7 +175,7 @@ class IAliquotFilter(interface.Interface):
         """
 
 
-class IAliquotSupport(interface.Interface):
+class IAliquotSupport(zope.interface.Interface):
     """
     Marker interface to search for aliquot associated with a specific item
     """

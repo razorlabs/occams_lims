@@ -1,15 +1,10 @@
-from datetime import datetime
-from datetime import date
-
-from zope import component
-from zope import interface
-import zope.schema
-
-from five import grok
 from hive.lab import MessageFactory as _
 from plone.directives import form
+import zope.interface
+import zope.schema
 
-from hive.lab import vocabularies
+
+
 
 
 class ILabelSheet(form.Schema):
@@ -81,10 +76,10 @@ class ILabelSheet(form.Schema):
         )
     
 
-interface.alsoProvides(ILabelSheet, form.IFormFieldProvider)
+zope.interface.alsoProvides(ILabelSheet, form.IFormFieldProvider)
 
 
-class ILabel(interface.Interface):
+class ILabel(zope.interface.Interface):
     """
     Class that supports transforming an object into a label.
     """
@@ -129,7 +124,7 @@ class ILabel(interface.Interface):
         )
 
 
-class ILabelPrinter(interface.Interface):
+class ILabelPrinter(zope.interface.Interface):
     """
     parts needed for label printing to work
     """
