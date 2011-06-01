@@ -128,6 +128,8 @@ class Specimen(Model):
 
     collect_time = Column(Time)
 
+    inventory_date = Column(Date)
+
     type_id = Column(
         ForeignKey(SpecimenAliquotTerm.id, ondelete='CASCADE'),
         nullable=False,
