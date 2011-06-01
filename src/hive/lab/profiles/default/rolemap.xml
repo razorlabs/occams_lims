@@ -16,6 +16,22 @@
 
   </permission>
 
+  <permission name="avrc: View a Patient" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="Nurse" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="avrc: View a Visit" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="Nurse" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </permission>
+  
   <permission name="hive: Add Lab" acquire="True">
       <role name="Manager"/>  
   </permission>

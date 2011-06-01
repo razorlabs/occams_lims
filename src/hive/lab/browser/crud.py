@@ -21,11 +21,12 @@ from zope.schema.vocabulary import SimpleTerm, SimpleVocabulary
 import datetime
 import os.path
 import zope.component
-
+from hive.lab.interfaces.specimen import IRequestedSpecimen
 from hive.lab.interfaces.specimen import ISpecimen
 from hive.lab.interfaces.managers import ISpecimenManager
 from hive.lab.interfaces.managers import IAliquotManager
 from hive.lab.interfaces.aliquot import IAliquot
+from zc.relation.interfaces import ICatalog
 
 # ------------------------------------------------------------------------------
 # Base Forms |
@@ -67,8 +68,9 @@ class SpecimenCoreForm(crud.CrudForm):
 
     def link(self, item, field):
         if field == 'patient_title':
-            return './%s/@@specimen' % IViewableSpecimen(item).patient_title
-
+            visit = item.visit()
+            return '%s/specimen' % visit.absolute_url()
+                
     @property
     def editform_factory(self):
         raise NotImplementedError
@@ -106,6 +108,7 @@ class AliquotCoreForm(crud.CrudForm):
         super(AliquotCoreForm, self).__init__(context, request)
         sm = getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
+        self.specimen_manager = ISpecimenManager(ds)
         self.dsmanager = IAliquotManager(ds)
         self.update_schema = self.edit_schema
 
@@ -131,7 +134,15 @@ class AliquotCoreForm(crud.CrudForm):
 
     def link(self, item, field):
         if field == 'patient_title':
-            return './%s/@@aliquot' % IViewableAliquot(item).patient_title
+            intids = zope.component.getUtility(IIntIds)
+            specimen = self.specimen_manager.get(item.specimen_dsid)
+            patient = intids.getObject(specimen.subject_zid)
+            return '%s/aliquot' % patient.absolute_url()
+
+        elif field == 'study_week':
+            specimen = self.specimen_manager.get(item.specimen_dsid)
+            visit = specimen.visit()
+            return '%s/aliquot' % visit.absolute_url()
 
     @property
     def editform_factory(self):
@@ -240,14 +251,61 @@ class SpecimenRecoverForm(SpecimenCoreForm):
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-class SpecimenByVisitForm(SpecimenCoreForm):
+class SpecimenViewForm(SpecimenCoreForm):
     """
     """
     @property
     def view_schema(self):
         fields = field.Fields(IViewableSpecimen).\
-        select('state', 'patient_title', 'patient_initials', 'study_title',
-       'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+        select('state', 'patient_title', 'study_title', 'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+        fields += field.Fields(ISpecimen).\
+            select('tubes', 'date_collected', 'time_collected', 'notes')
+        return fields
+        
+    @property
+    def edit_schema(self):
+        return None
+        
+    @property
+    def editform_factory(self):
+        return buttons.SpecimenRecoverButtons
+
+    @property
+    def display_state(self):
+        return [u'complete', u'aliquoted']
+
+    def getkwargs(self):
+        kw={}
+        #intids = zope.component.getUtility(IIntIds)
+        kw={'specimen_type':self.context.specimen_type, 'state':self.display_state}
+        return kw
+
+#         intids = zope.component.getUtility(IIntIds)
+#         if IRequestedSpecimen.implementedBy(self.context):
+#             subject = self.context.aq_parent
+#             subject_zid = intids.getId(subject)
+#             protocols = self.context.cycles
+#             date_collected = self.context.visit_date
+#             cyclelist = []
+#             for protocol in protocols:
+#                 cyclelist.append(protocol.to_id)
+#             kw = {'subject_zid':subject_zid, 'protocol_zid':cyclelist, 'after_date':date_collected}   
+#         else:
+#             subject = self.context
+#             subject_zid = intids.getId(subject)
+#             kw = {'subject_zid':subject_zid}
+#         return kw
+
+
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+class SpecimenSupportForm(SpecimenCoreForm):
+    """
+    """
+    @property
+    def view_schema(self):
+        fields = field.Fields(IViewableSpecimen).\
+        select('state', 'patient_title', 'study_title', 'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
         fields += field.Fields(ISpecimen).\
             select('tubes', 'date_collected', 'time_collected', 'notes')
         return fields
@@ -261,16 +319,23 @@ class SpecimenByVisitForm(SpecimenCoreForm):
         return buttons.SpecimenRecoverButtons
 
     def getkwargs(self):
+        kw={}
         intids = zope.component.getUtility(IIntIds)
-        subject = self.context.aq_parent
-        subject_zid = intids.getId(subject)
-        protocols = self.context.cycles
-        date_collected = self.context.visit_date
-        cyclelist = []
-        for protocol in protocols:
-            cyclelist.append(protocol.to_id)
-        kw = {'subject_zid':subject_zid, 'protocol_zid':cyclelist, 'after_date':date_collected}
+        if IRequestedSpecimen.implementedBy(self.context):
+            subject = self.context.aq_parent
+            subject_zid = intids.getId(subject)
+            protocols = self.context.cycles
+            date_collected = self.context.visit_date
+            cyclelist = []
+            for protocol in protocols:
+                cyclelist.append(protocol.to_id)
+            kw = {'subject_zid':subject_zid, 'protocol_zid':cyclelist, 'after_date':date_collected}   
+        else:
+            subject = self.context
+            subject_zid = intids.getId(subject)
+            kw = {'subject_zid':subject_zid}
         return kw
+
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------

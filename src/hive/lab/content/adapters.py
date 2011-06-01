@@ -590,7 +590,7 @@ class DatastoreSpecimenManager(AbstractDatastoreConventionalManager, grok.Adapte
             filter = or_(*filters)
             query = query.filter(filter)
 
-        query = query.order_by(SpecimenModel.id.desc())
+        query = query.order_by(SpecimenModel.id.desc()).limit(200)
         result = [Specimen.from_rslt(r) for r in query.all()]
         return result
 
@@ -760,7 +760,7 @@ class DatastoreAliquotManager(AbstractDatastoreConventionalManager, grok.Adapter
             filter = or_(*filters)
             query = query.filter(filter)
 
-        query = query.order_by(AliquotModel.id.desc())
+        query = query.order_by(AliquotModel.id.desc()).limit(200)
         result = [Aliquot.from_rslt(r) for r in query.all()]
         return result
 

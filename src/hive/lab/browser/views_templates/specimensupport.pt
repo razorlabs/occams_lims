@@ -21,7 +21,6 @@
             </tal:nodata>
         </tal:data>
         <hr class="visualClear" />
-
         <tal:data define="form view/requestmore">
             <tal:hasdata tal:condition="form">
                 Description of Form Here

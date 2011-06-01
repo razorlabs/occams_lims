@@ -49,9 +49,18 @@ class Specimen(AbstractItem):
         obj.tubes = rslt.tubes
         obj.tube_type = rslt.tube_type.value
         obj.notes = rslt.notes
+        obj.visit_zid = rslt.visit.zid
         return obj
 
-
+    def visit(self):    
+        intids = zope.component.getUtility(IIntIds)
+        return intids.getObject(self.visit_zid)
+#         for id, visit in subject.contentItems({'portal_type':'avrc.aeh.visit'}):
+#             for zid in visit.cycles:
+#                 if self.protocol_zid == zid.to_id:
+#                     return visit
+#         return None
+        
 class Aliquot(AbstractItem):
     """ See `IAliquot`
     """
@@ -96,6 +105,9 @@ class Aliquot(AbstractItem):
         obj.sent_name = rslt.sent_name
         obj.notes = rslt.notes
         obj.special_instruction = rslt.special_instruction.value
+#         obj.create_name = rslt.create_name
+#         obj.modify_name = rslt.modify_name
+#         obj.inventory_date = rslt.inventory_date
         return obj
 
 

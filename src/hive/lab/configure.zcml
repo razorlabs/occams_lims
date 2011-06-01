@@ -61,5 +61,11 @@
         for="plone.dexterity.interfaces.IDexterityContent"
         />
 
+      <plone:behavior
+        title="Specimen View"
+        description="Make this item Show Filtered Aliquot"
+        provides="hive.lab.interfaces.specimen.ISpecimenSupport"
+        for="plone.dexterity.interfaces.IDexterityContent"
+        />
 
 </configure>

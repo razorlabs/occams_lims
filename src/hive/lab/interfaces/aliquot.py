@@ -6,6 +6,7 @@ from beast.browser import widgets
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabel
 from hive.lab import vocabularies
+from hive.lab.interfaces.lab import IFilterForm
 
 class IAliquot(interface.Interface):
     """ Mostly copied from aeh forms. Tons of work to do still. """
@@ -238,36 +239,12 @@ class IAliquotLabel(ILabel):
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         )
-
-
-class IAliquotFilterForm(form.Schema):
+        
+class IAliquotFilterForm(IFilterForm):
     """
     """
-    patient = zope.schema.TextLine(
-        title=_(u"Patient id"),
-        description=_(u"Patient OUR#, Legacy AEH ID, or Masterbook Number"),
-        required=False
-        )
-
     type = zope.schema.Choice(title=u"Type of Aliquot",
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type"), required=False
         )
 
-    after_date = zope.schema.Date(
-        title=_(u"Aliquot Date"),
-        description=_(u"Aliquot on this date. If Limit Date is set as well, will show aliquot between those dates"),
-        required=False
 
-        )
-
-    before_date = zope.schema.Date(
-        title=_(u"Aliquot Limit Date"),
-        description=_(u"Aliquot before this date. Only applies if Aliquot Date is also set"),
-        required=False
-        )
-
-    show_all = zope.schema.Bool(
-        title=_(u"Show all Aliquot"),
-        description=_(u"Show all aliquot, including missing, never drawn, checked out, etc"),
-        required=False
-        )

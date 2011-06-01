@@ -103,13 +103,14 @@ class Specimen(Model):
         )
 
     protocol = Relationship('Protocol')
-
+    
     visit = Relationship(
         'Visit',
-        use_list=False,
+        uselist=False,
         secondary=visit_protocol_table,
-        primaryjoin=(protocol_id == visit_protocol_table.protocol_id),
-        secondaryjoin=(Visit.id == visit_protocol_table.visit_id & Visit.subject_id == subject_id),
+        primaryjoin=((protocol_id == visit_protocol_table.c.protocol_id) & (Visit.subject_id == subject_id)),
+        secondaryjoin=(Visit.id == visit_protocol_table.c.visit_id),
+        foreign_keys=[visit_protocol_table.c.protocol_id, visit_protocol_table.c.visit_id, Visit.subject_id, ]
         )
 
     state_id = Column(
@@ -260,6 +261,9 @@ class Aliquot(Model):
         primaryjoin=analysis_status_id == SpecimenAliquotTerm.id,
         )
 
+#     inventory_date = Column(Date,
+#             nullable=True)
+
     sent_date = Column(Date)
 
     sent_name = Column(Unicode)
@@ -328,3 +332,14 @@ class AliquotHistory(Model):
 
     to = Column(Unicode, nullable=False)
 
+
+# if __name__ == '__main__':
+#     from sqlalchemy import create_engine
+#     from sqlalchemy.orm import sessionmaker, scoped_session
+#     
+#     url = 'postgresql://postgres@localhost/avrc_demo_data'
+#     engine = create_engine(url, echo=True)
+#     session = scoped_session(sessionmaker(engine))
+#     
+#     import pdb; pdb.set_trace()
+#     entry = session.query(Specimen).first()
