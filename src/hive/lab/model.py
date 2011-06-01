@@ -17,6 +17,8 @@ from sqlalchemy.orm import relation as Relationship
 
 from avrc.data.store.model import Model
 
+from avrc.data.store.model import Visit
+from avrc.data.store.model import visit_protocol_table
 
 __all__ = ('SpecimenAliquotTerm', 'Specimen', 'Aliquot', 'AliquotHistory',)
 
@@ -101,6 +103,14 @@ class Specimen(Model):
         )
 
     protocol = Relationship('Protocol')
+
+    visit = Relationship(
+        'Visit',
+        use_list=False,
+        secondary=visit_protocol_table,
+        primaryjoin=(protocol_id == visit_protocol_table.protocol_id),
+        secondaryjoin=(Visit.id == visit_protocol_table.visit_id & Visit.subject_id == subject_id),
+        )
 
     state_id = Column(
         ForeignKey(SpecimenAliquotTerm.id, ondelete='CASCADE'),
