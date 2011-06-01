@@ -128,8 +128,6 @@ class Specimen(Model):
 
     collect_time = Column(Time)
 
-    inventory_date = Column(Date)
-
     type_id = Column(
         ForeignKey(SpecimenAliquotTerm.id, ondelete='CASCADE'),
         nullable=False,
@@ -263,8 +261,8 @@ class Aliquot(Model):
         primaryjoin=analysis_status_id == SpecimenAliquotTerm.id,
         )
 
-#     inventory_date = Column(Date,
-#             nullable=True)
+    inventory_date = Column(Date,
+             nullable=True)
 
     sent_date = Column(Date)
 

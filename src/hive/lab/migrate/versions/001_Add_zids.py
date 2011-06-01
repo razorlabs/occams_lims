@@ -23,7 +23,7 @@ def upgrade(migrate_engine):
     vocabulary_table = Table('specimen_aliquot_term', metadata, reflect=True)
 
     blueprint_zid.create(specimen_table)
-    inventory_date.create(specimen_table)
+    inventory_date.create(aliquot_table)
 
     metadata.bind.execute(vocabulary_table.insert(), terms)
 

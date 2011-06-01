@@ -722,20 +722,20 @@ class SpecimenFilterForm(FilterForm):
         self.session = utils.getSession(context, request)
         self.default_kw = IFilter(context).getFilter()
 
-#     def update(self):
-#         super(SpecimenFilterForm, self).update()
-#         for key, value in self.session.items():
-#             if value is None or key not in self.fields.keys():
-#                 continue
-#             elif type(value) == datetime.date:
-#                 self.widgets[key].value = (unicode(value.year), unicode(value.month), unicode(value.day))
-#             else:
-#                 self.widgets[key].value = value
-#                 
-#     @property
-#     def fields(self):
-#         omitables = IFilter(context).getOmittedFields()
-#         return field.Fields(IFilterForm).omit(*omitables)
+    def update(self):
+        super(SpecimenFilterForm, self).update()
+        for key, value in self.session.items():
+            if value is None or key not in self.fields.keys():
+                continue
+            elif type(value) == datetime.date:
+                self.widgets[key].value = (unicode(value.year), unicode(value.month), unicode(value.day))
+            else:
+                self.widgets[key].value = value
+
+    @property
+    def fields(self):
+        omitables = IFilter(self.context).getOmittedFields()
+        return field.Fields(IFilterForm).omit(*omitables)
 
     @button.buttonAndHandler(u'Filter')
     def handleFilter(self, action):
