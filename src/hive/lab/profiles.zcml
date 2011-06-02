@@ -12,6 +12,16 @@
       description="Installs components necessary for providing HIVe Lab services."
       provides="Products.GenericSetup.interfaces.EXTENSION"
       />
+
+   <genericsetup:upgradeStep
+      title="Adds Blueprint ZID to specimen table"
+      description="Adds Blueprint ZID to specimen table"
+      source="001"
+      destination="002"
+      handler="hive.lab.install.to_002.import_"
+      profile="hive.lab:default"
+      />
+
   <browser:resourceDirectory
       name="hive.lab" directory="static" />
 </configure>
