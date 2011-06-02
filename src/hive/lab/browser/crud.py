@@ -548,7 +548,7 @@ class AliquotCheckinForm(AliquotCoreForm):
 
     @property
     def display_state(self):
-        return u"pending-checkout"
+        return u"checked-out"
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------   
