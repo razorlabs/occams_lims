@@ -151,7 +151,7 @@ class IViewableAliquot(IAliquot, form.Schema):
         readonly=True,
         )
 
-    pretty_aliquot_type = zope.schema.Choice(
+    pretty_type = zope.schema.Choice(
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         )
@@ -186,7 +186,7 @@ class IAliquotBlueprint(IAliquotSupport, IFilter, form.Schema):
     Blueprint the system can use to create aliquot
     """
 
-    aliquot_type = zope.schema.Choice(
+    type = zope.schema.Choice(
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         )
@@ -224,17 +224,13 @@ class IAliquotGenerator(form.Schema):
         description=_(u'Number of aliquot to generate from the specimen'),
         required=False
         )
-#     blueprint_zid = zope.schema.TextLine(
-#         title=u"Blueprint",
-#         readonly=True
-#         )
 
 class IAliquotLabel(ILabel):
     """
     A Specimen Label
     """
 
-    pretty_aliquot_type = zope.schema.Choice(
+    pretty_type = zope.schema.Choice(
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         )

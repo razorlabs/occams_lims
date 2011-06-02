@@ -11,9 +11,6 @@ from zope.app.intid.interfaces import IIntIds
 from zope.lifecycleevent import IObjectAddedEvent
 import zope.component
 
-
-
-
 @grok.subscribe(ILabelSheet, IObjectAddedEvent)
 def handleLabelSheetAdded(sheet, event):
     """ Clinical Lab added event handler.

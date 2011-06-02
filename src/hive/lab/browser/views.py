@@ -15,10 +15,6 @@ from plone.directives import dexterity
 from zope.component import getSiteManager
 from zope.security import checkPermission
 
-
-
-
-
 # ------------------------------------------------------------------------------
 # Clinical Lab Views |
 # --------------
@@ -180,10 +176,10 @@ class ResearchLabView(dexterity.DisplayForm):
         dsmanager = ISpecimenManager(ds)
         kw = {'state':'pending-draw'}
         specimenlist=[]
-        for specimen in dsmanager.filter_specimen(**kw):
+        for specimen in dsmanager.filter_records(**kw):
             vspecimen = IViewableSpecimen(specimen)
             specimendict={}
-            for prop in ['patient_title','study_title','protocol_title','pretty_specimen_type', 'pretty_tube_type']:
+            for prop in ['patient_title','study_title','protocol_title','pretty_type', 'pretty_tube_type']:
                 specimendict[prop]=getattr(vspecimen, prop)
             for prop in ['tubes','date_collected']:
                 specimendict[prop]=getattr(specimen, prop)
@@ -248,7 +244,8 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         super(ResearchLabAliquotPrepared, self).__init__(context, request)
         self.crudform = self.getCrudForm()
         self.labelqueue = self.getLabelQueue()
-
+        self.filter = self.filterAliquot()
+        
     def getCrudForm(self):
         """
         Create a form instance.
@@ -263,6 +260,20 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         view.form_instance = form
         return view
 
+    def filterAliquot(self):
+        """ Create a form instance.
+            Returns:
+                z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = crud.AliquotFilterForCheckinForm(context, self.request)
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+        
     def getLabelQueue(self):
         """
         Create a form instance.
@@ -512,7 +523,7 @@ class AliquotCheckList(dexterity.DisplayForm):
         """
         kw = {}
         kw['state'] = u'queued'
-        for aliquot in self.dsmanager.filter_aliquot(**kw):
+        for aliquot in self.dsmanager.filter_records(**kw):
             yield IViewableAliquot(aliquot)
 
 
@@ -548,7 +559,7 @@ class SpecimenSupport(dexterity.DisplayForm):
         return view
 
     def canRequestSpecimen(self):
-        return checkPermission('hive.lab.RequestSpecimen', self.context) and hasattr(self.context, 'visit_date')
+        return hasattr(self.context, 'visit_date')
 
     def filterSpecimen(self):
         """ Create a form instance.

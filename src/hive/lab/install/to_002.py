@@ -94,7 +94,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
 
     #Default Types and Aliquot
     #ACD
-    acd = createContent('hive.lab.specimenblueprint', title=(u'Default ACD'), specimen_type=u'acd',default_tubes=3,tube_type=u'acdyellowtop')
+    acd = createContent('hive.lab.specimenblueprint', title=(u'Default ACD'), type=u'acd',default_tubes=3,tube_type=u'acdyellowtop')
 
     acd_aliquot_plasma = createContent('hive.lab.aliquotblueprint', title=(u'Default ACD Plasma Aliquot'), aliquot_type=u'plasma',volume=1.0)
     acd_aliquot_pbmc5  = createContent('hive.lab.aliquotblueprint', title=(u'Default ACD PBMC 5 Aliquot'), aliquot_type=u'pbmc',volume=5.0)
@@ -109,7 +109,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
 
 
     #Genital Secretion
-    genitals = createContent('hive.lab.specimenblueprint', title=(u'Default Genital Secretion'), specimen_type=u"genital-secretion",tube_type=u'gskit')
+    genitals = createContent('hive.lab.specimenblueprint', title=(u'Default Genital Secretion'), type=u"genital-secretion",tube_type=u'gskit')
     genitals_aliquot_gscells = createContent('hive.lab.aliquotblueprint', title=(u'Default Genital Secretion GS Cells Aliquot'), aliquot_type=u'gscells', cell_amount=1.0)
     genitals_aliquot_gsplasma = createContent('hive.lab.aliquotblueprint', title=(u'Default Genital Secretion GS Plasma Aliquot'), aliquot_type=u'gsplasma',volume=1.0)
 
@@ -120,7 +120,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
 
 
     #CSF
-    csf = createContent('hive.lab.specimenblueprint', title=(u'Default CSF'), specimen_type=u"csf",default_tubes=2,tube_type=u'csf')
+    csf = createContent('hive.lab.specimenblueprint', title=(u'Default CSF'), type=u"csf",default_tubes=2,tube_type=u'csf')
 
     csf_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default CSF Aliquot'), aliquot_type=u'csf')
     csf_aliquot_pellet = createContent('hive.lab.aliquotblueprint', title=(u'Default CSF Pellet Aliquot'), aliquot_type=u'csfpellet')
@@ -131,7 +131,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     addContentToContainer(csf, csf_aliquot_pellet) 
 
     #Serum
-    serum = createContent('hive.lab.specimenblueprint', title=(u'Default Serum'), specimen_type=u"serum",default_tubes=1,tube_type=u'10mlsst')
+    serum = createContent('hive.lab.specimenblueprint', title=(u'Default Serum'), type=u"serum",default_tubes=1,tube_type=u'10mlsst')
     serum_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default Serum Aliquot'), aliquot_type=u'serum',volume=1.0)
 
     #Add Aliquot to Specimen
@@ -139,7 +139,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     addContentToContainer(serum, serum_aliquot) 
 
     #Swab
-    swab = createContent('hive.lab.specimenblueprint', title=(u'Default Swab'), specimen_type=u"swab",default_tubes=1,tube_type=u'dacronswab')
+    swab = createContent('hive.lab.specimenblueprint', title=(u'Default Swab'), type=u"swab",default_tubes=1,tube_type=u'dacronswab')
     swab_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default Swab Aliquot'), aliquot_type=u'swab')
 
     #Add Aliquot to Specimen
@@ -147,7 +147,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     addContentToContainer(swab, swab_aliquot) 
 
     #RS-GUT
-    rs_gut  = createContent('hive.lab.specimenblueprint', title=(u'Default RS-Gut'), specimen_type=u"rs-gut",default_tubes=1,tube_type=u"rs-gut")
+    rs_gut  = createContent('hive.lab.specimenblueprint', title=(u'Default RS-Gut'), type=u"rs-gut",default_tubes=1,tube_type=u"rs-gut")
     rs_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default RS-Gut Aliquot'), aliquot_type=u'rs-gut')
 
     #Add Aliquot to Specimen
@@ -155,7 +155,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     addContentToContainer(rs_gut, rs_gut_aliquot) 
 
     #TI-GUT
-    ti_gut  = createContent('hive.lab.specimenblueprint', title=(u'Default TI-Gut'), specimen_type=u"ti-gut" ,default_tubes=1,tube_type=u"ti-gut")
+    ti_gut  = createContent('hive.lab.specimenblueprint', title=(u'Default TI-Gut'), type=u"ti-gut" ,default_tubes=1,tube_type=u"ti-gut")
     ti_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default TI-Gut Aliquot'), aliquot_type=u'ti-gut')
 
     #Add Aliquot to Specimen

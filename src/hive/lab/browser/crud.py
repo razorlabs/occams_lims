@@ -9,7 +9,8 @@ from hive.lab.browser import buttons
 from hive.lab.interfaces.aliquot import IAliquot,\
                                         IAliquotGenerator,\
                                         IAliquotSupport,\
-                                        IViewableAliquot
+                                        IViewableAliquot,\
+                                        IAliquotFilterForm
 from hive.lab.interfaces.lab import IFilter,\
                                     IFilterForm,\
                                     IResearchLab
@@ -20,7 +21,8 @@ from hive.lab.interfaces.managers import IAliquotManager,\
 from hive.lab.interfaces.specimen import IBlueprintForSpecimen,\
                                          IViewableSpecimen,\
                                          ISpecimen,\
-                                        ISpecimenSupport
+                                        ISpecimenSupport,\
+                                        ISpecimenFilterForm
 from plone.directives import form
 from plone.z3cform.crud import crud
 from z3c.form import button,\
@@ -35,7 +37,8 @@ import datetime
 import os.path
 import zope.schema
 import zope.component
-
+import zope.interface
+from zope.security import checkPermission
 
 # ------------------------------------------------------------------------------
 # Base Forms |
@@ -56,16 +59,14 @@ class SpecimenCoreForm(crud.CrudForm):
 
         self.update_schema = self.edit_schema
 
-
     ignoreContext = True
     addform_factory = crud.NullForm
-
     batch_size = 25
 
     @property
     def view_schema(self):
         fields = field.Fields(IViewableSpecimen).\
-            select('patient_title', 'patient_initials', 'study_title', 'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+            select('patient_title', 'patient_initials', 'study_title', 'protocol_title', 'pretty_type', 'pretty_tube_type')
         return fields
 
     @property
@@ -102,7 +103,7 @@ class SpecimenCoreForm(crud.CrudForm):
     def get_items(self):
         specimenlist = []
         kw = self.getkwargs()
-        for specimenobj in self.dsmanager.filter_specimen(**kw):
+        for specimenobj in self.dsmanager.filter_records(**kw):
             specimenlist.append((specimenobj.dsid, specimenobj))
         return specimenlist
 
@@ -128,7 +129,7 @@ class AliquotCoreForm(crud.CrudForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type')
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type')
         return fields
 
     @property
@@ -184,11 +185,57 @@ class AliquotCoreForm(crud.CrudForm):
     def get_items(self):
         aliquotlist = []
         kw = self.getkwargs()
-        aliquot = self.dsmanager.filter_aliquot(**kw)
+        aliquot = self.dsmanager.filter_records(**kw)
         for aliquotobj in aliquot:
             aliquotlist.append((aliquotobj.dsid, aliquotobj))
         return aliquotlist
 
+class FilterFormCore(form.Form):
+    """
+    Take form data and apply it to the session so that filtering takes place.
+    """
+    grok.context(zope.interface.Interface)
+    grok.require('zope2.View')
+    ignoreContext = True
+    
+    def __init__(self, context, request):
+        super(FilterFormCore, self).__init__(context, request)
+        self.session = utils.getSession(context, request)
+        self.default_kw = IFilter(context).getFilter()
+        self.omitables = IFilter(context).getOmittedFields()
+
+    def update(self):
+        super(FilterFormCore, self).update()
+        for key, value in self.session.items():
+            if value is None or key not in self.fields.keys():
+                continue
+            elif type(value) == datetime.date:
+                self.widgets[key].value = (unicode(value.year), unicode(value.month), unicode(value.day))
+            else:
+                self.widgets[key].value = value
+    @property
+    def fields(self):
+        omitables = self.omitables
+        return field.Fields(IFilterForm).omit(*omitables)
+
+    @button.buttonAndHandler(u'Filter')
+    def handleFilter(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = _(u"Sorry.")
+            return
+        for key, value in data.items():
+            if value is not None:
+                self.session[key] = value
+            elif self.session.has_key(key):
+                del self.session[key]
+
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(u'Remove Filter')
+    def handleClearFilter(self, action):
+        self.session.clear()
+        return self.request.response.redirect(self.action)
 # ------------------------------------------------------------------------------
 # Specimen Forms |
 # --------------
@@ -235,7 +282,7 @@ class SpecimenRecoverForm(SpecimenCoreForm):
     def view_schema(self):
         fields = field.Fields(IViewableSpecimen).\
         select('state', 'patient_title', 'patient_initials', 'study_title',
-       'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+       'protocol_title', 'pretty_type', 'pretty_tube_type')
         fields += field.Fields(ISpecimen).\
         select('tubes', 'date_collected', 'time_collected', 'notes')
         return fields
@@ -262,11 +309,13 @@ class SpecimenRecoverForm(SpecimenCoreForm):
 # ------------------------------------------------------------------------------
 class SpecimenSupportForm(SpecimenCoreForm):
     """
+            self.omitables = IFilter(context).getOmittedFields()
+
     """
     @property
     def view_schema(self):
         fields = field.Fields(IViewableSpecimen).\
-        select('state', 'patient_title', 'study_title', 'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+        select('state', 'patient_title', 'study_title', 'protocol_title', 'pretty_type', 'pretty_tube_type')
         fields += field.Fields(ISpecimen).\
             select('tubes', 'date_collected', 'time_collected', 'notes')
         return fields
@@ -292,7 +341,7 @@ class ReadySpecimenForm(SpecimenCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
-            select('patient_title', 'study_title', 'protocol_title', 'pretty_specimen_type', 'pretty_tube_type')
+            select('patient_title', 'study_title', 'protocol_title', 'pretty_type', 'pretty_tube_type')
         fields += field.Fields(ISpecimen).\
             select('tubes', 'date_collected', 'time_collected', 'notes')            
         return fields
@@ -332,7 +381,7 @@ class AliquotCreator(AliquotCoreForm):
 
     @property
     def display_state(self):
-        return u'pending'
+        return u'pending-aliquot'
 
     @property
     def view_schema(self):
@@ -343,7 +392,7 @@ class AliquotCreator(AliquotCoreForm):
         fields = field.Fields(IAliquotGenerator).\
         select('count')
         fields += field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
-            select('patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_aliquot_type')
+            select('patient_title', 'patient_legacy_number', 'study_title', 'protocol_title', 'pretty_type')
         fields += field.Fields(IAliquot).\
             select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box')
         fields += field.Fields(IViewableAliquot).\
@@ -360,8 +409,8 @@ class AliquotCreator(AliquotCoreForm):
     def get_items(self):
         aliquotlist = []
         count = 100
-        kw = {'state':'complete'}
-        for specimenobj in self.specimen_manager.filter_specimen(**kw):
+        kw = {'state':self.display_state}
+        for specimenobj in self.specimen_manager.filter_records(**kw):
             blueprint = IBlueprintForSpecimen(specimenobj).getBlueprint(self.context)
             for aliquot in blueprint.createAliquotMold(specimenobj):
                 aliquotlist.append((count, aliquot))
@@ -379,6 +428,13 @@ class AliquotPreparedForm(AliquotCoreForm):
     def display_state(self):
         return u'pending'
 
+    def getkwargs(self):
+        sessionkeys = utils.getSession(self.context, self.request)
+        kw = IFilter(self.context).getFilter(sessionkeys)
+        if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
+            kw['state'] = self.display_state
+        return kw
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class AliquotCompletedForm(AliquotCoreForm):
@@ -387,7 +443,7 @@ class AliquotCompletedForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type', 'vol_count')
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count')
         fields += field.Fields(IAliquot).\
             select('store_date')
         fields += field.Fields(IViewableAliquot).\
@@ -445,7 +501,7 @@ class AliquotCheckoutForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type', 'vol_count',)
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count',)
         fields += field.Fields(IAliquot).\
             select( 'store_date')
         fields += field.Fields(IViewableAliquot).\
@@ -475,7 +531,7 @@ class AliquotCheckinForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type')
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type')
         fields += field.Fields(IAliquot).\
             select( 'store_date')
         fields += field.Fields(IViewableAliquot).\
@@ -506,7 +562,7 @@ class AliquotListForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'state','patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type', 'vol_count',
+            select('dsid', 'state','patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count',
             'frb')
         fields += field.Fields(IAliquot).\
             select('thawed_num', 'store_date')
@@ -535,7 +591,7 @@ class AliquotListForm(AliquotCoreForm):
     def get_items(self):
         aliquotlist = []
         kw = self.getkwargs()
-        aliquot = self.dsmanager.filter_aliquot(**kw)
+        aliquot = self.dsmanager.filter_records(**kw)
         for aliquotobj in aliquot:
             aliquotlist.append((aliquotobj.dsid, aliquotobj))
         return aliquotlist
@@ -547,7 +603,7 @@ class AliquotQueueForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'state', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_aliquot_type', 'vol_count')
+            select('dsid', 'state', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count')
         fields += field.Fields(IAliquot).\
             select( 'store_date')
         fields += field.Fields(IViewableAliquot).\
@@ -599,7 +655,7 @@ class AliquotCheckoutUpdate(form.Form):
             return
         kw = {}
         kw['state'] = u'pending-checkout'
-        aliquot = self.dsmanager.filter_aliquot(**kw)
+        aliquot = self.dsmanager.filter_records(**kw)
         for aliquotobj in aliquot:
             updated = False
             for prop, value in data.items():
@@ -618,147 +674,46 @@ class AliquotCheckoutUpdate(form.Form):
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------   
-class FilterForm(form.Form):
+
+
+class AliquotFilterForm(FilterFormCore):
     """
     Take form data and apply it to the session so that filtering takes place.
     """
-    grok.context(zope.interface.Interface)
+    grok.context(IAliquotSupport)
     grok.require('zope2.View')
-    ignoreContext = True
-    
-    def __init__(self, context, request):
-        super(FilterForm, self).__init__(context, request)
-        self.session = utils.getSession(context, request)
-        self.default_kw = IFilter(context).getFilter()
-        self.omitables = IFilter(context).getOmittedFields()
 
-    def update(self):
-        super(FilterForm, self).update()
-        for key, value in self.session.items():
-            if value is None or key not in self.fields.keys():
-                continue
-            elif type(value) == datetime.date:
-                self.widgets[key].value = (unicode(value.year), unicode(value.month), unicode(value.day))
-            else:
-                self.widgets[key].value = value
     @property
     def fields(self):
         omitables = self.omitables
-        return field.Fields(IFilterForm).omit(*omitables)
+        return field.Fields(IAliquotFilterForm).omit(*omitables)
 
-    @button.buttonAndHandler(u'Filter')
-    def handleFilter(self, action):
-        data, errors = self.extractData()
-        if errors:
-            self.status = _(u"Sorry.")
-            return
-        for key, value in data.items():
-            if value is not None:
-                self.session[key] = value
-            elif self.session.has_key(key):
-                del self.session[key]
-
-        return self.request.response.redirect(self.action)
-
-    @button.buttonAndHandler(u'Remove Filter')
-    def handleClearFilter(self, action):
-        self.session.clear()
-        return self.request.response.redirect(self.action)
-
-class AliquotFilterForm(form.Form):
+class AliquotFilterForCheckinForm(FilterFormCore):
     """
     Take form data and apply it to the session so that filtering takes place.
     """
-
     grok.context(IAliquotSupport)
     grok.require('zope2.View')
-    ignoreContext = True
- 
-    def __init__(self, context, request):
-        super(AliquotFilterForm, self).__init__(context, request)
-        self.session = utils.getSession(context, request)
-        self.default_kw = IFilter(context).getFilter()
-
-    def update(self):
-        super(AliquotFilterForm, self).update()
-        for key, value in self.session.items():
-            if value is None or key not in self.fields.keys():
-                continue
-            elif type(value) == datetime.date:
-                self.widgets[key].value = (unicode(value.year), unicode(value.month), unicode(value.day))
-            else:
-                self.widgets[key].value = value
 
     @property
     def fields(self):
-        omitables = IFilter(self.context).getOmittedFields()
-        return field.Fields(IFilterForm).omit(*omitables)
+        selectables = ['patient', 'type']
+        return field.Fields(IAliquotFilterForm).select(*selectables)
 
-    @button.buttonAndHandler(u'Filter')
-    def handleFilter(self, action):
-        data, errors = self.extractData()
-        if errors:
-            self.status = _(u"Sorry.")
-            return
-        for key, value in data.items():
-            if value is not None:
-                self.session[key] = value
-            elif self.session.has_key(key):
-                del self.session[key]
 
-        return self.request.response.redirect(self.action)
-
-    @button.buttonAndHandler(u'Remove Filter')
-    def handleClearFilter(self, action):
-        self.session.clear()
-        return self.request.response.redirect(self.action)
-        
-class SpecimenFilterForm(FilterForm):
+class SpecimenFilterForm(FilterFormCore):
     """
     Take form data and apply it to the session so that filtering takes place.
     """
     grok.context(ISpecimenSupport)
     grok.require('zope2.View')
-    ignoreContext = True
-
-    def __init__(self, context, request):
-        super(SpecimenFilterForm, self).__init__(context, request)
-        self.session = utils.getSession(context, request)
-        self.default_kw = IFilter(context).getFilter()
-
-    def update(self):
-        super(SpecimenFilterForm, self).update()
-        for key, value in self.session.items():
-            if value is None or key not in self.fields.keys():
-                continue
-            elif type(value) == datetime.date:
-                self.widgets[key].value = (unicode(value.year), unicode(value.month), unicode(value.day))
-            else:
-                self.widgets[key].value = value
-
+   
     @property
     def fields(self):
-        omitables = IFilter(self.context).getOmittedFields()
-        return field.Fields(IFilterForm).omit(*omitables)
-
-    @button.buttonAndHandler(u'Filter')
-    def handleFilter(self, action):
-        data, errors = self.extractData()
-        if errors:
-            self.status = _(u"Sorry.")
-            return
-        for key, value in data.items():
-            if value is not None:
-                self.session[key] = value
-            elif self.session.has_key(key):
-                del self.session[key]
-
-        return self.request.response.redirect(self.action)
-
-    @button.buttonAndHandler(u'Remove Filter')
-    def handleClearFilter(self, action):
-        self.session.clear()
-        return self.request.response.redirect(self.action)
+        omitables = self.omitables
+        omitables.append('show_all')
+        return field.Fields(ISpecimenFilterForm).omit(*omitables)
+        
 # ------------------------------------------------------------------------------
 # Form for requesting aditional specimen for a particular visit.
 # ------------------------------------------------------------------------------
@@ -806,7 +761,8 @@ class SpecimenAddForm(z3cform.Form):
         self.fields += field.Fields(available_specimen)
         super(SpecimenAddForm, self).update()
 
-    @button.buttonAndHandler(_('Request More Specimen'), name='requestSpecimen')
+    @button.buttonAndHandler(_('Request More Specimen'), name='requestSpecimen',
+    condition=lambda self: checkPermission('hive.lab.RequestSpecimen', self.context))
     def requestSpecimen(self, action):
         sm = zope.component.getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
@@ -823,7 +779,6 @@ class SpecimenAddForm(z3cform.Form):
             specimen_manager.put(specimen)
 
         return self.request.response.redirect(self.redirect_url)
-
 
 # ------------------------------------------------------------------------------
 # Label Queue Listing

@@ -40,7 +40,7 @@
                     <td tal:content="specimen/patient_title" />
                     <td tal:content="specimen/study_title" />
                     <td tal:content="specimen/protocol_title" />
-                    <td tal:content="specimen/pretty_specimen_type" />
+                    <td tal:content="specimen/pretty_type" />
                     <td tal:content="specimen/pretty_tube_type" />
                     <td tal:content="specimen/tubes" />
                     <td tal:content="specimen/date_collected" />

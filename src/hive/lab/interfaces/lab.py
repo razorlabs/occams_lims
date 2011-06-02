@@ -52,11 +52,11 @@ class IFilterForm(form.Schema):
         description=_(u"Patient OUR#, Legacy AEH ID, or Masterbook Number"),
         required=False
         )
-        
-    type = zope.schema.Choice(title=u"Type of Sample",
-        source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type"), required=False
-        )
 
+    type = zope.schema.Choice(title=u"Type of Sample",
+        source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type"), required=False
+        )
+        
     after_date = zope.schema.Date(
         title=_(u"Sample Date"),
         description=_(u"Samples on this date. If Limit Date is set as well, will show samples between those dates"),

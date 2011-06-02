@@ -11,9 +11,6 @@ from zope.schema.fieldproperty import FieldProperty
 import zope.component
 import zope.interface
 
-
-
-
 class Specimen(AbstractItem):
     """ See `ISpecimen`
     """
@@ -27,7 +24,7 @@ class Specimen(AbstractItem):
     state = FieldProperty(ISpecimen['state'])
     date_collected = FieldProperty(ISpecimen['date_collected'])
     time_collected = FieldProperty(ISpecimen['time_collected'])
-    specimen_type = FieldProperty(ISpecimen['specimen_type'])
+    type = FieldProperty(ISpecimen['type'])
     destination = FieldProperty(ISpecimen['destination'])
     tubes = FieldProperty(ISpecimen['tubes'])
     tube_type = FieldProperty(ISpecimen['tube_type'])
@@ -43,7 +40,7 @@ class Specimen(AbstractItem):
         obj.state = rslt.state.value
         obj.date_collected = rslt.collect_date
         obj.time_collected = rslt.collect_time
-        obj.specimen_type = rslt.type.value
+        obj.type = rslt.type.value
         obj.destination = rslt.destination.value
         obj.tubes = rslt.tubes
         obj.tube_type = rslt.tube_type.value
@@ -106,7 +103,7 @@ class SpecimenBlueprint(content.Container):
     zope.interface.implements(ISpecimenBlueprint)
     __doc__ = ISpecimenBlueprint.__doc__
 
-    specimen_type = FieldProperty(ISpecimenBlueprint["specimen_type"])
+    type = FieldProperty(ISpecimenBlueprint["type"])
 
     default_tubes = FieldProperty(ISpecimenBlueprint["default_tubes"])
 
@@ -127,7 +124,7 @@ class SpecimenBlueprint(content.Container):
         kwargs['protocol_zid'] = protocol_zid
         kwargs['state'] = u'pending-draw'
         kwargs['date_collected'] = date_collected
-        kwargs['specimen_type'] = self.specimen_type
+        kwargs['type'] = hasattr(self, 'type') and self.type or self.specimen_type
         kwargs['destination'] = self.destination
         kwargs['tubes'] = self.default_tubes
         kwargs['tube_type'] = self.tube_type
@@ -152,14 +149,14 @@ class SpecimenBlueprint(content.Container):
                 elif key == 'patient':
                     retkw['subject_zid'] = utils.getPatientForFilter(self, basekw[key])
                 elif key == 'type':
-                    retkw['specimen_type'] = basekw[key]
+                    retkw['type'] = basekw[key]
                 elif key == 'after_date':
                     retkw[key] = basekw[key]
                     if not basekw.has_key('before_date') or basekw['before_date'] is None:
                         retkw['before_date'] = basekw[key]
                 else:
                     retkw[key] = basekw[key]
-        retkw.update({'specimen_type':self.specimen_type})
+        retkw.update({'type':self.type})
         return retkw
         
     def createAliquotMold(self, specimen):
@@ -178,7 +175,7 @@ class AliquotBlueprint(content.Item):
     __doc__ = IAliquotBlueprint.__doc__
 
 
-    aliquot_type = FieldProperty(IAliquotBlueprint["aliquot_type"])
+    type = FieldProperty(IAliquotBlueprint["type"])
     volume = FieldProperty(IAliquotBlueprint["volume"])
     cell_amount = FieldProperty(IAliquotBlueprint["cell_amount"])
     storage_site = FieldProperty(IAliquotBlueprint["storage_site"])
@@ -192,7 +189,7 @@ class AliquotBlueprint(content.Item):
         kwargs = {}
         kwargs['specimen_dsid'] = specimen.dsid
         kwargs['state'] = unicode('pending')
-        kwargs['type'] = self.aliquot_type
+        kwargs['type'] = hasattr(self, 'type') and self.type or self.aliquot_type
         kwargs['volume'] = self.volume
         kwargs['cell_amount'] = self.cell_amount
         kwargs['store_date'] = specimen.date_collected

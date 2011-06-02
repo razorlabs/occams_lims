@@ -8,6 +8,18 @@
       lang="en">
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
+        <tal:data define="form view/filter">
+            <tal:hasdata tal:condition="form">
+                Description of Form Here
+                <tal:crud replace="structure form" />
+                <br class="visualClear" />
+                Description of buttons here
+            </tal:hasdata>
+            <tal:nodata tal:condition="not:form">
+                No Data 
+            </tal:nodata>
+        </tal:data>
+        <hr class="visualClear" />  
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
                 Description of Form Here

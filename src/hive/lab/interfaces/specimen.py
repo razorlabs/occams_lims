@@ -43,7 +43,7 @@ class ISpecimen(zope.interface.Interface):
         required=False,
         )
 
-    specimen_type = zope.schema.TextLine(
+    type = zope.schema.TextLine(
         title=_(u'Specimen Type'),
         )
 
@@ -101,7 +101,7 @@ class IViewableSpecimen(form.Schema):
         readonly=True
         )
 
-    pretty_specimen_type = zope.schema.Choice(
+    pretty_type = zope.schema.Choice(
         title=_(u"Specimen Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type")
         )
@@ -125,7 +125,7 @@ class ISpecimenBlueprint(form.Schema, ISpecimenSupport, IFilter):
     Blueprint the system can use to create specimen
     """
 
-    specimen_type = zope.schema.Choice(
+    type = zope.schema.Choice(
         title=_(u"Specimen Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type")
         )
@@ -160,7 +160,7 @@ class ISpecimenLabel(ILabel):
     """
     A Specimen Label
     """
-    pretty_specimen_type = zope.schema.Choice(
+    pretty_type = zope.schema.Choice(
         title=_(u"Specimen Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type")
         )

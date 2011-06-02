@@ -41,8 +41,7 @@
   </permission>
   
   <permission name="hive: Request Specimen" acquire="True">
-      <role name="Manager"/>
-      <role name="PrimaryInvestigator" />
+      <role name="Manager" />
       <role name="Nurse" />
       <role name="ClinicalLab" />
   </permission>
@@ -66,7 +65,6 @@
       <role name="Manager"/>
       <role name="ClinicalLab" />
       <role name="ExperimentalLab" />
-      <role name="PrimaryInvestigator" />
       <role name="Nurse" />
   </permission>
   

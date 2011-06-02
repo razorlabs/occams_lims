@@ -31,12 +31,12 @@ class SpecimenVocabulary(object):
         childlist = getattr(self.study, self.property, [])
 
         terms = []
-        for specimen_type in childlist:
-            specimen_blueprint = specimen_type.to_object
+        for type in childlist:
+            specimen_blueprint = type.to_object
             terms.append(SimpleTerm(
                title=specimen_blueprint.title,
-               token=specimen_type.to_path,
-               value=specimen_type))
+               token=type.to_path,
+               value=type))
 
         return terms
 

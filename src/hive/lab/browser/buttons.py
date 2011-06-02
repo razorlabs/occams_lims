@@ -312,7 +312,7 @@ class ReadySpecimenButtons(SpecimenButtonCore):
 
     @button.buttonAndHandler(_('Ready selected'), name='ready')
     def handleCompleteDraw(self, action):
-        self.changeState(action, 'pending', 'ready')
+        self.changeState(action, 'pending-aliquot', 'ready')
         self._update_subforms()
         return
 
@@ -394,7 +394,7 @@ class AliquotCreator(crud.EditForm):
 
     @button.buttonAndHandler(_('Mark Specimen Complete'), name='complete')
     def handleCompleteSpecimen(self, action):
-        self.changeSpecimenState(action, 'aliquoted', 'completed')
+        self.changeState(action, 'aliquoted', 'completed')
         self._update_subforms()
         return
 
