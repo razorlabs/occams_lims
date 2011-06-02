@@ -260,7 +260,7 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
         result = [Object.from_rslt(r) for r in query.all()]
         return result
 
-    def put(self, source):
+    def put(self, source, by=None):
 
         Session = self._datastore.getScopedSession()
         Model = self._model

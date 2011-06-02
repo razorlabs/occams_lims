@@ -546,6 +546,12 @@ class AliquotCheckinForm(AliquotCoreForm):
             select('freezer', 'rack', 'box', 'notes')
         return fields
 
+#     def updateWidgets(self):
+#         super(AliquotCheckinForm, self).updateWidgets()
+#         if self.update_schema is not None:
+#             if 'thawed' in self.update_schema.keys():
+#                 self.update_schema['thawed'].widgetFactory = widgets.YesNoFieldWidget
+
     @property
     def display_state(self):
         return u"checked-out"

@@ -6,7 +6,7 @@
             $(this).click(function(event) { 
                 event.preventDefault();
                 if($(this).attr('value') =='Select All'){
-                    $(this).parentsUntil('form').parent().find('.single-checkbox-widget').each(function(){
+                    $(this).parentsUntil('form').parent().find('td:first-child .single-checkbox-widget').each(function(){
                         $(this).attr("checked",true);
                     });
                     $(this).attr('value', 'Deselect All');

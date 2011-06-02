@@ -333,13 +333,4 @@ class AliquotHistory(Model):
     to = Column(Unicode, nullable=False)
 
 
-# if __name__ == '__main__':
-#     from sqlalchemy import create_engine
-#     from sqlalchemy.orm import sessionmaker, scoped_session
-#     
-#     url = 'postgresql://postgres@localhost/avrc_demo_data'
-#     engine = create_engine(url, echo=True)
-#     session = scoped_session(sessionmaker(engine))
-#     
-#     import pdb; pdb.set_trace()
-#     entry = session.query(Specimen).first()
+
