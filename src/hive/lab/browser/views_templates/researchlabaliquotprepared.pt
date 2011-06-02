@@ -20,7 +20,7 @@
             </tal:nodata>
         </tal:data>
         <hr class="visualClear" />
-        <tal:data define="form view/labelque">
+        <tal:data define="form view/labelqueue">
             <tal:hasdata tal:condition="form">
                 Description of Form Here
                 <tal:crud replace="structure form" />

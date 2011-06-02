@@ -129,12 +129,12 @@ class ILabelPrinter(zope.interface.Interface):
     parts needed for label printing to work
     """
     
-    def getLabelQue():
+    def getLabelQueue():
         """
         """
         pass
     
-    def queLabel(labelable):
+    def queueLabel(labelable):
         """
         Add a label to the cue
         """

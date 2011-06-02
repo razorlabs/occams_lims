@@ -86,7 +86,7 @@
     <permission value="hive: Modify Aliquot" />
   </action>
 
-  <action title="Checkout Que" action_id="checkout" category="object" condition_expr=""
+  <action title="Checkout Queue" action_id="checkout" category="object" condition_expr=""
     url_expr="string:${object_url}/checkout" visible="True">
     <permission value="hive: Check Out Aliquot" />
   </action>

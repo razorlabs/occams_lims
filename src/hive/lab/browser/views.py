@@ -204,7 +204,7 @@ class ResearchLabAliquotReady(dexterity.DisplayForm):
     def __init__(self, context, request):
         super(ResearchLabAliquotReady, self).__init__(context, request)
         self.crudform = self.getCrudForm()
-        self.labelque = self.getLabelQue()
+        self.labelqueue = self.getLabelQueue()
 
     def getCrudForm(self):
         """
@@ -220,7 +220,7 @@ class ResearchLabAliquotReady(dexterity.DisplayForm):
         view.form_instance = form
         return view
 
-    def getLabelQue(self):
+    def getLabelQueue(self):
         """
         Create a form instance.
         @return: z3c.form wrapped for Plone 3 view
@@ -247,7 +247,7 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
     def __init__(self, context, request):
         super(ResearchLabAliquotPrepared, self).__init__(context, request)
         self.crudform = self.getCrudForm()
-        self.labelque = self.getLabelQue()
+        self.labelqueue = self.getLabelQueue()
 
     def getCrudForm(self):
         """
@@ -263,7 +263,7 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         view.form_instance = form
         return view
 
-    def getLabelQue(self):
+    def getLabelQueue(self):
         """
         Create a form instance.
         @return: z3c.form wrapped for Plone 3 view
@@ -343,7 +343,7 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
 
         self.crudform = self.getCrudForm()
         self.formhelper = self.getUpdater()
-        self.aliquotque = self.aliquotQue()
+        self.aliquotqueue = self.aliquotQueue()
 
     def getCrudForm(self):
         """
@@ -373,13 +373,13 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
         view.form_instance = form
         return view
 
-    def aliquotQue(self):
+    def aliquotQueue(self):
         """ Create a form instance.
             Returns:
                 z3c.form wrapped for Plone 3 view
         """
         context = self.context.aq_inner
-        form = crud.AliquotQueForm(context, self.request)
+        form = crud.AliquotQueueForm(context, self.request)
         if hasattr(form, 'get_items') and not len(form.get_items()):
             return None
         view = NestedFormView(context, self.request)
@@ -445,7 +445,7 @@ class AliquotList(dexterity.DisplayForm):
 
         self.crudform = self.getCrudForm()
         self.filter = self.filterAliquot()
-        self.aliquotque = self.aliquotQue()
+        self.aliquotqueue = self.aliquotQueue()
 
     def getCrudForm(self):
         """
@@ -475,13 +475,13 @@ class AliquotList(dexterity.DisplayForm):
         view.form_instance = form
         return view
 
-    def aliquotQue(self):
+    def aliquotQueue(self):
         """ Create a form instance.
             Returns:
                 z3c.form wrapped for Plone 3 view
         """
         context = self.context.aq_inner
-        form = crud.AliquotQueForm(context, self.request)
+        form = crud.AliquotQueueForm(context, self.request)
         if hasattr(form, 'get_items') and not len(form.get_items()):
             return None
         view = NestedFormView(context, self.request)
@@ -511,7 +511,7 @@ class AliquotCheckList(dexterity.DisplayForm):
         Get me some aliquot
         """
         kw = {}
-        kw['state'] = u'qued'
+        kw['state'] = u'queued'
         for aliquot in self.dsmanager.filter_aliquot(**kw):
             yield IViewableAliquot(aliquot)
 

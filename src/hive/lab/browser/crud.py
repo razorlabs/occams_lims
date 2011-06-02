@@ -501,7 +501,7 @@ class AliquotListForm(AliquotCoreForm):
     Filterable crud form based on session information
     """        
 
-    editform_factory = buttons.AliquotQueButtons
+    editform_factory = buttons.AliquotQueueButtons
 
     @property
     def view_schema(self):
@@ -541,7 +541,7 @@ class AliquotListForm(AliquotCoreForm):
         return aliquotlist
 
 
-class AliquotQueForm(AliquotCoreForm):
+class AliquotQueueForm(AliquotCoreForm):
     """
     """
     @property
@@ -564,7 +564,7 @@ class AliquotQueForm(AliquotCoreForm):
 
     @property
     def display_state(self):
-        return u"qued"
+        return u"queued"
 
 # ------------------------------------------------------------------------------
 # Aliquot Support Forms |
@@ -826,7 +826,7 @@ class SpecimenAddForm(z3cform.Form):
 
 
 # ------------------------------------------------------------------------------
-# Label Que Listing
+# Label Queue Listing
 # ------------------------------------------------------------------------------
 class LabelForm(crud.CrudForm):
     """

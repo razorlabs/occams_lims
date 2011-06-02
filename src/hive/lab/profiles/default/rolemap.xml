@@ -67,6 +67,7 @@
       <role name="ClinicalLab" />
       <role name="ExperimentalLab" />
       <role name="PrimaryInvestigator" />
+      <role name="Nurse" />
   </permission>
   
   <permission name="hive: View Aliquot" acquire="True">

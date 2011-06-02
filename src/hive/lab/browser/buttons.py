@@ -194,18 +194,18 @@ class AliquotButtonCore(ButtonCore):
             self.dsmanager = ISpecimenManager(ds)
         self.sampletype = _(u"aliquot")
 
-    def queLabels(self, action):
+    def queueLabels(self, action):
         """
-        Place these aliquot in the print que
+        Place these aliquot in the print queue
         """
         selected = self.selected_items()
         if selected:
             labelsheet = ILabelPrinter(self.context.context)
             for id, obj in selected:
-                labelsheet.queLabel(obj)
-            self.status = _(u"Your %s have been qued." % self.sampletype)
+                labelsheet.queueLabel(obj)
+            self.status = _(u"Your %s have been queued." % self.sampletype)
         else:
-            self.status = _(u"Please select %s to que." % self.sampletype)
+            self.status = _(u"Please select %s to queue." % self.sampletype)
 
     @button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
@@ -422,7 +422,7 @@ class AliquotPreparedButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
-        self.queLabels(action)
+        self.queueLabels(action)
         self.changeState(action, 'checked-in', 'Checked In')
         self._update_subforms()
         return
@@ -430,7 +430,7 @@ class AliquotPreparedButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Print Selected'), name='print')
     def handlePrintAliquot(self, action):
         self.saveChanges(action)
-        self.queLabels(action)
+        self.queueLabels(action)
         return
 
     @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
@@ -544,9 +544,9 @@ class AliquotCheckoutButtons(AliquotButtonCore):
         self._update_subforms()
         return
 
-    @button.buttonAndHandler(_('Return To Hold'), name='qued')
+    @button.buttonAndHandler(_('Return To Hold'), name='queued')
     def handleRehold(self, action):
-        self.changeState(action, 'qued', 'Held')
+        self.changeState(action, 'queued', 'Held')
         self._update_subforms()
         return
 
@@ -558,13 +558,13 @@ class AliquotCheckoutButtons(AliquotButtonCore):
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------        
 #class AllAliquotManager(AliquotButtonCore):
-class AliquotQueButtons(AliquotButtonCore):
+class AliquotQueueButtons(AliquotButtonCore):
     label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
-    @button.buttonAndHandler(_('Que & Hold'), name='que')
-    def handleQue(self, action):
-        self.changeState(action, 'qued', 'Qued')
+    @button.buttonAndHandler(_('Queue & Hold'), name='queue')
+    def handleQueue(self, action):
+        self.changeState(action, 'queued', 'Queued')
         self._update_subforms()
         return
 
@@ -576,14 +576,14 @@ class AliquotQueButtons(AliquotButtonCore):
         
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-#class QueManager(AliquotButtonCore):
+#class QueueManager(AliquotButtonCore):
 class AliquotHoldButtons(AliquotButtonCore):
     """
     """
     z3cform.extends(AliquotButtonCore)
 
     @button.buttonAndHandler(_('Print List'), name='print')
-    def handleQue(self, action):
+    def handleQueue(self, action):
         return self.request.response.redirect('%s/%s' % (self.context.context.absolute_url(), 'checklist'))
 
     @button.buttonAndHandler(_('Check Out'), name='checkout')
@@ -614,7 +614,7 @@ class AliquotHoldButtons(AliquotButtonCore):
 # Label Buttons |
 # --------------
 # These classes provide the various transitions and modifications of the labels
-# in the label que
+# in the label queue
 # ------------------------------------------------------------------------------    
 
 #class LabelManager(crud.EditForm):
@@ -644,11 +644,11 @@ class LabelButtons(crud.EditForm):
         if not selected:
             self.status = _(u"Please select items to Print.")
             return
-        que = self.context.labeler.getLabelQue()
+        queue = self.context.labeler.getLabelQueue()
         label_list = []
         for id, label in selected:
             label_list.append(label)
-            que.uncatalog_object(str(id))
+            queue.uncatalog_object(str(id))
         content = self.context.labeler.printLabelSheet(label_list)
 
         self.request.RESPONSE.setHeader("Content-type", "application/pdf")

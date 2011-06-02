@@ -323,33 +323,33 @@ class LabelPrinter(grok.Adapter):
     grok.implements(ILabelPrinter)
     grok.context(ILabelSheet)
 
-    def getLabelQue(self):
+    def getLabelQueue(self):
         lab = self.context
         return lab['labels']
 
     def getLabelBrains(self):
-        quelist = []
-        que = self.getLabelQue()
-        for labelable in que():
-            quelist.append(labelable)
-        return quelist
+        queuelist = []
+        queue = self.getLabelQueue()
+        for labelable in queue():
+            queuelist.append(labelable)
+        return queuelist
 
-    def queLabel(self, labelable, uid=None):
+    def queueLabel(self, labelable, uid=None):
         """
         Add a label to the cue
         """
         label = ILabel(labelable)
-        que = self.getLabelQue()
+        queue = self.getLabelQueue()
         if uid is None:
             uid = label.dsid
-        que.catalog_object(label, uid=str(uid))
+        queue.catalog_object(label, uid=str(uid))
 
     def purgeLabel(self, uid):
         """
-        Remove a label from the que
+        Remove a label from the queue
         """
-        que = self.getLabelQue()
-        que.uncatalog_object(str(uid))
+        queue = self.getLabelQueue()
+        queue.uncatalog_object(str(uid))
 
     def printLabelSheet(self, label_list, startcol=None, startrow=None):
         """

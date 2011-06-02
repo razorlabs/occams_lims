@@ -80,7 +80,7 @@
                 <tr tal:define="odd repeat/aliquot/odd" tal:attributes="class python: odd and 'odd' or 'even'">
                     <td style="border:solid black medium">
                     </td>
-                    <td tal:content="python:aliquot.state == u'qued' and 'Check Out' or 'Inventory'" />
+                    <td tal:content="python:aliquot.state == u'queued' and 'Check Out' or 'Inventory'" />
 
                     <td tal:content="aliquot/dsid" />
                     <td tal:content="aliquot/patient_title" />

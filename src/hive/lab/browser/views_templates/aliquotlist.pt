@@ -35,7 +35,7 @@
         </tal:data>
         <hr class="visualClear" />
 
-        <tal:data define="form view/aliquotque">
+        <tal:data define="form view/aliquotqueue">
             <tal:hasdata tal:condition="form">
                 Description of Form Here
                 <tal:crud replace="structure form" />
