@@ -213,7 +213,10 @@ def collectSpecimen(context, bp_ids):#{{{
                 #Find the related blueprint specimen
                 #We should make sure this is saved
                 if specimen.__name__ in bp_ids.keys():
-                    study.related_specimen.append(RelationValue(bp_ids[specimen.__name__][1]))
+                    if not hasattr(study, 'related_specimen'):
+                        study.related_specimen = [RelationValue(bp_ids[specimen.__name__][1])]
+                    else:
+                        study.related_specimen.append(RelationValue(bp_ids[specimen.__name__][1]))
                     study.reindexObject()
                 else:
                     print specimen.__name__
@@ -228,8 +231,12 @@ def collectSpecimen(context, bp_ids):#{{{
             for specimen in cycle.required_specimen:
                 #Find the related blueprint specimen
                 #We should make sure this is saved
+
                 if specimen.__name__ in bp_ids.keys():
-                    cycle.related_specimen.append(RelationValue(bp_ids[specimen.__name__][1]))
+                    if not hasattr(cycle,'related_specimen'):
+                        study.related_specimen = [RelationValue(bp_ids[specimen.__name__][1])]
+                    else:
+                        cycle.related_specimen.append(RelationValue(bp_ids[specimen.__name__][1]))
                     cycle.reindexObject()
                 else:
                     print specimen.__name__
