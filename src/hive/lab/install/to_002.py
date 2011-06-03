@@ -72,16 +72,17 @@ def addDefaultResearchLab(context):#{{{
 
     #Just choose the first institute. There should only be one, right?
     institute = institutes[0].getObject()
-    
+    print 'found institute %s' % institute
     #Create a new research lab.
     research_lab = createContent('hive.lab.researchlab', title="Default Lab", page_height=11.,page_width=8.5,top_margin=0.25,
                                  side_margin=0.78,vert_pitch=0.625,horz_pitch=1.41,label_height=0.50,label_width=1.28,
                                  label_round=0.1,no_across=5,no_down=17)
 
     #Add the research lab to the institute
-    addContentToContainer(institute, research_lab)
+    print 'created research lab %s' % research_lab
+    addContentToContainer(institute, research_lab, checkConstraints=False)
     research_lab = institute[research_lab.getId()]
-    catalog = getToolByName(context, 'portal_catalog')
+    print 'research lab context %s' % research_lab
 
     #Go ahead and return the research lab for future use
     return research_lab
@@ -104,12 +105,12 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
 
 
     #Add Aliquot to Specimen
-    addContentToContainer(research_lab, acd)
+    addContentToContainer(research_lab, acd, checkConstraints=False)
     acd = research_lab[acd.getId()]
 
-    addContentToContainer(acd, acd_aliquot_plasma) 
-    addContentToContainer(acd, acd_aliquot_pbmc5) 
-    addContentToContainer(acd, acd_aliquot_pbmc10) 
+    addContentToContainer(acd, acd_aliquot_plasma, checkConstraints=False) 
+    addContentToContainer(acd, acd_aliquot_pbmc5, checkConstraints=False) 
+    addContentToContainer(acd, acd_aliquot_pbmc10, checkConstraints=False) 
 
 
     #Genital Secretion
@@ -118,13 +119,11 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     genitals_aliquot_gsplasma = createContent('hive.lab.aliquotblueprint', title=(u'Default Genital Secretion GS Plasma Aliquot'), aliquot_type=u'gsplasma',volume=1.0)
 
     #Add Aliquot to Specimen
-    addContentToContainer(research_lab, genitals)
-    
-    addContentToContainer(genitals, acd)
+    addContentToContainer(research_lab, genitals, checkConstraints=False)
     genitals = research_lab[genitals.getId()]
     
-    addContentToContainer(genitals, genitals_aliquot_gscells) 
-    addContentToContainer(genitals, genitals_aliquot_gsplasma) 
+    addContentToContainer(genitals, genitals_aliquot_gscells, checkConstraints=False) 
+    addContentToContainer(genitals, genitals_aliquot_gsplasma, checkConstraints=False) 
 
 
     #CSF
@@ -134,47 +133,47 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     csf_aliquot_pellet = createContent('hive.lab.aliquotblueprint', title=(u'Default CSF Pellet Aliquot'), aliquot_type=u'csfpellet')
 
     #Add Aliquot to Specimen
-    addContentToContainer(research_lab, csf)
+    addContentToContainer(research_lab, csf, checkConstraints=False)
     csf = research_lab[csf.getId()]
 
-    addContentToContainer(csf, csf_aliquot) 
-    addContentToContainer(csf, csf_aliquot_pellet) 
+    addContentToContainer(csf, csf_aliquot, checkConstraints=False) 
+    addContentToContainer(csf, csf_aliquot_pellet, checkConstraints=False) 
 
     #Serum
     serum = createContent('hive.lab.specimenblueprint', title=(u'Default Serum'), type=u"serum",default_tubes=1,tube_type=u'10mlsst')
     serum_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default Serum Aliquot'), aliquot_type=u'serum',volume=1.0)
 
     #Add Aliquot to Specimen
-    addContentToContainer(research_lab, serum)
+    addContentToContainer(research_lab, serum, checkConstraints=False)
     serum = research_lab[serum.getId()]
-    addContentToContainer(serum, serum_aliquot) 
+    addContentToContainer(serum, serum_aliquot, checkConstraints=False) 
 
     #Swab
     swab = createContent('hive.lab.specimenblueprint', title=(u'Default Swab'), type=u"swab",default_tubes=1,tube_type=u'dacronswab')
     swab_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default Swab Aliquot'), aliquot_type=u'swab')
 
     #Add Aliquot to Specimen
-    addContentToContainer(research_lab, swab)
+    addContentToContainer(research_lab, swab, checkConstraints=False)
     swab = research_lab[swab.getId()]
-    addContentToContainer(swab, swab_aliquot) 
+    addContentToContainer(swab, swab_aliquot, checkConstraints=False) 
 
     #RS-GUT
     rs_gut  = createContent('hive.lab.specimenblueprint', title=(u'Default RS-Gut'), type=u"rs-gut",default_tubes=1,tube_type=u"rs-gut")
     rs_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default RS-Gut Aliquot'), aliquot_type=u'rs-gut')
 
     #Add Aliquot to Specimen
-    addContentToContainer(research_lab, rs_gut)
+    addContentToContainer(research_lab, rs_gut, checkConstraints=False)
     rs_gut = research_lab[rs_gut.getId()]
-    addContentToContainer(rs_gut, rs_gut_aliquot) 
+    addContentToContainer(rs_gut, rs_gut_aliquo, checkConstraints=Falset) 
 
     #TI-GUT
     ti_gut  = createContent('hive.lab.specimenblueprint', title=(u'Default TI-Gut'), type=u"ti-gut" ,default_tubes=1,tube_type=u"ti-gut")
     ti_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default TI-Gut Aliquot'), aliquot_type=u'ti-gut')
 
     #Add Aliquot to Specimen
-    addContentToContainer(research_lab, ti_gut)
+    addContentToContainer(research_lab, ti_gut, checkConstraints=False)
     ti_gut = research_lab[ti_gut.getId()]
-    addContentToContainer(ti_gut, ti_gut_aliquot) 
+    addContentToContainer(ti_gut, ti_gut_aliquot, checkConstraints=False) 
 
 
     #Return the ids
