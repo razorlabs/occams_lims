@@ -33,8 +33,10 @@ def import_(context, logger=default_logger):
     """
     logger.info(u'Upgrading Datastores')
 
+    datastore = queryUtility(IDatastore, u'fia', context) 
+
     # 1) Make sure that blueprint zid has been added as a column to specimen 
-    addBlueprintColumn(context)
+    addBlueprintColumn(context, datastore)
 
     # 2) First we need to create a Default Research Lab
     research_lab = addDefaultResearchLab(context)
@@ -49,9 +51,8 @@ def import_(context, logger=default_logger):
     logger.info(u'Upgrade complete')
 
 
-def addBlueprintColumn(context):#{{{
+def addBlueprintColumn(context, datastore):#{{{
 
-    datastore = queryUtility(IDatastore, 'fia', context) 
     engine = datastore.getScopedSession().bind
     metadata = sa.MetaData(bind=engine)
     metadata.reflect(only=['specimen'])
@@ -78,7 +79,8 @@ def addDefaultResearchLab(context):#{{{
                                  label_round=0.1,no_across=5,no_down=17)
 
     #Add the research lab to the institute
-    research_lab = addContentToContainer(institute, research_lab) 
+    addContentToContainer(institute, research_lab)
+    research_lab = institute[research_lab.getId()]
     catalog = getToolByName(context, 'portal_catalog')
 
     #Go ahead and return the research lab for future use
@@ -102,7 +104,9 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
 
 
     #Add Aliquot to Specimen
-    acd = addContentToContainer(research_lab, acd) 
+    addContentToContainer(research_lab, acd)
+    acd = research_lab[acd.getId()]
+
     addContentToContainer(acd, acd_aliquot_plasma) 
     addContentToContainer(acd, acd_aliquot_pbmc5) 
     addContentToContainer(acd, acd_aliquot_pbmc10) 
@@ -114,7 +118,11 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     genitals_aliquot_gsplasma = createContent('hive.lab.aliquotblueprint', title=(u'Default Genital Secretion GS Plasma Aliquot'), aliquot_type=u'gsplasma',volume=1.0)
 
     #Add Aliquot to Specimen
-    genitals = addContentToContainer(research_lab, genitals) 
+    addContentToContainer(research_lab, genitals)
+    
+    addContentToContainer(genitals, acd)
+    genitals = research_lab[genitals.getId()]
+    
     addContentToContainer(genitals, genitals_aliquot_gscells) 
     addContentToContainer(genitals, genitals_aliquot_gsplasma) 
 
@@ -126,7 +134,9 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     csf_aliquot_pellet = createContent('hive.lab.aliquotblueprint', title=(u'Default CSF Pellet Aliquot'), aliquot_type=u'csfpellet')
 
     #Add Aliquot to Specimen
-    csf = addContentToContainer(research_lab, csf) 
+    addContentToContainer(research_lab, csf)
+    csf = research_lab[csf.getId()]
+
     addContentToContainer(csf, csf_aliquot) 
     addContentToContainer(csf, csf_aliquot_pellet) 
 
@@ -135,7 +145,8 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     serum_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default Serum Aliquot'), aliquot_type=u'serum',volume=1.0)
 
     #Add Aliquot to Specimen
-    serum = addContentToContainer(research_lab, serum) 
+    addContentToContainer(research_lab, serum)
+    serum = research_lab[serum.getId()]
     addContentToContainer(serum, serum_aliquot) 
 
     #Swab
@@ -143,7 +154,8 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     swab_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default Swab Aliquot'), aliquot_type=u'swab')
 
     #Add Aliquot to Specimen
-    swab = addContentToContainer(research_lab, swab) 
+    addContentToContainer(research_lab, swab)
+    swab = research_lab[swab.getId()]
     addContentToContainer(swab, swab_aliquot) 
 
     #RS-GUT
@@ -151,7 +163,8 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     rs_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default RS-Gut Aliquot'), aliquot_type=u'rs-gut')
 
     #Add Aliquot to Specimen
-    rs_gut = addContentToContainer(research_lab, rs_gut) 
+    addContentToContainer(research_lab, rs_gut)
+    rs_gut = research_lab[rs_gut.getId()]
     addContentToContainer(rs_gut, rs_gut_aliquot) 
 
     #TI-GUT
@@ -159,7 +172,8 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     ti_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default TI-Gut Aliquot'), aliquot_type=u'ti-gut')
 
     #Add Aliquot to Specimen
-    ti_gut = addContentToContainer(research_lab, ti_gut) 
+    addContentToContainer(research_lab, ti_gut)
+    ti_gut = research_lab[ti_gut.getId()]
     addContentToContainer(ti_gut, ti_gut_aliquot) 
 
 
