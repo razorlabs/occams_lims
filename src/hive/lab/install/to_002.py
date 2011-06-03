@@ -72,17 +72,14 @@ def addDefaultResearchLab(context):#{{{
 
     #Just choose the first institute. There should only be one, right?
     institute = institutes[0].getObject()
-    print 'found institute %s' % institute
     #Create a new research lab.
     research_lab = createContent('hive.lab.researchlab', title="Default Lab", page_height=11.,page_width=8.5,top_margin=0.25,
                                  side_margin=0.78,vert_pitch=0.625,horz_pitch=1.41,label_height=0.50,label_width=1.28,
                                  label_round=0.1,no_across=5,no_down=17)
 
     #Add the research lab to the institute
-    print 'created research lab %s' % research_lab
     addContentToContainer(institute, research_lab, checkConstraints=False)
     research_lab = institute[research_lab.getId()]
-    print 'research lab context %s' % research_lab
 
     #Go ahead and return the research lab for future use
     return research_lab
@@ -130,6 +127,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     csf = createContent('hive.lab.specimenblueprint', title=(u'Default CSF'), type=u"csf",default_tubes=2,tube_type=u'csf')
 
     csf_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default CSF Aliquot'), aliquot_type=u'csf')
+    
     csf_aliquot_pellet = createContent('hive.lab.aliquotblueprint', title=(u'Default CSF Pellet Aliquot'), aliquot_type=u'csfpellet')
 
     #Add Aliquot to Specimen
@@ -164,7 +162,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     #Add Aliquot to Specimen
     addContentToContainer(research_lab, rs_gut, checkConstraints=False)
     rs_gut = research_lab[rs_gut.getId()]
-    addContentToContainer(rs_gut, rs_gut_aliquo, checkConstraints=Falset) 
+    addContentToContainer(rs_gut, rs_gut_aliquot, checkConstraints=Falset) 
 
     #TI-GUT
     ti_gut  = createContent('hive.lab.specimenblueprint', title=(u'Default TI-Gut'), type=u"ti-gut" ,default_tubes=1,tube_type=u"ti-gut")
