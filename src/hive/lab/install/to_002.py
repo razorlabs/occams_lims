@@ -162,7 +162,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     #Add Aliquot to Specimen
     addContentToContainer(research_lab, rs_gut, checkConstraints=False)
     rs_gut = research_lab[rs_gut.getId()]
-    addContentToContainer(rs_gut, rs_gut_aliquot, checkConstraints=Falset) 
+    addContentToContainer(rs_gut, rs_gut_aliquot, checkConstraints=False) 
 
     #TI-GUT
     ti_gut  = createContent('hive.lab.specimenblueprint', title=(u'Default TI-Gut'), type=u"ti-gut" ,default_tubes=1,tube_type=u"ti-gut")
