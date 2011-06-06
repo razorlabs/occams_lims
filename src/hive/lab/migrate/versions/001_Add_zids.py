@@ -18,9 +18,9 @@ def upgrade(migrate_engine):
     """
     metadata.bind = migrate_engine
 
-    specimen_table = Table('specimen', metadata, reflect=True)
-    aliquot_table = Table('aliquot', metadata, reflect=True)
-    vocabulary_table = Table('specimen_aliquot_term', metadata, reflect=True)
+    specimen_table = Table('specimen', metadata, autoload=True)
+    aliquot_table = Table('aliquot', metadata, autoload=True)
+    vocabulary_table = Table('specimen_aliquot_term', metadata, autoload=True)
 
     blueprint_zid.create(specimen_table)
     inventory_date.create(aliquot_table)
@@ -31,9 +31,9 @@ def upgrade(migrate_engine):
 def downgrade(migrate_engine):
     metadata.bind = migrate_engine
 
-    specimen_table = Table('specimen', metadata, reflect=True)
-    aliquot_table = Table('aliquot', metadata, reflect=True)
-    vocabulary_table = Table('specimen_aliquot_term', metadata, reflect=True)
+    specimen_table = Table('specimen', metadata, autoload=True)
+    aliquot_table = Table('aliquot', metadata, autoload=True)
+    vocabulary_table = Table('specimen_aliquot_term', metadata, autoload=True)
 
     blueprint_zid.drop(specimen_table)
     inventory_date.drop(specimen_table)
