@@ -9,13 +9,11 @@ new_columns = (
         'from_state_id',
         ForeignKey('specimen_aliquot_term.id', ondelete='CASCADE'),
         nullable=False,
-        index=True
         ),
     Column(
         'to_state_id',
         ForeignKey('specimen_aliquot_term.id', ondelete='CASCADE'),
         nullable=False,
-        index=True
         ),
     Column('action_date', DateTime, nullable=False),
     Column('create_date', DateTime, nullable=False),
@@ -27,7 +25,6 @@ old_columns = (
         'state_id',
         ForeignKey('specimen_aliquot_term.id', ondelete='CASCADE'),
         nullable=False,
-        index=True
         ),
     Column('action_date', DateTime, nullable=False),
     Column('to', Unicode, nullable=False)
