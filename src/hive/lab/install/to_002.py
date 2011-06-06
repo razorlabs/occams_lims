@@ -17,7 +17,7 @@ from avrc.aeh import Logger as default_logger
 from avrc.data.store.interfaces import IDatastore
 
 from zope.schema import Float 
-
+from hive.lab.migrate.versions import 001_Add_zids
 ############################################################################################
 # 1) Make sure that blueprint zid has been added as a column to specimen 
 # 2) First we need to create a Default Research Lab
@@ -54,13 +54,14 @@ def import_(context, logger=default_logger):
 def addBlueprintColumn(context, datastore):#{{{
 
     engine = datastore.getScopedSession().bind
-    metadata = sa.MetaData(bind=engine)
-    metadata.reflect(only=['specimen'])
-    columns = metadata.tables['specimen'].columns
-
-    if 'blueprint_zid' not in columns:
-        sa.DDL('ALTER TABLE "specimen" ADD "blueprint_zid" int').execute(engine)
-#}}}
+    001_Add_zids.upgrade(engine)
+#     metadata = sa.MetaData(bind=engine)
+#     metadata.reflect(only=['specimen'])
+#     columns = metadata.tables['specimen'].columns
+# 
+#     if 'blueprint_zid' not in columns:
+#         sa.DDL('ALTER TABLE "specimen" ADD "blueprint_zid" int').execute(engine)
+# #}}}
 
 def addDefaultResearchLab(context):#{{{
     """ 
@@ -73,7 +74,7 @@ def addDefaultResearchLab(context):#{{{
     #Just choose the first institute. There should only be one, right?
     institute = institutes[0].getObject()
     #Create a new research lab.
-    research_lab = createContent('hive.lab.researchlab', title="Default Lab", page_height=11.,page_width=8.5,top_margin=0.25,
+    research_lab = createContent('hive.lab.researchlab', title="Stein Lab", page_height=11.,page_width=8.5,top_margin=0.25,
                                  side_margin=0.78,vert_pitch=0.625,horz_pitch=1.41,label_height=0.50,label_width=1.28,
                                  label_round=0.1,no_across=5,no_down=17)
 
@@ -94,11 +95,11 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
 
     #Default Types and Aliquot
     #ACD
-    acd = createContent('hive.lab.specimenblueprint', title=(u'Default ACD'), type=u'acd',default_tubes=3,tube_type=u'acdyellowtop')
+    acd = createContent('hive.lab.specimenblueprint', title=(u'ACD'), type=u'acd',default_tubes=3,tube_type=u'acdyellowtop')
 
-    acd_aliquot_plasma = createContent('hive.lab.aliquotblueprint', title=(u'Default ACD Plasma Aliquot'), aliquot_type=u'plasma',volume=1.0)
-    acd_aliquot_pbmc5  = createContent('hive.lab.aliquotblueprint', title=(u'Default ACD PBMC 5 Aliquot'), aliquot_type=u'pbmc',volume=5.0)
-    acd_aliquot_pbmc10 = createContent('hive.lab.aliquotblueprint', title=(u'Default ACD PBMC 10 Aliquot'), aliquot_type=u'pbmc',volume=10.0)
+    acd_aliquot_plasma = createContent('hive.lab.aliquotblueprint', title=(u'Plasma'), aliquot_type=u'plasma',volume=1.0)
+    acd_aliquot_pbmc5  = createContent('hive.lab.aliquotblueprint', title=(u'PBMC'), aliquot_type=u'pbmc',volume=5.0)
+
 
 
     #Add Aliquot to Specimen
@@ -107,13 +108,12 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
 
     addContentToContainer(acd, acd_aliquot_plasma, checkConstraints=False) 
     addContentToContainer(acd, acd_aliquot_pbmc5, checkConstraints=False) 
-    addContentToContainer(acd, acd_aliquot_pbmc10, checkConstraints=False) 
 
 
     #Genital Secretion
-    genitals = createContent('hive.lab.specimenblueprint', title=(u'Default Genital Secretion'), type=u"genital-secretion",tube_type=u'gskit')
-    genitals_aliquot_gscells = createContent('hive.lab.aliquotblueprint', title=(u'Default Genital Secretion GS Cells Aliquot'), aliquot_type=u'gscells', cell_amount=1.0)
-    genitals_aliquot_gsplasma = createContent('hive.lab.aliquotblueprint', title=(u'Default Genital Secretion GS Plasma Aliquot'), aliquot_type=u'gsplasma',volume=1.0)
+    genitals = createContent('hive.lab.specimenblueprint', title=(u'Genital Secretion'), type=u"genital-secretion",tube_type=u'gskit')
+    genitals_aliquot_gscells = createContent('hive.lab.aliquotblueprint', title=(u'GS Cells'), aliquot_type=u'gscells', cell_amount=1.0)
+    genitals_aliquot_gsplasma = createContent('hive.lab.aliquotblueprint', title=(u'GS Plasma'), aliquot_type=u'gsplasma',volume=1.0)
 
     #Add Aliquot to Specimen
     addContentToContainer(research_lab, genitals, checkConstraints=False)
@@ -124,11 +124,11 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
 
 
     #CSF
-    csf = createContent('hive.lab.specimenblueprint', title=(u'Default CSF'), type=u"csf",default_tubes=2,tube_type=u'csf')
+    csf = createContent('hive.lab.specimenblueprint', title=(u'CSF'), type=u"csf",default_tubes=2,tube_type=u'csf')
 
-    csf_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default CSF Aliquot'), aliquot_type=u'csf')
+    csf_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'CSF'), aliquot_type=u'csf')
     
-    csf_aliquot_pellet = createContent('hive.lab.aliquotblueprint', title=(u'Default CSF Pellet Aliquot'), aliquot_type=u'csfpellet')
+    csf_aliquot_pellet = createContent('hive.lab.aliquotblueprint', title=(u'CSF Pellet'), aliquot_type=u'csfpellet')
 
     #Add Aliquot to Specimen
     addContentToContainer(research_lab, csf, checkConstraints=False)
@@ -138,8 +138,8 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     addContentToContainer(csf, csf_aliquot_pellet, checkConstraints=False) 
 
     #Serum
-    serum = createContent('hive.lab.specimenblueprint', title=(u'Default Serum'), type=u"serum",default_tubes=1,tube_type=u'10mlsst')
-    serum_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default Serum Aliquot'), aliquot_type=u'serum',volume=1.0)
+    serum = createContent('hive.lab.specimenblueprint', title=(u'Serum'), type=u"serum",default_tubes=1,tube_type=u'10mlsst')
+    serum_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Serum'), aliquot_type=u'serum',volume=1.0)
 
     #Add Aliquot to Specimen
     addContentToContainer(research_lab, serum, checkConstraints=False)
@@ -147,8 +147,8 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     addContentToContainer(serum, serum_aliquot, checkConstraints=False) 
 
     #Swab
-    swab = createContent('hive.lab.specimenblueprint', title=(u'Default Swab'), type=u"swab",default_tubes=1,tube_type=u'dacronswab')
-    swab_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default Swab Aliquot'), aliquot_type=u'swab')
+    swab = createContent('hive.lab.specimenblueprint', title=(u'Swab'), type=u"swab",default_tubes=1,tube_type=u'dacronswab')
+    swab_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Swab'), aliquot_type=u'swab')
 
     #Add Aliquot to Specimen
     addContentToContainer(research_lab, swab, checkConstraints=False)
@@ -156,8 +156,8 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     addContentToContainer(swab, swab_aliquot, checkConstraints=False) 
 
     #RS-GUT
-    rs_gut  = createContent('hive.lab.specimenblueprint', title=(u'Default RS-Gut'), type=u"rs-gut",default_tubes=1,tube_type=u"rs-gut")
-    rs_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default RS-Gut Aliquot'), aliquot_type=u'rs-gut')
+    rs_gut  = createContent('hive.lab.specimenblueprint', title=(u'RS-Gut'), type=u"rs-gut",default_tubes=1,tube_type=u"rs-gut")
+    rs_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'RS-Gut'), aliquot_type=u'rs-gut')
 
     #Add Aliquot to Specimen
     addContentToContainer(research_lab, rs_gut, checkConstraints=False)
@@ -165,8 +165,8 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     addContentToContainer(rs_gut, rs_gut_aliquot, checkConstraints=False) 
 
     #TI-GUT
-    ti_gut  = createContent('hive.lab.specimenblueprint', title=(u'Default TI-Gut'), type=u"ti-gut" ,default_tubes=1,tube_type=u"ti-gut")
-    ti_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Default TI-Gut Aliquot'), aliquot_type=u'ti-gut')
+    ti_gut  = createContent('hive.lab.specimenblueprint', title=(u'TI-Gut'), type=u"ti-gut" ,default_tubes=1,tube_type=u"ti-gut")
+    ti_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'TI-Gut'), aliquot_type=u'ti-gut')
 
     #Add Aliquot to Specimen
     addContentToContainer(research_lab, ti_gut, checkConstraints=False)
