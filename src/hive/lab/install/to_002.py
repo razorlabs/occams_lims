@@ -51,9 +51,9 @@ def import_(context, logger=default_logger):
 
 
 def addBlueprintColumn(context, datastore):#{{{
-
     engine = datastore.getScopedSession().bind
-    migrate.versions.001_Add_zids.upgrade(engine)
+    migrate.legacy(engine)
+    migrate.sync(engine)
 #     metadata = sa.MetaData(bind=engine)
 #     metadata.reflect(only=['specimen'])
 #     columns = metadata.tables['specimen'].columns
