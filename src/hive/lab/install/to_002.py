@@ -79,7 +79,7 @@ def addDefaultResearchLab(context):#{{{
                                  label_round=0.1,no_across=5,no_down=17)
 
     #Add the research lab to the institute
-    if not institute.has_key(research_lab.getId()):
+    if not institute.has_key('stein-lab'):
         addContentToContainer(institute, research_lab, checkConstraints=False)
     research_lab = institute[research_lab.getId()]
     #Go ahead and return the research lab for future use
@@ -101,12 +101,12 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     acd_aliquot_pbmc5  = createContent('hive.lab.aliquotblueprint', title=(u'PBMC'), aliquot_type=u'pbmc',volume=5.0)
 
     #Add Aliquot to Specimen
-    if not research_lab.has_key(acd.getId()):
+    if not research_lab.has_key('acd'):
         addContentToContainer(research_lab, acd, checkConstraints=False)
     acd = research_lab[acd.getId()]
-    if not acd.has_key(acd_aliquot_plasma.getId()):
+    if not acd.has_key('plasma'):
         addContentToContainer(acd, acd_aliquot_plasma, checkConstraints=False)
-    if not acd.has_key(acd_aliquot_pbmc5.getId()):
+    if not acd.has_key('pbmc'):
         addContentToContainer(acd, acd_aliquot_pbmc5, checkConstraints=False)
         
     #Genital Secretion
@@ -115,14 +115,14 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     genitals_aliquot_gsplasma = createContent('hive.lab.aliquotblueprint', title=(u'GS Plasma'), aliquot_type=u'gsplasma',volume=1.0)
 
     #Add Aliquot to Specimen
-    if not research_lab.has_key(genitals.getId()):
+    if not research_lab.has_key('genital-secretion'):
         addContentToContainer(research_lab, genitals, checkConstraints=False)
     genitals = research_lab[genitals.getId()]
     
-    if not genitals.has_key(genitals_aliquot_gscells.getId()):
+    if not genitals.has_key('gs-cells'):
         addContentToContainer(genitals, genitals_aliquot_gscells, checkConstraints=False)
         
-    if not genitals.has_key(genitals_aliquot_gsplasma.getId()):
+    if not genitals.has_key('gs-plasma'):
         addContentToContainer(genitals, genitals_aliquot_gsplasma, checkConstraints=False) 
 
     #CSF
@@ -133,12 +133,12 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     csf_aliquot_pellet = createContent('hive.lab.aliquotblueprint', title=(u'CSF Pellet'), aliquot_type=u'csfpellet')
 
     #Add Aliquot to Specimen
-    if not research_lab.has_key(csf.getId()):
+    if not research_lab.has_key('csf'):
         addContentToContainer(research_lab, csf, checkConstraints=False)
     csf = research_lab[csf.getId()]
-    if not csf.has_key(csf_aliquot.getId()):
+    if not csf.has_key('csf'):
         addContentToContainer(csf, csf_aliquot, checkConstraints=False)
-    if not csf.has_key(csf_aliquot_pellet.getId()):
+    if not csf.has_key('csf-pellet'):
         addContentToContainer(csf, csf_aliquot_pellet, checkConstraints=False) 
 
     #Serum
@@ -147,10 +147,10 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     serum_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Serum'), aliquot_type=u'serum',volume=1.0)
 
     #Add Aliquot to Specimen
-    if not research_lab.has_key(serum.getId()):
+    if not research_lab.has_key('serum'):
         addContentToContainer(research_lab, serum, checkConstraints=False)
     serum = research_lab[serum.getId()]
-    if not serum.has_key(serum_aliquot.getId()):
+    if not serum.has_key('serum'):
         addContentToContainer(serum, serum_aliquot, checkConstraints=False) 
 
     #Swab
@@ -158,10 +158,10 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     swab_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Swab'), aliquot_type=u'swab')
 
     #Add Aliquot to Specimen
-    if not research_lab.has_key(swab.getId()):
+    if not research_lab.has_key('swab'):
         addContentToContainer(research_lab, swab, checkConstraints=False)
     swab = research_lab[swab.getId()]
-    if not swab.has_key(swab_aliquot.getId()):
+    if not swab.has_key('swab'):
         addContentToContainer(swab, swab_aliquot, checkConstraints=False) 
 
     #RS-GUT
@@ -169,11 +169,11 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     rs_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'RS-Gut'), aliquot_type=u'rs-gut')
 
     #Add Aliquot to Specimen
-    if not research_lab.has_key(rs_gut.getId()):
+    if not research_lab.has_key('rs-gut'):
         addContentToContainer(research_lab, rs_gut, checkConstraints=False)
         
     rs_gut = research_lab[rs_gut.getId()]
-    if not rs_gut.has_key(rs_gut_aliquot.getId()):
+    if not rs_gut.has_key('rs-gut'):
         addContentToContainer(rs_gut, rs_gut_aliquot, checkConstraints=False) 
 
     #TI-GUT
@@ -181,11 +181,11 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     ti_gut_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'TI-Gut'), aliquot_type=u'ti-gut')
 
     #Add Aliquot to Specimen
-    if not research_lab.has_key(ti_gut.getId()):
+    if not research_lab.has_key('ti-gut'):
         addContentToContainer(research_lab, ti_gut, checkConstraints=False)
     
     ti_gut = research_lab[ti_gut.getId()]
-    if not ti_gut.has_key(ti_gut_aliquot.getId()):
+    if not ti_gut.has_key('ti-gut'):
         addContentToContainer(ti_gut, ti_gut_aliquot, checkConstraints=False) 
 
     #Return the ids
