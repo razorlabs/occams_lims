@@ -139,7 +139,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     if not csf.has_key(csf_aliquot.getId()):
         addContentToContainer(csf, csf_aliquot, checkConstraints=False)
     if not csf.has_key(csf_aliquot_pellet.getId()):
-    addContentToContainer(csf, csf_aliquot_pellet, checkConstraints=False) 
+        addContentToContainer(csf, csf_aliquot_pellet, checkConstraints=False) 
 
     #Serum
 
