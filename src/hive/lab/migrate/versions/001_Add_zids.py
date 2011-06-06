@@ -3,13 +3,15 @@ from migrate import *
 
 metadata = MetaData()
 
+NOW = text('current_timestamp')
+
 blueprint_zid = Column('blueprint_zid', Integer, nullable=True, unique=False)
 inventory_date = Column('inventory_date', Date)
 
 terms = [
-    dict(vocabulary_name='aliquot_state', title=u'Inaccurate Data', token=u'incorrect', value=u'incorrect'),
-    dict(vocabulary_name='aliquot_state', title=u'Check Out', token=u'pending - checkout', value=u'pending - checkout'),
-    dict(vocabulary_name='aliquot_state', title=u'Hold in Queue', token=u'queued', value=u'queued'),
+    dict(vocabulary_name='aliquot_state', title=u'Inaccurate Data', token=u'incorrect', value=u'incorrect', is_active=True, create_date=NOW, modify_date=NOW),
+    dict(vocabulary_name='aliquot_state', title=u'Check Out', token=u'pending - checkout', value=u'pending - checkout', is_active=True, create_date=NOW, modify_date=NOW),
+    dict(vocabulary_name='aliquot_state', title=u'Hold in Queue', token=u'queued', value=u'queued', is_active=True, create_date=NOW, modify_date=NOW),
     ]
 
 def upgrade(migrate_engine):
