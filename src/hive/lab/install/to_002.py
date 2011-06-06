@@ -17,7 +17,7 @@ from avrc.aeh import Logger as default_logger
 from avrc.data.store.interfaces import IDatastore
 
 from zope.schema import Float 
-from hive.lab.migrate.versions import 001_Add_zids
+from hive.lab import migrate
 ############################################################################################
 # 1) Make sure that blueprint zid has been added as a column to specimen 
 # 2) First we need to create a Default Research Lab
@@ -53,7 +53,7 @@ def import_(context, logger=default_logger):
 def addBlueprintColumn(context, datastore):#{{{
 
     engine = datastore.getScopedSession().bind
-    001_Add_zids.upgrade(engine)
+    migrate.versions.001_Add_zids.upgrade(engine)
 #     metadata = sa.MetaData(bind=engine)
 #     metadata.reflect(only=['specimen'])
 #     columns = metadata.tables['specimen'].columns
