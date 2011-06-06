@@ -3,16 +3,16 @@ from avrc.data.store._manager import AbstractDatastoreConventionalManager
 from avrc.data.store.interfaces import IDatastore
 from five import grok
 from hive.lab import model
-from hive.lab.content.objects import Aliquot,\
+from hive.lab.content.objects import Aliquot, \
                                      Specimen
 
-from hive.lab.interfaces.managers import IAliquotManager,\
+from hive.lab.interfaces.managers import IAliquotManager, \
                                          ISpecimenManager
 
 from sqlalchemy import or_
-from zope.schema.vocabulary import SimpleTerm,\
+from zope.schema.vocabulary import SimpleTerm, \
                                    SimpleVocabulary
-                                   
+
 # ----------------------------------------------------------------------
 # Data Store Managers
 # ----------------------------------------------------------------------
@@ -29,7 +29,7 @@ class DatastoreManagercore(AbstractDatastoreConventionalManager):
         Session = self._datastore.getScopedSession()
         Model = self._model
         Object = self._type
-        
+
         record_rslt = Session.query(Model)\
                         .filter_by(id=int(key))\
                         .first()
@@ -83,12 +83,12 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
 
     _model = model.Specimen
     _type = Specimen
-    
+
     def filter_records(self, **kw):
         """
         Generic specimen filter. Takes kw arguments, generally matching
         the ISpecimen interface
-        """        
+        """
         Session = self._datastore.getScopedSession()
         Model = self._model
         Object = self._type
@@ -126,7 +126,7 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
 
                     if filter is not None:
                         filters.append(filter)
-                        
+
             filter = or_(*filters)
             query = query.filter(filter)
 
@@ -265,64 +265,71 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
         Session = self._datastore.getScopedSession()
         Model = self._model
 
-        # Find the 'vocabulary' objects for the database relation
-        keywords = {"state": u"aliquot_state",
-                    "type": u"aliquot_type",
-                    "storage_site": u"aliquot_storage_site",
-                    "analysis_status": u"aliquot_analysis_status",
-                    "special_instruction": u"aliquot_special_instruction",
-                    }
+        # Find the 'term' objects for the database relation
+        column_vocabulary_map = dict(
+            state=u"aliquot_state",
+            type=u"aliquot_type",
+            storage_site=u"aliquot_storage_site",
+            analysis_status=u"aliquot_analysis_status",
+            special_instruction=u"aliquot_special_instruction",
+            )
 
-        rslt = {}
+        term = dict()
 
-        for attr_name, vocab_name in keywords.items():
+        previous_state_id = None
 
+        for attr_name, vocab_name in column_vocabulary_map.items():
             value = getattr(source, attr_name, None)
             if value:
-                rslt[vocab_name] = Session.query(model.SpecimenAliquotTerm)\
-                                .filter_by(vocabulary_name=vocab_name,
-                                           value=value
-                                           )\
-                                .first()
+                term[vocab_name] = (
+                    Session.query(model.SpecimenAliquotTerm)
+                    .filter_by(vocabulary_name=vocab_name, value=value)
+                    .first()
+                    )
             else:
-                rslt[vocab_name] = None
+                term[vocab_name] = None
 
         if source.dsid is not None:
-            record_rslt = Session.query(Model)\
-                            .filter_by(id=source.dsid)\
-                            .first()
+            entry = Session.query(Model).get(source.dsid)
+            previous_state_id = entry.state_id
         else:
             # which enrollment we get the subject from.
-            specimen_rslt = Session.query(model.Specimen)\
-                            .filter_by(id=source.specimen_dsid)\
-                            .first()
+            specimen = Session.query(model.Specimen).get(source.specimen_dsid)
 
             # specimen is not already in the data base, we need to create one
-            record_rslt = Model(
-                specimen=specimen_rslt,
-                type=rslt["aliquot_type"],
+            entry = Model(specimen=specimen, type=term["aliquot_type"], create_name=by)
+            previous_state_id = term["aliquot_state"].id
+            Session.add(entry)
+
+        entry.analysis_status = term["aliquot_state"]
+        entry.sent_date = source.sent_date
+        entry.sent_name = source.sent_name
+        entry.special_instruction = term["aliquot_special_instruction"]
+        entry.storage_site = term["aliquot_storage_site"]
+        entry.state = term["aliquot_state"]
+        entry.volume = source.volume
+        entry.cell_amount = source.cell_amount
+        entry.store_date = source.store_date
+        entry.freezer = source.freezer
+        entry.rack = source.rack
+        entry.box = source.box
+        entry.thawed_num = source.thawed_num
+        entry.notes = source.notes
+        entry.modify_name = by
+
+        if previous_state_id != entry.state_id:
+            history = model.AliquotHistory(
+                aliquot=entry,
+                from_state_id=previous_state_id,
+                to_state_id=entry.state_id,
+                action_date=model.NOW(),
+                create_name=by,
                 )
-
-            Session.add(record_rslt)
-
-        record_rslt.analysis_status = rslt["aliquot_state"]
-        record_rslt.sent_date = source.sent_date
-        record_rslt.sent_name = source.sent_name
-        record_rslt.special_instruction = rslt["aliquot_special_instruction"]
-        record_rslt.storage_site = rslt["aliquot_storage_site"]
-        record_rslt.state = rslt["aliquot_state"]
-        record_rslt.volume = source.volume
-        record_rslt.cell_amount = source.cell_amount
-        record_rslt.store_date = source.store_date
-        record_rslt.freezer = source.freezer
-        record_rslt.rack = source.rack
-        record_rslt.box = source.box
-        record_rslt.thawed_num = source.thawed_num
-        record_rslt.notes = source.notes
+            Session.add(history)
 
         Session.flush()
 
         if not source.dsid:
-            source.dsid = record_rslt.id
+            source.dsid = entry.id
 
         return source

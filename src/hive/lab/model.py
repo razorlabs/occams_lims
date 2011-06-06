@@ -1,20 +1,20 @@
 """ Lab Models
 """
 
-from avrc.data.store.model import Model,\
-                                  Visit,\
+from avrc.data.store.model import Model, \
+                                  Visit, \
                                   visit_protocol_table
 from sqlalchemy import text
 from sqlalchemy.orm import relation as Relationship
-from sqlalchemy.schema import Column,\
-                              ForeignKey,\
+from sqlalchemy.schema import Column, \
+                              ForeignKey, \
                               UniqueConstraint
-from sqlalchemy.types import Boolean,\
-                             Date,\
-                             DateTime,\
-                             Float,\
-                             Integer,\
-                             Time,\
+from sqlalchemy.types import Boolean, \
+                             Date, \
+                             DateTime, \
+                             Float, \
+                             Integer, \
+                             Time, \
                              Unicode
 
 
@@ -103,7 +103,7 @@ class Specimen(Model):
         )
 
     protocol = Relationship('Protocol')
-    
+
     visit = Relationship(
         'Visit',
         uselist=False,
@@ -323,14 +323,30 @@ class AliquotHistory(Model):
         index=True
         )
 
-    state = Relationship(
+    from_state_id = Column(
+        ForeignKey(SpecimenAliquotTerm.id, ondelete='CASCADE'),
+        nullable=False,
+        index=True
+        )
+
+    from_state = Relationship(
         'SpecimenAliquotTerm',
-        primaryjoin=state_id == SpecimenAliquotTerm.id
+        primaryjoin=from_state_id == SpecimenAliquotTerm.id
+        )
+
+    to_state_id = Column(
+        ForeignKey(SpecimenAliquotTerm.id, ondelete='CASCADE'),
+        nullable=False,
+        index=True
+        )
+
+    from_state = Relationship(
+        'SpecimenAliquotTerm',
+        primaryjoin=to_state_id == SpecimenAliquotTerm.id
         )
 
     action_date = Column(DateTime, nullable=False)
 
-    to = Column(Unicode, nullable=False)
+    create_date = Column(DateTime, nullable=False, default=NOW)
 
-
-
+    create_name = Column(Unicode, nullable=False)
