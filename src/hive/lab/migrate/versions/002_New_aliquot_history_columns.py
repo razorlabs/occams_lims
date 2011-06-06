@@ -40,10 +40,10 @@ def upgrade(migrate_engine):
     history_table = Table('aliquot_history', metadata, autoload=True)
 
     for column in old_columns:
-        if column in history_table.columns:
+        if column.name in history_table.columns:
             column.drop(history_table)
     for column in new_columns:
-        if column in history_table.columns:
+        if column.name in history_table.columns:
             column.drop(history_table)
         column.create(history_table)
 

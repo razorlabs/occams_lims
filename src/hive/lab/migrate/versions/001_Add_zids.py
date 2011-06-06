@@ -24,10 +24,11 @@ def upgrade(migrate_engine):
     aliquot_table = Table('aliquot', metadata, autoload=True)
     vocabulary_table = Table('specimen_aliquot_term', metadata, autoload=True)
 
-    if blueprint_zid in specimen_table.columns:
+    if blueprint_zid.name in specimen_table.columns:
         blueprint_zid.drop(specimen_table)
     blueprint_zid.create(specimen_table)
-    if inventory_date in aliquot_table.columns:
+
+    if inventory_date.name in aliquot_table.columns:
         inventory_date.drop(aliquot_table)
     inventory_date.create(aliquot_table)
 
