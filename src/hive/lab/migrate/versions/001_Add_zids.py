@@ -1,9 +1,9 @@
 from sqlalchemy import *
 from migrate import *
-
+import datetime
 metadata = MetaData()
 
-NOW = text('current_timestamp')
+NOW = datetime.datetime.now()
 
 blueprint_zid = Column('blueprint_zid', Integer, nullable=True, unique=False)
 inventory_date = Column('inventory_date', Date)
