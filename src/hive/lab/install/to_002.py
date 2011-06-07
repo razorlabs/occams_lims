@@ -44,9 +44,9 @@ def import_(context, logger=default_logger):
 
     # 3) Create Default Specimen 
     bp_ids = createDefaultSpecimenBlueprints(research_lab)
-
-    # 4) Collect Specimen
+    setupStudiesCycles(context)
     collectSpecimen(context, bp_ids)
+    cleanupStudiesCycles(context)
 
     logger.info(u'Upgrade complete')
 
@@ -55,13 +55,7 @@ def addBlueprintColumn(context, datastore):#{{{
     engine = datastore.getScopedSession().bind
     migrate.legacy(engine)
     migrate.sync(engine)
-#     metadata = sa.MetaData(bind=engine)
-#     metadata.reflect(only=['specimen'])
-#     columns = metadata.tables['specimen'].columns
-# 
-#     if 'blueprint_zid' not in columns:
-#         sa.DDL('ALTER TABLE "specimen" ADD "blueprint_zid" int').execute(engine)
-# #}}}
+
 
 def addDefaultClinicalLab(context):#{{{
     """ 
@@ -152,7 +146,7 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     #CSF
     csf = createContent('hive.lab.specimenblueprint', title=(u'CSF'), type=u"csf",default_tubes=2,tube_type=u'csf')
 
-    csf_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'CSF'), aliquot_type=u'csf')
+    csf_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'CSF Supernatent'), aliquot_type=u'csf')
     
     csf_aliquot_pellet = createContent('hive.lab.aliquotblueprint', title=(u'CSF Pellet'), aliquot_type=u'csfpellet')
 
@@ -178,8 +172,8 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
         addContentToContainer(serum, serum_aliquot, checkConstraints=False) 
 
     #Swab
-    swab = createContent('hive.lab.specimenblueprint', title=(u'Swab'), type=u"swab",default_tubes=1,tube_type=u'dacronswab')
-    swab_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Swab'), aliquot_type=u'swab')
+    swab = createContent('hive.lab.specimenblueprint', title=(u'Anal Swab'), type=u"swab",default_tubes=1,tube_type=u'dacronswab')
+    swab_aliquot = createContent('hive.lab.aliquotblueprint', title=(u'Anal Swab'), aliquot_type=u'swab')
 
     #Add Aliquot to Specimen
     if not research_lab.has_key('swab'):
@@ -212,71 +206,74 @@ def createDefaultSpecimenBlueprints(research_lab):#{{{
     if not ti_gut.has_key('ti-gut'):
         addContentToContainer(ti_gut, ti_gut_aliquot, checkConstraints=False) 
 
-    #Return the ids
     intids = getUtility(IIntIds)
-    bp_ids = { u"AnalSwab": [u"anal", intids.getId(swab)],
-               u"ACD": [u"acd", intids.getId(acd)],
-               u"CSF":[u"csf", intids.getId(csf)],
-               u"Serum": [u"serum", intids.getId(serum)],
-               u"GenitalSecretions": [u"genital-secretion", intids.getId(genitals)],
-               u"RSGut":[u"rs-gut", intids.getId(rs_gut)],
-               u"TIGut": [u"ti-gut", intids.getId(ti_gut)],
+    bp_ids = { u"AnalSwab": [swab, intids.getId(swab)],
+               u"ACD": [acd, intids.getId(acd)],
+               u"CSF":[csf, intids.getId(csf)],
+               u"Serum": [serum, intids.getId(serum)],
+               u"GenitalSecretions": [genitals, intids.getId(genitals)],
+               u"RSGut":[rs_gut, intids.getId(rs_gut)],
+               u"TIGut": [ti_gut, intids.getId(ti_gut)],
               }
 
     return bp_ids
+    
+def setupStudiesCycles(context):
+    #Grab the Default Blueprints:
+    catalog = getToolByName(context, 'portal_catalog')
+    brains = catalog(portal_type=['avrc.aeh.study', 'avrc.aeh.cycle'])
 
-#}}}
+    for brain in brains:
+        study = brain.getObject()
+            if not hasattr(study, 'related_specimen'):
+                setattr(study, 'related_specimen', [])
 
+ 
+ def cleanupStudiesCycles(context):
+    #Grab the Default Blueprints:
+    catalog = getToolByName(context, 'portal_catalog')
+    brains = catalog(portal_type=['avrc.aeh.study', 'avrc.aeh.cycle'])
+
+    for brain in brains:
+        study = brain.getObject()
+            if hasattr(study, 'available_specimen'):
+                delattr(study, 'available_specimen')
+            if hasattr(study, 'required_specimen'):
+                delattr(study, 'required_specimen')
+                
 def collectSpecimen(context, bp_ids):#{{{
     #""" 
     #No current way to modify fields, so we'll have to do this manually.
     #"""
 
-    #Grab the Default Blueprints:
     catalog = getToolByName(context, 'portal_catalog')
-    bp_brains = catalog(portal_type='hive.lab.specimenblueprint')
-   
-    #Iterate through all the studies and cycles 
+    study_brains = catalog(portal_type='avrc.aeh.study')
 
-    #We have to move both the available_specimen and required_specimen to related_specimen
-    #If there is not a matching specimen blueprint, then create one. 
- 
-    catalog = getToolByName(context, 'portal_catalog')
-    brains = catalog(portal_type='avrc.aeh.study')
-
-    for brain in brains:
+    for brain in study_brains:
         study = brain.getObject()
-        if study.available_specimen:
+        if hasattr(study, 'available_specimen') and study.available_specimen:
             for specimen in study.available_specimen:
                 #Find the related blueprint specimen
                 #We should make sure this is saved
                 if specimen.__name__ in bp_ids.keys():
-                    if not hasattr(study, 'related_specimen'):
-                        study.related_specimen = [RelationValue(bp_ids[specimen.__name__][1])]
-                    else:
-                        study.related_specimen.append(RelationValue(bp_ids[specimen.__name__][1]))
-                    study.reindexObject()
+                    print "found %s" % specimen.__name__
+                    study.related_specimen.append(RelationValue(bp_ids[specimen.__name__][1]))
                 else:
                     print specimen.__name__
                     print "there was a problem, lacked a default specimen"
+            study.reindexObject()
 
 
-    catalog = getToolByName(context, 'portal_catalog')
-    brains = catalog(portal_type='avrc.aeh.cycle')
-    for brain in brains:
+    cycle_brains = catalog(portal_type='avrc.aeh.cycle')
+    for brain in cycle_brains:
         cycle = brain.getObject()
         if cycle.required_specimen:
             for specimen in cycle.required_specimen:
                 #Find the related blueprint specimen
                 #We should make sure this is saved
-
                 if specimen.__name__ in bp_ids.keys():
-                    if not hasattr(cycle,'related_specimen'):
-                        study.related_specimen = [RelationValue(bp_ids[specimen.__name__][1])]
-                    else:
-                        cycle.related_specimen.append(RelationValue(bp_ids[specimen.__name__][1]))
-                    cycle.reindexObject()
+                    print "found %s" % specimen.__name__                    cycle.related_specimen.append(RelationValue(bp_ids[specimen.__name__][1]))
                 else:
                     print specimen.__name__
                     print "there was a problem, lacked a default specimen"
-##}}}
+            cycle.reindexObject()
