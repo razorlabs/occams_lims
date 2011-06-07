@@ -78,9 +78,14 @@ class SpecimenCoreForm(crud.CrudForm):
 
     def link(self, item, field):
         if field == 'patient_title':
+
             visit = item.visit()
-            return '%s/specimen' % visit.absolute_url()
-                
+            if visit is not None:
+                 url = '%s/specimen' % visit.absolute_url()
+            else:
+                url = '#'
+            return url
+            
     @property
     def editform_factory(self):
         raise NotImplementedError
@@ -152,8 +157,13 @@ class AliquotCoreForm(crud.CrudForm):
         elif field == 'study_week':
             specimen = self.specimen_manager.get(item.specimen_dsid)
             visit = specimen.visit()
-            return '%s/aliquot' % visit.absolute_url()
-
+            if visit is not None:
+                url = '%s/aliquot' % visit.absolute_url()
+            else:
+                patient = intids.getObject(specimen.subject_zid)
+                url = '%s/aliquot' % patient.absolute_url()
+            return url
+            
     @property
     def editform_factory(self):
         raise NotImplementedError
