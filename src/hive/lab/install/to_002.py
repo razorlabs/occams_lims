@@ -276,18 +276,28 @@ def collectCycleSpecimen(context):
     cycle_brains = catalog(portal_type='avrc.aeh.cycle')
     for brain in cycle_brains:
         cycle = brain.getObject()
+        study = cycle.aq_parent
+        
         cycle.related_specimen = []
         if hasattr(cycle, 'required_specimen') and len(cycle.required_specimen):
+        
             for specimen in cycle.required_specimen:
                 if specimen.__name__ in bp_ids.keys():
-                    print "found %s for %s" % (specimen.__name__, cycle.getId())
-                    exists = 0
-                    for existing in cycle.related_specimen:
-                        if existing == bp_ids[specimen.__name__].type:
-                            exists=1
-                    if not exists:
-                        print "adding to cycle"
-                        cycle.related_specimen.append(bp_ids[specimen.__name__].type)
+                    #get the correct relation from the study
+                    related = None
+                    for relation in study.related_specimen:
+                        if relation.to_id == bp_ids[specimen.__name__].getId():
+                            related = relation
+                    if related is not None:
+                    
+                        print "found %s for %s" % (specimen.__name__, cycle.getId())
+                        exists = 0
+                        for existing in cycle.related_specimen:
+                            if existing == related:
+                                exists=1
+                        if not exists:
+                            print "adding to cycle"
+                            cycle.related_specimen.append(relation)
                         print cycle.related_specimen
                 else:
                     print specimen.__name__
