@@ -82,6 +82,7 @@ class SpecimenCoreForm(crud.CrudForm):
             if visit is not None:
                  url = '%s/specimen' % visit.absolute_url()
             else:
+                intids = zope.component.getUtility(IIntIds)
                 patient = intids.getObject(item.subject_zid)
                 url = '%s/specimen' % patient.absolute_url()
             return url
