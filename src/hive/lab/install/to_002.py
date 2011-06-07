@@ -286,19 +286,16 @@ def collectCycleSpecimen(context):
                     #get the correct relation from the study
                     related = None
                     for relation in study.related_specimen:
-                        if relation.to_id == bp_ids[specimen.__name__].getId():
+                        if relation.to_object == bp_ids[specimen.__name__]:
                             related = relation
                     if related is not None:
-                    
                         print "found %s for %s" % (specimen.__name__, cycle.getId())
                         exists = 0
                         for existing in cycle.related_specimen:
                             if existing == related:
                                 exists=1
                         if not exists:
-                            print "adding to cycle"
-                            cycle.related_specimen.append(relation)
-                        print cycle.related_specimen
+                            cycle.related_specimen.append(related)
                 else:
                     print specimen.__name__
                     print "there was a problem, lacked a default specimen"

@@ -32,26 +32,46 @@ class Specimen(AbstractItem):
 
     @classmethod
     def from_rslt(cls, rslt):
-        obj = Specimen()
+        obj = cls()
         obj.dsid = rslt.id
         obj.blueprint_zid = rslt.blueprint_zid
         obj.subject_zid = rslt.subject.zid
         obj.protocol_zid = rslt.protocol.zid
-        obj.state = rslt.state.value
+        if rslt.state is not None:
+            state = rslt.state.value
+        else:
+            state = None
+        obj.state = state
         obj.date_collected = rslt.collect_date
         obj.time_collected = rslt.collect_time
-        obj.type = rslt.type.value
-        obj.destination = rslt.destination.value
+        if rslt.type is not None:
+            type = rslt.type.value
+        else:
+            type = None
+        obj.type = type
+        if rslt.destination is not None:
+            destination = rslt.destination.value
+        else:
+            destination = None        
+        obj.destination = destination
         obj.tubes = rslt.tubes
-        obj.tube_type = rslt.tube_type.value
+        if rslt.tube_type is not None:
+            tube_type = rslt.tube_type.value
+        else:
+            tube_type = None        
+        obj.tube_type = tube_type
         obj.notes = rslt.notes
         obj.visit_zid = rslt.visit.zid
         return obj
 
     def visit(self):    
-        intids = zope.component.getUtility(IIntIds)
-        return intids.getObject(self.visit_zid)
 
+        intids = zope.component.getUtility(IIntIds)
+        try:
+            visit = intids.getObject(self.visit_zid)
+        except KeyError:
+            visit = None
+        return visit
 class Aliquot(AbstractItem):
     """ See `IAliquot`
     """
@@ -81,21 +101,41 @@ class Aliquot(AbstractItem):
         obj = cls()
         obj.dsid = rslt.id
         obj.specimen_dsid = rslt.specimen.id
-        obj.type = rslt.type.value
-        obj.state = rslt.state.value
+        if rslt.type is not None:
+            type = rslt.type.value
+        else:
+            type = None     
+        obj.type = type
+        if rslt.state is not None:
+            state = rslt.state.value
+        else:
+            state = None   
+        obj.state = state
         obj.volume = rslt.volume
         obj.cell_amount = rslt.cell_amount
         obj.store_date = rslt.store_date
         obj.freezer = rslt.freezer
         obj.rack = rslt.rack
         obj.box = rslt.box
-        obj.storage_site = rslt.storage_site.value
+        if rslt.storage_site is not None:
+            storage_site = rslt.storage_site.value
+        else:
+            storage_site = None   
+        obj.storage_site = storage_site
         obj.thawed_num = rslt.thawed_num
-        obj.analysis_status = rslt.analysis_status.value
+        if rslt.analysis_status is not None:
+            analysis_status = rslt.analysis_status.value
+        else:
+            analysis_status = None   
+        obj.analysis_status = analysis_status
         obj.sent_date = rslt.sent_date
         obj.sent_name = rslt.sent_name
         obj.notes = rslt.notes
-        obj.special_instruction = rslt.special_instruction.value
+        if rslt.special_instruction is not None:
+            special_instruction = rslt.special_instruction.value
+        else:
+            special_instruction = None   
+        obj.special_instruction = special_instruction
         return obj
 
 
