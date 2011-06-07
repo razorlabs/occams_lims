@@ -78,12 +78,12 @@ class SpecimenCoreForm(crud.CrudForm):
 
     def link(self, item, field):
         if field == 'patient_title':
-
             visit = item.visit()
             if visit is not None:
                  url = '%s/specimen' % visit.absolute_url()
             else:
-                url = '#'
+                patient = intids.getObject(item.subject_zid)
+                url = '%s/specimen' % patient.absolute_url()
             return url
             
     @property
