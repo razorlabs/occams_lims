@@ -311,6 +311,7 @@ def cleanupStudiesCycles(context):
     catalog = getToolByName(context, 'portal_catalog')
     study_brains = catalog(portal_type='avrc.aeh.study')
     cycle_brains = catalog(portal_type='avrc.aeh.cycle')
+    visit_brains = catalog(portal_type='avrc.aeh.visit')
 
     for brain in study_brains:
         study = brain.getObject()
@@ -325,5 +326,12 @@ def cleanupStudiesCycles(context):
         if hasattr(cycle, 'required_specimen'):
             try:
                 delattr(cycle, 'required_specimen')
+            except AttributeError:
+                pass
+    for brain in visit_brains:
+        visit = brain.getObject()
+        if hasattr(visit, 'requested_specimen'):
+            try:
+                delattr(visit, 'requested_specimen')
             except AttributeError:
                 pass
