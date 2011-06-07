@@ -7,11 +7,13 @@ metadata = MetaData()
 new_columns = (
     Column(
         'from_state_id',
+        Integer,
         ForeignKey('specimen_aliquot_term.id', ondelete='CASCADE'),
         nullable=False,
         ),
     Column(
         'to_state_id',
+        Integer,
         ForeignKey('specimen_aliquot_term.id', ondelete='CASCADE'),
         nullable=False,
         ),
@@ -23,6 +25,7 @@ new_columns = (
 old_columns = (
     Column(
         'state_id',
+        Integer,
         ForeignKey('specimen_aliquot_term.id', ondelete='CASCADE'),
         nullable=False,
         ),
@@ -36,6 +39,7 @@ def upgrade(migrate_engine):
         for inventory processing.
     """
     metadata.bind = migrate_engine
+    vocabulary_table = Table('specimen_aliquot_term', metadata, autoload=True)
     history_table = Table('aliquot_history', metadata, autoload=True)
 
     for column in old_columns:
