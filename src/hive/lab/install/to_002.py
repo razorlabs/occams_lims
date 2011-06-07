@@ -270,7 +270,12 @@ def collectStudySpecimen(context):#{{{
                 #We should make sure this is saved
                 if specimen.__name__ in bp_ids.keys():
                     print "found %s for %s" % (specimen.__name__, study.getId())
-                    study.related_specimen.append(RelationValue(bp_ids[specimen.__name__][1]))
+                    exists = 0
+                    for existing in study.related_specimen:
+                        if existing.to_id == bp_ids[specimen.__name__]:
+                            exists=1
+                    if not exists:
+                        study.related_specimen.append(RelationValue(bp_ids[specimen.__name__]))
                 else:
                     print specimen.__name__
                     print "there was a problem, lacked a default specimen"
@@ -293,7 +298,12 @@ def collectCycleSpecimen(context):#{{{
                 #We should make sure this is saved
                 if specimen.__name__ in bp_ids.keys():
                     print "found %s for %s" % (specimen.__name__, cycle.getId())
-                    cycle.related_specimen.append(RelationValue(bp_ids[specimen.__name__][1]))
+                    exists = 0
+                    for existing in study.related_specimen:
+                        if existing.to_id == bp_ids[specimen.__name__]:
+                            exists=1
+                    if not exists:
+                        cycle.related_specimen.append(RelationValue(bp_ids[specimen.__name__]))
                 else:
                     print specimen.__name__
                     print "there was a problem, lacked a default specimen"
