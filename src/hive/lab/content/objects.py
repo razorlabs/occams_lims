@@ -35,8 +35,16 @@ class Specimen(AbstractItem):
         obj = cls()
         obj.dsid = rslt.id
         obj.blueprint_zid = rslt.blueprint_zid
-        obj.subject_zid = rslt.subject.zid
-        obj.protocol_zid = rslt.protocol.zid
+        if rslt.subject is not None:
+            subject_zid = rslt.subject.zid
+        else:
+            subject_zid = None
+        obj.subject_zid = subject_zid
+        if rslt.protocol is not None:
+            protocol_zid = rslt.protocol.zid
+        else:
+            protocol_zid = None
+        obj.protocol_zid = protocol_zid
         if rslt.state is not None:
             state = rslt.state.value
         else:
@@ -61,7 +69,11 @@ class Specimen(AbstractItem):
             tube_type = None        
         obj.tube_type = tube_type
         obj.notes = rslt.notes
-        obj.visit_zid = rslt.visit.zid
+        if rslt.visit is not None:
+            visit_zid = rslt.visit.zid
+        else:
+            visit_zid = None
+        obj.visit_zid = visit_zid 
         return obj
 
     def visit(self):    
@@ -72,6 +84,7 @@ class Specimen(AbstractItem):
         except KeyError:
             visit = None
         return visit
+        
 class Aliquot(AbstractItem):
     """ See `IAliquot`
     """
