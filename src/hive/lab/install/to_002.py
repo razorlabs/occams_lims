@@ -38,6 +38,7 @@ def import_(context, logger=default_logger):
     # 1) Make sure that blueprint zid has been added as a column to specimen 
     addBlueprintColumn(context, datastore)
 
+    clinical_lab = addDefaultClinicalLab(context)
     # 2) First we need to create a Default Research Lab
     research_lab = addDefaultResearchLab(context)
 
@@ -61,6 +62,29 @@ def addBlueprintColumn(context, datastore):#{{{
 #     if 'blueprint_zid' not in columns:
 #         sa.DDL('ALTER TABLE "specimen" ADD "blueprint_zid" int').execute(engine)
 # #}}}
+
+def addDefaultClinicalLab(context):#{{{
+    """ 
+    No current way to modify fields, so we'll have to do this manually.
+    """
+
+    catalog = getToolByName(context, 'portal_catalog')
+    institutes = catalog(portal_type='avrc.aeh.institute')
+
+    #Just choose the first institute. There should only be one, right?
+    institute = institutes[0].getObject()
+    #Create a new research lab.
+    # If there is already a research lab, use that one
+    clinical_lab = createContent('hive.lab.clinicallab', title="AVRC Lab", page_height=11.,page_width=8.5,top_margin=0.5,
+                                 side_margin=0.187,vert_pitch=1.0,horz_pitch= 2.75,label_height=1.00,label_width= 2.625,
+                                 label_round=0.1,no_across=3,no_down=10)
+
+    #Add the research lab to the institute
+    if not institute.has_key('avrc-lab'):
+        addContentToContainer(institute, clinical_lab, checkConstraints=False)
+    clinical_lab = institute[clinical_lab.getId()]
+    #Go ahead and return the research lab for future use
+    return clinical_lab
 
 def addDefaultResearchLab(context):#{{{
     """ 
