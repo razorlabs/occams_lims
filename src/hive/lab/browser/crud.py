@@ -74,8 +74,7 @@ class SpecimenCoreForm(crud.CrudForm):
         fields = field.Fields(ISpecimen).\
             select('tubes', 'date_collected', 'time_collected', 'notes')
         return fields
-#        
-
+        
     def link(self, item, field):
         if field == 'patient_title':
             visit = item.visit()
@@ -86,7 +85,7 @@ class SpecimenCoreForm(crud.CrudForm):
                 patient = intids.getObject(item.subject_zid)
                 url = '%s/specimen' % patient.absolute_url()
             return url
-            
+                
     @property
     def editform_factory(self):
         raise NotImplementedError
