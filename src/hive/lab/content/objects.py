@@ -77,11 +77,13 @@ class Specimen(AbstractItem):
         return obj
 
     def visit(self):    
-
         intids = zope.component.getUtility(IIntIds)
-        try:
-            visit = intids.getObject(self.visit_zid)
-        except KeyError:
+        if self.visit_zid:
+            try:
+                visit = intids.getObject(self.visit_zid)
+            except KeyError:
+                visit = None
+        else:
             visit = None
         return visit
         
