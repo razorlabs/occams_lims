@@ -213,20 +213,20 @@ def getSpecimenMap(context):
     bp_ids={}
     for brain in specimen_brains:
         specimen = brain.getObject()
-        if specimen.type = u"swab":
-            bp_ids[u"AnalSwab"] = intids.getId(specimen)
-        elif  specimen.type = u"acd":
-            bp_ids[u"ACD"] = intids.getId(specimen)
-        elif  specimen.type = u"csf":
-            bp_ids[u"CSF"] = intids.getId(specimen)
-        elif  specimen.type = u"serum":
-            bp_ids[u"Serum"] = intids.getId(specimen)
-        elif  specimen.type = u"genital-secretion":
-            bp_ids[u"GenitalSecretions"] = intids.getId(specimen)
-        elif  specimen.type = u"rs-gut":
-            bp_ids[u"RSGut"] = intids.getId(specimen)
-        elif  specimen.type = u"ti-gut":
-            bp_ids[u"TIGut"] = intids.getId(specimen)
+        if specimen.type == u"swab":
+            bp_ids[u"AnalSwab"] = specimen
+        elif  specimen.type == u"acd":
+            bp_ids[u"ACD"] = specimen
+        elif  specimen.type == u"csf":
+            bp_ids[u"CSF"] = specimen
+        elif  specimen.type == u"serum":
+            bp_ids[u"Serum"] = specimen
+        elif  specimen.type == u"genital-secretion":
+            bp_ids[u"GenitalSecretions"] = specimen
+        elif  specimen.type == u"rs-gut":
+            bp_ids[u"RSGut"] = specimen
+        elif  specimen.type == u"ti-gut":
+            bp_ids[u"TIGut"] = specimen
 
     return bp_ids
 
@@ -246,21 +246,23 @@ def collectStudySpecimen(context):
     catalog = getToolByName(context, 'portal_catalog')
     study_brains = catalog(portal_type='avrc.aeh.study')
     bp_ids = getSpecimenMap(context)
+    intids = getUtility(IIntIds)
     for brain in study_brains:
         study = brain.getObject()
-        if hasattr(study, 'available_specimen') and study.available_specimen:
+        if hasattr(study, 'available_specimen') and len(study.available_specimen):
             study.related_specimen = []
             for specimen in study.available_specimen:
                 #Find the related blueprint specimen
                 #We should make sure this is saved
                 if specimen.__name__ in bp_ids.keys():
+                    relation = RelationValue(intids.getId(bp_ids[specimen.__name__]))
                     print "found %s for %s" % (specimen.__name__, study.getId())
                     exists = 0
                     for existing in study.related_specimen:
-                        if existing.to_id == bp_ids[specimen.__name__]:
+                        if existing.to_id == relation.to_id:
                             exists=1
                     if not exists:
-                        study.related_specimen.append(RelationValue(bp_ids[specimen.__name__]))
+                        study.related_specimen.append(relation)
                 else:
                     print specimen.__name__
                     print "there was a problem, lacked a default specimen"
@@ -277,16 +279,16 @@ def collectCycleSpecimen(context):
         cycle.related_specimen = []
         if hasattr(cycle, 'required_specimen') and len(cycle.required_specimen):
             for specimen in cycle.required_specimen:
-                #Find the related blueprint specimen
-                #We should make sure this is saved
                 if specimen.__name__ in bp_ids.keys():
                     print "found %s for %s" % (specimen.__name__, cycle.getId())
                     exists = 0
-                    for existing in study.related_specimen:
-                        if existing.to_id == bp_ids[specimen.__name__]:
+                    for existing in cycle.related_specimen:
+                        if existing == bp_ids[specimen.__name__].type:
                             exists=1
                     if not exists:
-                        cycle.related_specimen.append(RelationValue(bp_ids[specimen.__name__]))
+                        print "adding to cycle"
+                        cycle.related_specimen.append(bp_ids[specimen.__name__].type)
+                        print cycle.related_specimen
                 else:
                     print specimen.__name__
                     print "there was a problem, lacked a default specimen"
