@@ -105,6 +105,7 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
             filters = []
 
             for value in item:
+                filter = None
                 if value is not None:
                     if key == 'state':
                         filter = Model.state.has(value=unicode(value))
@@ -124,8 +125,8 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
                         print '%s is not a valid filter' % key
                         filter = None
 
-                    if filter is not None:
-                        filters.append(filter)
+                if filter is not None:
+                    filters.append(filter)
 
             filter = or_(*filters)
             query = query.filter(filter)
@@ -231,6 +232,7 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
 
             filters = []
             for value in item:
+                filter = None
                 if value is not None:
                     if key == 'state':
                         filter = Model.state.has(value=unicode(value))
@@ -250,8 +252,8 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
                         print '%s is not a valid filter' % key
                         filter = None
 
-                    if filter is not None:
-                        filters.append(filter)
+                if filter is not None:
+                    filters.append(filter)
 
             filter = or_(*filters)
             query = query.filter(filter)
