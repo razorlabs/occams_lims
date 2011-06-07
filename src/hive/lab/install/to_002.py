@@ -48,6 +48,8 @@ def import_(context, logger=default_logger):
     collectStudySpecimen(context)
     collectCycleSpecimen(context)
 
+    cleanupStudiesCycles(context)
+
     logger.info(u'Upgrade complete')
 
 
@@ -301,3 +303,27 @@ def collectCycleSpecimen(context):
                     print "there was a problem, lacked a default specimen"
         
             cycle.reindexObject()
+            
+
+
+def cleanupStudiesCycles(context):
+    #Grab the Default Blueprints:
+    catalog = getToolByName(context, 'portal_catalog')
+    study_brains = catalog(portal_type='avrc.aeh.study')
+    cycle_brains = catalog(portal_type='avrc.aeh.cycle')
+
+    for brain in study_brains:
+        study = brain.getObject()
+        
+        if hasattr(study, 'available_specimen'):
+            try:
+                delattr(study, 'available_specimen')
+            except AttributeError:
+                pass
+    for brain in cycle_brains:
+        cycle = brain.getObject()
+        if hasattr(cycle, 'required_specimen'):
+            try:
+                delattr(cycle, 'required_specimen')
+            except AttributeError:
+                pass
