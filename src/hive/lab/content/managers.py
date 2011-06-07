@@ -105,7 +105,6 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
             filters = []
 
             for value in item:
-                filter = None
                 if value is not None:
                     if key == 'state':
                         filter = Model.state.has(value=unicode(value))
@@ -125,11 +124,12 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
                         print '%s is not a valid filter' % key
                         filter = None
 
-                if filter is not None:
-                    filters.append(filter)
-
-            filter = or_(*filters)
-            query = query.filter(filter)
+                    if filter is not None:
+                        filters.append(filter)
+                        
+            if len(filters):
+                filter = or_(*filters)
+                query = query.filter(filter)
 
         query = query.order_by(Model.id.desc()).limit(200)
         result = [Object.from_rslt(r) for r in query.all()]
@@ -232,7 +232,6 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
 
             filters = []
             for value in item:
-                filter = None
                 if value is not None:
                     if key == 'state':
                         filter = Model.state.has(value=unicode(value))
@@ -252,11 +251,12 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
                         print '%s is not a valid filter' % key
                         filter = None
 
-                if filter is not None:
-                    filters.append(filter)
+                    if filter is not None:
+                        filters.append(filter)
 
-            filter = or_(*filters)
-            query = query.filter(filter)
+            if len(filters):
+                filter = or_(*filters)
+                query = query.filter(filter)
 
         query = query.order_by(Model.id.desc()).limit(200)
         result = [Object.from_rslt(r) for r in query.all()]
