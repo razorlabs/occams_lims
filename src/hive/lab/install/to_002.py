@@ -75,7 +75,7 @@ def addDefaultClinicalLab(context):#{{{
     institute = institutes[0].getObject()
     #Create a new research lab.
     # If there is already a research lab, use that one
-    clinical_lab = createContent('hive.lab.clinicallab', title="AVRC Lab", page_height=11.,page_width=8.5,top_margin=0.5,
+    clinical_lab = createContent('hive.lab.cliniclab', title="AVRC Lab", page_height=11.,page_width=8.5,top_margin=0.5,
                                  side_margin=0.187,vert_pitch=1.0,horz_pitch= 2.75,label_height=1.00,label_width= 2.625,
                                  label_round=0.1,no_across=3,no_down=10)
 
