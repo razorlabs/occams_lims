@@ -45,9 +45,8 @@ def import_(context, logger=default_logger):
     # 3) Create Default Specimen 
     createDefaultSpecimenBlueprints(research_lab)
     setupStudiesCycles(context)
-    collectStudySpecimen(context, bp_ids)
-    collectCycleSpecimen(context, bp_ids)
-    cleanupStudiesCycles(context)
+    collectStudySpecimen(context)
+    collectCycleSpecimen(context)
 
     logger.info(u'Upgrade complete')
 
@@ -241,23 +240,8 @@ def setupStudiesCycles(context):
         if not hasattr(study, 'related_specimen'):
             setattr(study, 'related_specimen', [])
 
- 
-def cleanupStudiesCycles(context):
-    #Grab the Default Blueprints:
-    catalog = getToolByName(context, 'portal_catalog')
-    brains = catalog(portal_type=['avrc.aeh.study', 'avrc.aeh.cycle'])
 
-    for brain in brains:
-        study = brain.getObject()
-        if hasattr(study, 'available_specimen'):
-            delattr(study, 'available_specimen')
-        if hasattr(study, 'required_specimen'):
-            delattr(study, 'required_specimen')
-                
-def collectStudySpecimen(context):#{{{
-    #""" 
-    #No current way to modify fields, so we'll have to do this manually.
-    #"""
+def collectStudySpecimen(context):
 
     catalog = getToolByName(context, 'portal_catalog')
     study_brains = catalog(portal_type='avrc.aeh.study')
@@ -265,6 +249,7 @@ def collectStudySpecimen(context):#{{{
     for brain in study_brains:
         study = brain.getObject()
         if hasattr(study, 'available_specimen') and study.available_specimen:
+            study.related_specimen = []
             for specimen in study.available_specimen:
                 #Find the related blueprint specimen
                 #We should make sure this is saved
@@ -282,17 +267,15 @@ def collectStudySpecimen(context):#{{{
             study.reindexObject()
 
                 
-def collectCycleSpecimen(context):#{{{
-    #""" 
-    #No current way to modify fields, so we'll have to do this manually.
-    #"""
+def collectCycleSpecimen(context):
 
     catalog = getToolByName(context, 'portal_catalog')
     bp_ids = getSpecimenMap(context)
     cycle_brains = catalog(portal_type='avrc.aeh.cycle')
     for brain in cycle_brains:
         cycle = brain.getObject()
-        if cycle.required_specimen:
+        cycle.related_specimen = []
+        if hasattr(cycle, 'required_specimen') and len(cycle.required_specimen):
             for specimen in cycle.required_specimen:
                 #Find the related blueprint specimen
                 #We should make sure this is saved
@@ -307,4 +290,5 @@ def collectCycleSpecimen(context):#{{{
                 else:
                     print specimen.__name__
                     print "there was a problem, lacked a default specimen"
+        
             cycle.reindexObject()
