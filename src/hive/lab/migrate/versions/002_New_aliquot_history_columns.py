@@ -36,7 +36,6 @@ def upgrade(migrate_engine):
         for inventory processing.
     """
     metadata.bind = migrate_engine
-    vocabulary_table = Table('specimen_aliquot_term', metadata, autoload=True)
     history_table = Table('aliquot_history', metadata, autoload=True)
 
     for column in old_columns:
