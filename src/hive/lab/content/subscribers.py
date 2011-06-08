@@ -48,7 +48,7 @@ def handleRequestedSpecimenAdded(visit, event):
             for specimen_relation in cycle.related_specimen:
                 specimenBlueprint = specimen_relation.to_object
                 specimen = specimenBlueprint.createSpecimen(patient_zid, cycle_zid, visit.visit_date)
-                specimen_manager.put(specimen, by=user)
+                specimen_manager.put(specimen)
 
 ## TODO: make specimen includer for add cycle to visit
                 #We don't want duplicate specimen

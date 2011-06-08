@@ -57,7 +57,7 @@ class SpecimenCoreForm(crud.CrudForm):
         sm = getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
         self.dsmanager = ISpecimenManager(ds)
-
+        self.currentUser = getSecurityManager().getUser().getId()
         self.update_schema = self.edit_schema
 
     ignoreContext = True
@@ -127,6 +127,8 @@ class AliquotCoreForm(crud.CrudForm):
         self.specimen_manager = ISpecimenManager(ds)
         self.dsmanager = IAliquotManager(ds)
         self.update_schema = self.edit_schema
+        self.currentUser = getSecurityManager().getUser().getId()
+
 
     ignoreContext = True
     addform_factory = crud.NullForm
@@ -638,6 +640,10 @@ class AliquotQueueForm(AliquotCoreForm):
     @property
     def display_state(self):
         return u"queued"
+
+    def getkwargs(self):
+        kw = {'state':self.display_state, 'modify_name':self.currentUser}
+        return kw
 
 # ------------------------------------------------------------------------------
 # Aliquot Support Forms |

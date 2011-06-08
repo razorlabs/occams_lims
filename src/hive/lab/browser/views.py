@@ -14,6 +14,7 @@ from hive.lab.interfaces.specimen import ISpecimenSupport,\
 from plone.directives import dexterity
 from zope.component import getSiteManager
 from zope.security import checkPermission
+from Products.CMFCore.utils import getToolByName
 
 # ------------------------------------------------------------------------------
 # Clinical Lab Views |
@@ -457,6 +458,7 @@ class AliquotList(dexterity.DisplayForm):
         self.crudform = self.getCrudForm()
         self.filter = self.filterAliquot()
         self.aliquotqueue = self.aliquotQueue()
+        self.lab_url = self.labUrl()
 
     def getCrudForm(self):
         """
@@ -500,6 +502,15 @@ class AliquotList(dexterity.DisplayForm):
         view.form_instance = form
         return view
 
+    def labUrl(self):
+        catalog = getToolByName(self.context, 'portal_catalog')
+        brains = catalog(portal_type="hive.lab.researchlab")
+        if len(brains):
+            url = brains[0].getURL()
+        else:
+            url = '#'
+        return url
+        
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class AliquotCheckList(dexterity.DisplayForm):
@@ -525,7 +536,6 @@ class AliquotCheckList(dexterity.DisplayForm):
         kw['state'] = u'queued'
         for aliquot in self.dsmanager.filter_records(**kw):
             yield IViewableAliquot(aliquot)
-
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------

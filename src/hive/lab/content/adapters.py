@@ -433,11 +433,12 @@ class LabelPrinter(grok.Adapter):
         return lab['labels']
 
     def getLabelBrains(self):
-        queuelist = []
+#         queuelist = []
         queue = self.getLabelQueue()
-        for labelable in queue():
-            queuelist.append(labelable)
-        return queuelist
+#for labelable in
+        return queue(sort_on='dsid', sort_order='descending')
+#            queuelist.append(labelable)
+#        return queuelist
 
     def queueLabel(self, labelable, uid=None):
         """

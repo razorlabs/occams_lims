@@ -120,6 +120,8 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
                         filter = Model.subject.has(uid=value)
                     elif key == 'subject_zid':
                         filter = Model.subject.has(zid=value)
+                    elif key == 'modify_name':
+                        filter = Model.modify_name == unicode(value)
                     else:
                         print '%s is not a valid filter' % key
                         filter = None
@@ -247,6 +249,8 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
                         filter = Model.specimen.has(SpecimenModel.subject.has(uid=value))
                     elif key == 'subject_zid':
                         filter = Model.specimen.has(SpecimenModel.subject.has(zid=value))
+                    elif key == 'modify_name':
+                        filter = Model.modify_name == unicode(value)
                     else:
                         print '%s is not a valid filter' % key
                         filter = None
