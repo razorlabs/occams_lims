@@ -349,16 +349,12 @@ def addBlueprintIds(context):
     for brain in specimen_brains:
         specimen_bp = brain.getObject()
         specimen_type = specimen_bp.type
+        print "updating %s" % specimen_type
         bp_zid = intids.getId(specimen_bp)
         
-        query = (
-            session.query(model.Specimen)
-            .filter(model.Specimen.type.has(value=unicode(specimen_type)))
-        )
-        
-        specimens = query.all()
-        for specimen in specimens:
-            setattr(specimen, 'blueprint_zid', bp_zid)
-        session.flush()                       
+        query = session.query(model.Specimen).filter(model.Specimen.type.has(value=unicode(specimen_type)))
+        query.update(dict(blueprint_zid=bp_zid), 'expire')
+        session.flush()
+                   
         
         
