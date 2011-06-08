@@ -358,6 +358,6 @@ def addBlueprintIds(context):
             
         query.update(dict(blueprint_zid=bp_zid), 'fetch')
         
-        
+    session.flush()
         
         
