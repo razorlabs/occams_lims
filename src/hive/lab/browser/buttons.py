@@ -89,7 +89,7 @@ class ButtonCore(crud.EditForm):
         if selected:
             for id, obj in selected:
                 setattr(obj, 'state', unicode(state))
-                newobj = self.dsmanager.put(obj, by=self.currentUser)
+                newobj = self.dsmanager.put(obj)
             self.status = _(u"Your %s have been changed to the status of %s." % (self.sampletype, acttitle))
         else:
             self.status = _(u"Please select %s" % (self.sampletype))
@@ -119,7 +119,7 @@ class ButtonCore(crud.EditForm):
                     if status is no_changes:
                         status = success
             if updated:
-                newobj = self.dsmanager.put(obj, by=self.currentUser)
+                newobj = self.dsmanager.put(obj)
         self.status = status
 
 
