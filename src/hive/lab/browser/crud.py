@@ -39,6 +39,7 @@ import zope.schema
 import zope.component
 import zope.interface
 from zope.security import checkPermission
+from AccessControl import getSecurityManager
 
 # ------------------------------------------------------------------------------
 # Base Forms |
@@ -655,6 +656,7 @@ class AliquotCheckoutUpdate(form.Form):
         sm = getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
         self.dsmanager = IAliquotManager(ds)
+        self.currentUser = getSecurityManager().getUser().getId()
 
     ignoreContext = True
 
@@ -680,7 +682,7 @@ class AliquotCheckoutUpdate(form.Form):
                     updated = True
 
             if updated:
-                newaliquot = self.dsmanager.put(aliquotobj)
+                newaliquot = self.dsmanager.put(aliquotobj, by=self.currentUser)
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(u'Clear All')
@@ -741,6 +743,7 @@ class SpecimenAddForm(z3cform.Form):
     def __init__(self, context, request):
         super(SpecimenAddForm, self).__init__(context, request)
         self.redirect_url = os.path.join(context.absolute_url(), '@@specimen')
+        self.currentUser = getSecurityManager().getUser().getId()
 
     def specimenVocabulary(self):
         context = self.context.aq_inner
@@ -792,7 +795,7 @@ class SpecimenAddForm(z3cform.Form):
                 )
             return
         for specimen in data['available_specimen']:
-            specimen_manager.put(specimen)
+            specimen_manager.put(specimen, by=self.currentUser)
 
         return self.request.response.redirect(self.redirect_url)
 

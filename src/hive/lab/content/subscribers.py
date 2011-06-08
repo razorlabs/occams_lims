@@ -10,6 +10,7 @@ from hive.lab.interfaces.specimen import IRequestedSpecimen
 from zope.app.intid.interfaces import IIntIds
 from zope.lifecycleevent import IObjectAddedEvent
 import zope.component
+from AccessControl import getSecurityManager
 
 @grok.subscribe(ILabelSheet, IObjectAddedEvent)
 def handleLabelSheetAdded(sheet, event):
@@ -31,6 +32,7 @@ def handleRequestedSpecimenAdded(visit, event):
     """
     When a visit is added, automatically add the requested specimen
     """
+    user = getSecurityManager().getUser().getId()
     intids = zope.component.getUtility(IIntIds)
     patient = visit.aq_parent
     patient_zid = intids.getId(patient)
@@ -46,7 +48,7 @@ def handleRequestedSpecimenAdded(visit, event):
             for specimen_relation in cycle.related_specimen:
                 specimenBlueprint = specimen_relation.to_object
                 specimen = specimenBlueprint.createSpecimen(patient_zid, cycle_zid, visit.visit_date)
-                specimen_manager.put(specimen)
+                specimen_manager.put(specimen, by=user)
 
 ## TODO: make specimen includer for add cycle to visit
                 #We don't want duplicate specimen

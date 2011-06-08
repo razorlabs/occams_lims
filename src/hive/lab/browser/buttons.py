@@ -58,8 +58,15 @@ class ButtonCore(crud.EditForm):
     """
     dsmanager = None
     sampletype = None
-
     editsubform_factory = OrderedSubForm
+
+    def __init__(self, context, request):
+        """
+        Provide a specimen manager for these buttons
+        """
+        super(crud.EditForm, self).__init__(context, request)
+        self.currentUser = getSecurityManager().getUser().getId()
+
 
     def render_batch_navigation(self):
         """
@@ -81,7 +88,7 @@ class ButtonCore(crud.EditForm):
         if selected:
             for id, obj in selected:
                 setattr(obj, 'state', unicode(state))
-                newobj = self.dsmanager.put(obj)
+                newobj = self.dsmanager.put(obj, by=self.currentUser)
             self.status = _(u"Your %s have been changed to the status of %s." % (self.sampletype, acttitle))
         else:
             self.status = _(u"Please select %s" % (self.sampletype))
@@ -111,7 +118,7 @@ class ButtonCore(crud.EditForm):
                     if status is no_changes:
                         status = success
             if updated:
-                newobj = self.dsmanager.put(obj)
+                newobj = self.dsmanager.put(obj, by=self.currentUser)
         self.status = status
 
 
@@ -194,6 +201,7 @@ class AliquotButtonCore(ButtonCore):
             ds = sm.queryUtility(IDatastore, 'fia')
             self.dsmanager = ISpecimenManager(ds)
         self.sampletype = _(u"aliquot")
+
 
     def queueLabels(self, action):
         """
@@ -335,6 +343,7 @@ class AliquotCreator(crud.EditForm):
         ds = sm.queryUtility(IDatastore, 'fia')
         self.specimen_manager = ISpecimenManager(ds)
         self.aliquot_manager = IAliquotManager(ds)
+        self.currentUser = getSecurityManager().getUser().getId()
 
     editsubform_factory = OrderedSubForm
 
@@ -347,7 +356,7 @@ class AliquotCreator(crud.EditForm):
             for id, aliquottemplate in selected:
                 specimenobj = self.context.specimen_manager.get(aliquottemplate.specimen_dsid)
                 setattr(specimenobj, 'state', unicode(state))
-                newspecimen = self.context.specimen_manager.put(specimenobj)
+                newspecimen = self.context.specimen_manager.put(specimenobj, by=self.currentUser)
             self.status = _(u"Your specimen have been %s." % (acttitle))
         else:
             self.status = _(u"Please select aliquot templates." % (acttitle))
@@ -386,7 +395,7 @@ class AliquotCreator(crud.EditForm):
                 if hasattr(blueprint, 'dsid'):
                     # the put has updated blueprint. reset it.
                     blueprint.dsid = None
-                newaliquot = self.aliquot_manager.put(blueprint)
+                newaliquot = self.aliquot_manager.put(blueprint, by=self.currentUser)
             if status is no_changes:
                 status = success
         self.status = status
@@ -515,7 +524,7 @@ class AliquotCheckinButtons(AliquotButtonCore):
                     if status is no_changes:
                         status = success
             if updated:
-                newobj = self.dsmanager.put(obj)
+                newobj = self.dsmanager.put(obj, by=self.currentUser)
         self.status = status
 
     @button.buttonAndHandler(_('Save Changes'), name='save')
