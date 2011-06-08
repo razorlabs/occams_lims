@@ -18,6 +18,8 @@ from avrc.data.store.interfaces import IDatastore
 
 from zope.schema import Float 
 from hive.lab import migrate
+from hive.lab import model
+
 ############################################################################################
 # 1) Make sure that blueprint zid has been added as a column to specimen 
 # 2) First we need to create a Default Research Lab
@@ -44,6 +46,7 @@ def import_(context, logger=default_logger):
 
     # 3) Create Default Specimen 
     createDefaultSpecimenBlueprints(research_lab)
+    addBlueprintIds(context)
     setupStudiesCycles(context)
     collectStudySpecimen(context)
     collectCycleSpecimen(context)
@@ -335,3 +338,26 @@ def cleanupStudiesCycles(context):
                 delattr(visit, 'requested_specimen')
             except AttributeError:
                 pass
+                
+                
+def addBlueprintIds(context):
+    datastore = queryUtility(IDatastore, u'fia', context) 
+    session = datastore.getScopedSession()
+    catalog = getToolByName(context, 'portal_catalog')
+    specimen_brains = catalog(portal_type='hive.lab.specimenblueprint')
+    intids = getUtility(IIntIds)
+    for brain in specimen_brains:
+        specimen_bp = brain.getObject()
+        specimen_type = specimen_bp.type
+        bp_zid = intids.getId(specimen_bp)
+        
+        query = (
+            session.query(model.Specimen)
+            .filter(model.Specimen.type.has(value=unicode(specimen_type))
+            )
+            
+        query.update(dict(blueprint_zid=bp_zid), 'fetch')
+        
+        
+        
+        
