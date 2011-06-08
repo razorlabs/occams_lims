@@ -11,6 +11,7 @@ from z3c.form import button,\
                      
 from z3c.form.interfaces import DISPLAY_MODE
 from zope.component import getSiteManager
+from AccessControl import getSecurityManager
 
 
 
