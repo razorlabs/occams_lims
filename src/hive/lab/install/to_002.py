@@ -353,10 +353,12 @@ def addBlueprintIds(context):
         
         query = (
             session.query(model.Specimen)
-            .filter(model.Specimen.type.has(               value=unicode(specimen_type)))
+            .filter(model.Specimen.type.has(value=unicode(specimen_type)))
         )
-        for specimen in query.all():
+        
+        specimens = query.all()
+        for specimen in specimens:
             setattr(specimen, 'blueprint_zid', bp_zid)
-            session.flush()        
+        session.flush()                       
         
         
