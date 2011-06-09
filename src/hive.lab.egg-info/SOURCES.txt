@@ -58,7 +58,7 @@ src/hive/lab/interfaces/specimen.py
 src/hive/lab/migrate/__init__.py
 src/hive/lab/migrate/manage.py
 src/hive/lab/migrate/migrate.cfg
-src/hive/lab/migrate/versions/001_Add_zids.py
+src/hive/lab/migrate/versions/001_Spcimen_Aliquot_inventory_changes.py
 src/hive/lab/migrate/versions/002_New_aliquot_history_columns.py
 src/hive/lab/migrate/versions/__init__.py
 src/hive/lab/profiles/default/jsregistry.xml
