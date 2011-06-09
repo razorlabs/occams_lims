@@ -175,17 +175,6 @@ class SpecimenButtonCore(ButtonCore):
     def handleSelectAll(self, action):
         pass
 
-    @button.buttonAndHandler(_('Print Selected'), name='printed')
-    def handlePrint(self, action):
-        self.saveChanges(action)
-        self.printLabels(action)
-        return self.request.response.redirect(self.action)
-
-    @button.buttonAndHandler(_('Save All Changes'), name='updated')
-    def handleUpdate(self, action):
-        self.saveChanges(action)
-        self._update_subforms()
-        return self.request.response.redirect(self.action)
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -240,6 +229,18 @@ class SpecimenPendingButtons(SpecimenButtonCore):
     @property
     def prefix(self):
         return 'specimen-pending.'
+        
+    @button.buttonAndHandler(_('Print Selected'), name='printed')
+    def handlePrint(self, action):
+        self.saveChanges(action)
+        self.printLabels(action)
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Save All Changes'), name='updated')
+    def handleUpdate(self, action):
+        self.saveChanges(action)
+        self._update_subforms()
+        return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
@@ -276,6 +277,18 @@ class SpecimenBatchedButtons(SpecimenButtonCore):
     @property
     def prefix(self):
         return 'specimen-batched.'
+
+    @button.buttonAndHandler(_('Print Selected'), name='printed')
+    def handlePrint(self, action):
+        self.saveChanges(action)
+        self.printLabels(action)
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Save All Changes'), name='updated')
+    def handleUpdate(self, action):
+        self.saveChanges(action)
+        self._update_subforms()
+        return self.request.response.redirect(self.action)
         
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
@@ -291,6 +304,18 @@ class SpecimenPostponedButtons(SpecimenButtonCore):
     @property
     def prefix(self):
         return 'specimen-postponed.'
+
+    @button.buttonAndHandler(_('Print Selected'), name='printed')
+    def handlePrint(self, action):
+        self.saveChanges(action)
+        self.printLabels(action)
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Save All Changes'), name='updated')
+    def handleUpdate(self, action):
+        self.saveChanges(action)
+        self._update_subforms()
+        return self.request.response.redirect(self.action)
         
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
