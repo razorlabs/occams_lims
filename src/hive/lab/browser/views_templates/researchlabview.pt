@@ -53,7 +53,7 @@
         <tal:crud  replace="structure view/crudform" />
         <br class="visualClear" />
 	<hr><br>
-	<p><b>Print Selected:</b> Readies selected specimens for aliquot.</p>
+	<p><b>Ready Selected:</b> Readies selected specimens for aliquot.</p>
     </metal:content-core>
   </metal:content-core>
 </html>
