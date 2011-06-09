@@ -297,7 +297,7 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
 
         if source.dsid is not None:
             entry = Session.query(Model).get(source.dsid)
-            previous_state_id = entry.state_id
+            previous_state = entry.state
         else:
             # which enrollment we get the subject from.
             specimen = Session.query(model.Specimen).get(source.specimen_dsid)
