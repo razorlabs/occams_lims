@@ -5,7 +5,10 @@ import zope.interface
 import zope.schema
 
 
-
+class IChecklistSupport(zope.interface.Interface):
+    """
+    Marker interface to search for aliquot associated with a specific item
+    """
 
 class IContainsSpecimen(zope.interface.Interface):
     """
@@ -26,7 +29,7 @@ class IClinicalLab(ILab):
     """
     pass
 
-class IResearchLab(ILab):
+class IResearchLab(ILab, IChecklistSupport):
     """
     An Interface for the Labs
     """

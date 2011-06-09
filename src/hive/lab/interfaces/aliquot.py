@@ -1,7 +1,8 @@
 from hive.lab import MessageFactory as _,\
                      vocabularies
 from hive.lab.interfaces.lab import IFilter,\
-                                    IFilterForm
+                                    IFilterForm,\
+                                    IChecklistSupport
 from hive.lab.interfaces.labels import ILabel
 from plone.directives import form
 import zope.interface
@@ -175,7 +176,8 @@ class IAliquotFilter(zope.interface.Interface):
         """
 
 
-class IAliquotSupport(zope.interface.Interface):
+
+class IAliquotSupport(IChecklistSupport):
     """
     Marker interface to search for aliquot associated with a specific item
     """

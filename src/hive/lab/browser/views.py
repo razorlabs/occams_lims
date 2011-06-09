@@ -4,7 +4,8 @@ from five import grok
 from hive.lab import MessageFactory as _
 from hive.lab.browser import crud
 from hive.lab.interfaces.aliquot import IAliquotSupport,\
-                                        IViewableAliquot
+                                        IViewableAliquot,\
+                                        IChecklistSupport
 from hive.lab.interfaces.lab import IClinicalLab,\
                                     IResearchLab
 from hive.lab.interfaces.managers import IAliquotManager,\
@@ -516,7 +517,7 @@ class AliquotCheckList(dexterity.DisplayForm):
     """
     Primary view for a clinical lab object.
     """
-    grok.context(IAliquotSupport)
+    grok.context(IChecklistSupport)
     grok.require('hive.lab.ViewAliquot')
     grok.name('checklist')
 
