@@ -222,7 +222,7 @@ class SpecimenBlueprint(content.Container):
         create aliquots.
         """
         moldlist = []
-        for aliquot_blueprint in self.listFolderContents({'portal_type':'hive.lab.aliquotblueprint'}):
+        for id, aliquot_blueprint in self.contentItems({'portal_type':'hive.lab.aliquotblueprint'}):
             moldlist.append(aliquot_blueprint.createAliquot(specimen))
         return moldlist
         # Get the transaction and commit it?
