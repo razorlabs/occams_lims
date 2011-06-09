@@ -163,6 +163,7 @@ class AliquotCoreForm(crud.CrudForm):
             if visit is not None:
                 url = '%s/aliquot' % visit.absolute_url()
             else:
+                intids = zope.component.getUtility(IIntIds)
                 patient = intids.getObject(specimen.subject_zid)
                 url = '%s/aliquot' % patient.absolute_url()
             return url
