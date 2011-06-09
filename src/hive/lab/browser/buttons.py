@@ -212,6 +212,35 @@ class AliquotButtonCore(ButtonCore):
         else:
             self.status = _(u"Please select %s to queue." % self.sampletype)
 
+    def saveChanges(self, action):
+        """
+        Apply changes to all items on the page
+        """
+        success = SUCCESS_MESSAGE
+        partly_success = _(u"Some of your changes could not be applied.")
+        status = no_changes = NO_CHANGES
+        for subform in self.subforms:
+            data, errors = subform.extractData()
+            if errors:
+                if status is no_changes:
+                    status = subform.formErrorsMessage
+                elif status is success:
+                    status = partly_success
+                continue
+            self.context.before_update(subform.content, data)
+            obj = subform.content
+            updated = False
+            for prop, value in data.items():
+
+                if hasattr(obj, prop) and getattr(obj, prop) != value:
+                    setattr(obj, prop, value)
+                    updated = True
+                    if status is no_changes:
+                        status = success
+            if updated:
+                newobj = self.dsmanager.put(obj, by=self.currentUser)
+        self.status = status
+
     @button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
         pass
