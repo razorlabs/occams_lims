@@ -329,7 +329,7 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
                 aliquot=entry,
                 from_state_id=previous_state_id,
                 to_state_id=entry.state_id,
-                action_date=model.NOW(),
+                action_date=model.NOW,
                 create_name=by,
                 )
             Session.add(history)
