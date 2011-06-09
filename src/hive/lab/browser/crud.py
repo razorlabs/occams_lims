@@ -816,7 +816,7 @@ class SpecimenAddForm(z3cform.Form):
                 )
             return
         for specimen in data['available_specimen']:
-            specimen_manager.put(specimen, by=self.currentUser)
+            specimen_manager.put(specimen)
 
         return self.request.response.redirect(self.redirect_url)
 
