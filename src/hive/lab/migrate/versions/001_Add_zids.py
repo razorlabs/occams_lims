@@ -12,6 +12,8 @@ terms = [
     dict(vocabulary_name='aliquot_state', title=u'Inaccurate Data', token=u'incorrect', value=u'incorrect', is_active=True, create_date=NOW, modify_date=NOW),
     dict(vocabulary_name='aliquot_state', title=u'Check Out', token=u'pending-checkout', value=u'pending-checkout', is_active=True, create_date=NOW, modify_date=NOW),
     dict(vocabulary_name='aliquot_state', title=u'Hold in Queue', token=u'queued', value=u'queued', is_active=True, create_date=NOW, modify_date=NOW),
+    dict(vocabulary_name='specimen_state', title=u'Batched', token=u'batched', value=u'batched', is_active=True, create_date=NOW, modify_date=NOW),
+    dict(vocabulary_name='specimen_state', title=u'Draw Postponed', token=u'postponed', value=u'postponed', is_active=True, create_date=NOW, modify_date=NOW),
     ]
 
 def upgrade(migrate_engine):

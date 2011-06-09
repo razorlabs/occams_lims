@@ -443,8 +443,11 @@ class AliquotPreparedForm(AliquotCoreForm):
 
     def getkwargs(self):
         sessionkeys = utils.getSession(self.context, self.request)
-        kw = IFilter(self.context).getFilter(sessionkeys)
+        statefilter=False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
+            statefilter=True
+        kw = IFilter(self.context).getFilter(sessionkeys)
+        if statefilter:
             kw['state'] = self.display_state
         return kw
 
@@ -599,8 +602,11 @@ class AliquotListForm(AliquotCoreForm):
 
     def getkwargs(self):
         sessionkeys = utils.getSession(self.context, self.request)
-        kw = IFilter(self.context).getFilter(sessionkeys)
+        statefilter=False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
+            statefilter=True
+        kw = IFilter(self.context).getFilter(sessionkeys)
+        if statefilter:
             kw['state'] = self.display_state
         return kw
 

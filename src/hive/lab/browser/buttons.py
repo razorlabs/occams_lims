@@ -357,7 +357,7 @@ class AliquotCreator(crud.EditForm):
             for id, aliquottemplate in selected:
                 specimenobj = self.context.specimen_manager.get(aliquottemplate.specimen_dsid)
                 setattr(specimenobj, 'state', unicode(state))
-                newspecimen = self.context.specimen_manager.put(specimenobj, by=self.currentUser)
+                newspecimen = self.context.specimen_manager.put(specimenobj)
             self.status = _(u"Your specimen have been %s." % (acttitle))
         else:
             self.status = _(u"Please select aliquot templates." % (acttitle))

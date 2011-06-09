@@ -86,10 +86,11 @@
                     <td tal:content="aliquot/patient_title" />
                     <td tal:content="aliquot/patient_legacy_number" />
                     <td tal:content="aliquot/store_date" />
-                    <td tal:content="aliquot/pretty_aliquot_type" />
+                    <td tal:content="aliquot/pretty_type" />
                     <td >
-                        <span tal:condition="aliquot/volume" tal:replace="aliquot/volume" />
-                        <span tal:condition="aliquot/cell_amount" tal:replace="aliquot/cell_amount" />
+                        <span tal:condition="python:hasattr(aliquot, 'volume') and aliquot.volume" tal:replace="aliquot/volume" />
+                        
+                        <span tal:condition="python:hasattr(aliquot, 'cell_amount') and aliquot.cell_amount" tal:replace="aliquot/cell_amount" />
                     </td>
                     <td>
                         <span tal:replace="aliquot/freezer|string:?" /> /                         <span tal:replace="aliquot/rack|string:?" /> /                         <span tal:replace="aliquot/box|string:?" />
