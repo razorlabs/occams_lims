@@ -5,7 +5,7 @@ metadata = MetaData()
 
 NOW = datetime.datetime.now()
 
-specimen_blueprint_zid = Column('specimen_blueprint_zid', Integer, nullable=True)
+specimen_blueprint_zid = Column('blueprint_zid', Integer, nullable=True)
 aliquot_sent_notes = Column('sent_notes', Unicode)
 
 
