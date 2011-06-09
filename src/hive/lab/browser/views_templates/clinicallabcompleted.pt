@@ -11,10 +11,10 @@
     
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
-                Description of Form Here
+                Specimens Processed Today
                 <tal:crud replace="structure form" />
                 <br class="visualClear" />
-                Description of buttons here
+                <p><b>Recover Selected:</b> Moves selected specimens back to the pre-processing (view) stage in case of error.</p>
             </tal:hasdata>
             <tal:nodata tal:condition="not:form">
                 No Data 
