@@ -326,7 +326,7 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
 
         if previous_state_id != entry.state_id:
             history = model.AliquotHistory(
-                aliquot_id=entry.id,
+                aliquot=entry,
                 from_state_id=previous_state_id,
                 to_state_id=entry.state_id,
                 action_date=model.NOW,
