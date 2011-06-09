@@ -508,7 +508,7 @@ class AliquotList(dexterity.DisplayForm):
         if len(brains):
             url = brains[0].getURL()
         else:
-            url = '#'
+            url = './'
         return url
         
 # ------------------------------------------------------------------------------
