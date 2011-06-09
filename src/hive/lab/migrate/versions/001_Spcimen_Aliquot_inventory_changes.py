@@ -35,24 +35,5 @@ def upgrade(migrate_engine):
 
 
 def downgrade(migrate_engine):
-    metadata.bind = migrate_engine
-
-    specimen_table = Table('specimen', metadata, autoload=True)
-    aliquot_table = Table('aliquot', metadata, autoload=True)
-    vocabulary_table = Table('specimen_aliquot_term', metadata, autoload=True)
-
-    specimen_blueprint_zid.drop(specimen_table)
-    aliquot_sent_notes.drop(aliquot_table)
-
-    tokens = [t['token'] for t in terms]
-
-    query = (
-        vocabulary_table.delete()
-        .where(
-            (vocabulary_table.c.vocabulary_name == 'aliquot_state') &
-            (vocabulary_table.c.token.in_(tokens))
-            )
-        )
-
-    metadata.bind.execute(query)
+    """ Irreversable, too bad ""
 

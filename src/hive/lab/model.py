@@ -318,12 +318,8 @@ class AliquotHistory(Model):
         nullable=False,
         index=True
         )
-
-    state_id = Column(
-        ForeignKey(SpecimenAliquotTerm.id, ondelete='CASCADE'),
-        nullable=False,
-        index=True
-        )
+        
+    aliquot = Relationship('Aliquot')
 
     from_state_id = Column(
         ForeignKey(SpecimenAliquotTerm.id, ondelete='CASCADE'),
@@ -342,7 +338,7 @@ class AliquotHistory(Model):
         index=True
         )
 
-    from_state = Relationship(
+    to_state = Relationship(
         'SpecimenAliquotTerm',
         primaryjoin=to_state_id == SpecimenAliquotTerm.id
         )
