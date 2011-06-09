@@ -11,10 +11,16 @@
     
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
-                Description of Form Here
+                Postponed Specimens (For Optional Processing) 
                 <tal:crud replace="structure form" />
                 <br class="visualClear" />
-                Description of buttons here
+                <hr><br>
+		<p><b>Print Selected:</b> Saves all specimens and generates labels for selected specimens.</p>
+                <p><b>Save All Changes:</b> Saves all changes to specimens.</p>
+		<p><b>Complete Selected:</b> Marks selected specimens as processed and ready for aliquot.</p>
+                <p><b>Batch Selected:</b> Moves selected specimens to the batch stage (for grouped processing at a later date).</p>
+                <p><b>Mark Selected Undrawn:</b> Marks selected specimens as
+ undrawn (never to be processed).</p>
             </tal:hasdata>
             <tal:nodata tal:condition="not:form">
                 No Data 
