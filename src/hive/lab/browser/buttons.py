@@ -401,6 +401,18 @@ class AliquotCreator(crud.EditForm):
 
     editsubform_factory = OrderedSubForm
 
+    def render_batch_navigation(self):
+        """
+        Render the batch navigation to include the default styles for Plone
+        """
+        navigation = BatchNavigation(self.batch, self.request)
+
+        def make_link(page):
+            return "%s?%spage=%s" % (self.request.getURL(), self.prefix, page)
+
+        navigation.make_link = make_link
+        return navigation()
+
     def changeState(self, action, state, acttitle):
         """
         Change the state of a specimen based on the id pulled from a template 
