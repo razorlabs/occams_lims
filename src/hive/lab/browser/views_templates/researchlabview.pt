@@ -8,6 +8,7 @@
       lang="en">
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
+	Specimens In The Clinical Lab Processing Queue
         <table class="listing">
             <thead>
                 <tr>
@@ -51,6 +52,8 @@
         <br class="visualClear" />
         <tal:crud  replace="structure view/crudform" />
         <br class="visualClear" />
+	<hr><br>
+	<p><b>Print Selected:</b> Readies selected specimens for aliquot.</p>
     </metal:content-core>
   </metal:content-core>
 </html>
