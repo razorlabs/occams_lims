@@ -61,6 +61,11 @@ class ButtonCore(crud.EditForm):
     sampletype = None
     editsubform_factory = OrderedSubForm
 
+    @property
+    def prefix(self):
+        return 'crud-edit.'
+
+
     def __init__(self, context, request):
         """
         Provide a specimen manager for these buttons
@@ -232,6 +237,10 @@ class SpecimenPendingButtons(SpecimenButtonCore):
     label = _(u"")
     z3cform.extends(SpecimenButtonCore)
 
+    @property
+    def prefix(self):
+        return 'specimen-pending.'
+
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
@@ -264,7 +273,10 @@ class SpecimenPendingButtons(SpecimenButtonCore):
 class SpecimenBatchedButtons(SpecimenButtonCore):
     label = _(u"")
     z3cform.extends(SpecimenButtonCore)
-
+    @property
+    def prefix(self):
+        return 'specimen-batched.'
+        
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
@@ -276,6 +288,10 @@ class SpecimenBatchedButtons(SpecimenButtonCore):
 class SpecimenPostponedButtons(SpecimenButtonCore):
     label = _(u"Postponed Specimen")
     z3cform.extends(SpecimenButtonCore)
+    @property
+    def prefix(self):
+        return 'specimen-postponed.'
+        
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
@@ -303,6 +319,10 @@ class SpecimenRecoverButtons(SpecimenButtonCore):
     label = _(u"")
     z3cform.extends(SpecimenButtonCore)
 
+    @property
+    def prefix(self):
+        return 'specimen-recover.'
+        
     @button.buttonAndHandler(_('Recover selected'), name='recover')
     def handleRecover(self, action):
         self.changeState(action, 'pending-draw', 'recover')
@@ -316,6 +336,10 @@ class SpecimenRecoverButtons(SpecimenButtonCore):
 class ReadySpecimenButtons(SpecimenButtonCore):
     label = _(u"")
 
+    @property
+    def prefix(self):
+        return 'specimen-ready.'
+        
     @button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
         pass
@@ -334,7 +358,10 @@ class AliquotCreator(crud.EditForm):
     """
     """
     label = _(u"")
-
+    @property
+    def prefix(self):
+        return 'aliquot-creator.'
+        
     def __init__(self, context, request):
         """
         Provide a specimen manager for these buttons
@@ -424,6 +451,10 @@ class AliquotPreparedButtons(AliquotButtonCore):
     label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
+    @property
+    def prefix(self):
+        return 'aliquot-prepared.'
+        
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
@@ -457,6 +488,10 @@ class AliquotRecoverButtons(AliquotButtonCore):
     label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
+    @property
+    def prefix(self):
+        return 'aliquot-recover.'
+        
     @button.buttonAndHandler(_('Recover Aliquot'), name='recover')
     def handleRecoverAliquot(self, action):
         self.changeState(action, 'pending', 'Recovered')
@@ -470,6 +505,10 @@ class AliquotEditButtons(AliquotButtonCore):
     label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
+    @property
+    def prefix(self):
+        return 'aliquot-edit.'
+        
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
@@ -496,6 +535,10 @@ class AliquotCheckinButtons(AliquotButtonCore):
     label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
+    @property
+    def prefix(self):
+        return 'aliquot-checkin.'
+        
     def saveChanges(self, action):
         """
         Apply changes to all items on the page
@@ -548,6 +591,10 @@ class AliquotCheckoutButtons(AliquotButtonCore):
     label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
+    @property
+    def prefix(self):
+        return 'aliquot-checkout.'
+        
     @button.buttonAndHandler(_('Complete Check Out'), name='checkedout')
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
@@ -573,6 +620,10 @@ class AliquotQueueButtons(AliquotButtonCore):
     label = _(u"")
     z3cform.extends(AliquotButtonCore)
 
+    @property
+    def prefix(self):
+        return 'aliquot-queue.'
+        
     @button.buttonAndHandler(_('Queue & Hold'), name='queue')
     def handleQueue(self, action):
         self.changeState(action, 'queued', 'Queued')
@@ -593,6 +644,10 @@ class AliquotHoldButtons(AliquotButtonCore):
     """
     z3cform.extends(AliquotButtonCore)
 
+    @property
+    def prefix(self):
+        return 'aliquot-hold.'
+        
     @button.buttonAndHandler(_('Print List'), name='print')
     def handleQueue(self, action):
         return self.request.response.redirect('%s/%s' % (self.context.context.absolute_url(), 'checklist'))
@@ -634,6 +689,10 @@ class LabelButtons(crud.EditForm):
     """
     editsubform_factory = OrderedSubForm
 
+    @property
+    def prefix(self):
+        return 'label.'
+        
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone
