@@ -54,4 +54,4 @@ def upgrade(migrate_engine):
 
 
 def downgrade(migrate_engine):
-    """ Irreversable, too bad ""
+    """ Irreversable, too bad """
