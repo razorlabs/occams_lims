@@ -452,6 +452,14 @@ class AliquotPreparedForm(AliquotCoreForm):
             kw['state'] = self.display_state
         return kw
 
+    def get_items(self):
+        aliquotlist = []
+        kw = self.getkwargs()
+        aliquot = self.dsmanager.filter_records(**kw)
+        for aliquotobj in aliquot:
+            aliquotlist.append((aliquotobj.dsid, aliquotobj))
+        return aliquotlist
+        
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class AliquotCompletedForm(AliquotCoreForm):

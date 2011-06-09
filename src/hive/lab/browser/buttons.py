@@ -118,6 +118,7 @@ class ButtonCore(crud.EditForm):
             obj = subform.content
             updated = False
             for prop, value in data.items():
+
                 if hasattr(obj, prop) and getattr(obj, prop) != value:
                     setattr(obj, prop, value)
                     updated = True
@@ -619,6 +620,12 @@ class AliquotCheckoutButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-checkout.'
+
+    @button.buttonAndHandler(_('Save Changes'), name='save')
+    def handleSaveChanges(self, action):
+        self.saveChanges(action)
+        self._update_subforms()
+        return self.request.response.redirect(self.action)
         
     @button.buttonAndHandler(_('Complete Check Out'), name='checkedout')
     def handleCheckoutAliquot(self, action):
