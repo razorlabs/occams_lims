@@ -279,6 +279,8 @@ class Aliquot(Model):
         primaryjoin=(sent_site_id == SpecimenAliquotTerm.id)
         )
 
+    sent_notes = Column(Unicode)
+
     notes = Column(Unicode)
 
     special_instruction_id = Column(

@@ -5,8 +5,9 @@ metadata = MetaData()
 
 NOW = datetime.datetime.now()
 
-blueprint_zid = Column('blueprint_zid', Integer, nullable=True, unique=False)
-inventory_date = Column('inventory_date', Date)
+specimen_blueprint_zid = Column('specimen_blueprint_zid', Integer, nullable=True)
+aliquot_sent_notes = Column('sent_notes', Unicode)
+
 
 terms = [
     dict(vocabulary_name='aliquot_state', title=u'Inaccurate Data', token=u'incorrect', value=u'incorrect', is_active=True, create_date=NOW, modify_date=NOW),
@@ -27,7 +28,8 @@ def upgrade(migrate_engine):
     aliquot_table = Table('aliquot', metadata, autoload=True)
     vocabulary_table = Table('specimen_aliquot_term', metadata, autoload=True)
 
-    blueprint_zid.create(specimen_table)
+    specimen_blueprint_zid.create(specimen_table)
+    aliquot_sent_notes.create(aliquot_table)
 
     metadata.bind.execute(vocabulary_table.insert(), terms)
 
@@ -39,7 +41,8 @@ def downgrade(migrate_engine):
     aliquot_table = Table('aliquot', metadata, autoload=True)
     vocabulary_table = Table('specimen_aliquot_term', metadata, autoload=True)
 
-    blueprint_zid.drop(specimen_table)
+    specimen_blueprint_zid.drop(specimen_table)
+    aliquot_sent_notes.drop(aliquot_table)
 
     tokens = [t['token'] for t in terms]
 

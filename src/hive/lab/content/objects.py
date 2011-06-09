@@ -2,7 +2,7 @@ from avrc.data.store._item import AbstractItem
 from hive.lab import utilities as utils
 from hive.lab.interfaces.aliquot import IAliquot, IAliquotBlueprint
 from hive.lab.interfaces.lab import IFilterForm
-from hive.lab.interfaces.specimen import ISpecimen,\
+from hive.lab.interfaces.specimen import ISpecimen, \
                                          ISpecimenBlueprint
 from plone.dexterity import content
 from zope.app.intid.interfaces import IIntIds
@@ -60,23 +60,23 @@ class Specimen(AbstractItem):
         if rslt.destination is not None:
             destination = rslt.destination.value
         else:
-            destination = None        
+            destination = None
         obj.destination = destination
         obj.tubes = rslt.tubes
         if rslt.tube_type is not None:
             tube_type = rslt.tube_type.value
         else:
-            tube_type = None        
+            tube_type = None
         obj.tube_type = tube_type
         obj.notes = rslt.notes
         if rslt.visit is not None:
             visit_zid = rslt.visit.zid
         else:
             visit_zid = None
-        obj.visit_zid = visit_zid 
+        obj.visit_zid = visit_zid
         return obj
 
-    def visit(self):    
+    def visit(self):
         intids = zope.component.getUtility(IIntIds)
         if self.visit_zid:
             try:
@@ -86,7 +86,7 @@ class Specimen(AbstractItem):
         else:
             visit = None
         return visit
-        
+
 class Aliquot(AbstractItem):
     """ See `IAliquot`
     """
@@ -109,6 +109,7 @@ class Aliquot(AbstractItem):
     sent_date = FieldProperty(IAliquot["sent_date"])
     sent_name = FieldProperty(IAliquot["sent_name"])
     notes = FieldProperty(IAliquot["notes"])
+    sent_notes = FieldProperty(IAliquot["sent_notes"])
     special_instruction = FieldProperty(IAliquot["special_instruction"])
 
     @classmethod
@@ -119,12 +120,12 @@ class Aliquot(AbstractItem):
         if rslt.type is not None:
             type = rslt.type.value
         else:
-            type = None     
+            type = None
         obj.type = type
         if rslt.state is not None:
             state = rslt.state.value
         else:
-            state = None   
+            state = None
         obj.state = state
         obj.volume = rslt.volume
         obj.cell_amount = rslt.cell_amount
@@ -135,21 +136,22 @@ class Aliquot(AbstractItem):
         if rslt.storage_site is not None:
             storage_site = rslt.storage_site.value
         else:
-            storage_site = None   
+            storage_site = None
         obj.storage_site = storage_site
         obj.thawed_num = rslt.thawed_num
         if rslt.analysis_status is not None:
             analysis_status = rslt.analysis_status.value
         else:
-            analysis_status = None   
+            analysis_status = None
         obj.analysis_status = analysis_status
         obj.sent_date = rslt.sent_date
         obj.sent_name = rslt.sent_name
         obj.notes = rslt.notes
+        obj.sent_notes = rslt.sent_notes
         if rslt.special_instruction is not None:
             special_instruction = rslt.special_instruction.value
         else:
-            special_instruction = None   
+            special_instruction = None
         obj.special_instruction = special_instruction
         return obj
 
@@ -187,9 +189,9 @@ class SpecimenBlueprint(content.Container):
         return Specimen(**kwargs)
 
     def getOmittedFields(self):
-        omitted=['type']
+        omitted = ['type']
         return omitted
-        
+
     def getFilter(self, basekw={}, states=[]):
         """
         return a dictionary with keywords for this item based on an existing set of keys
@@ -213,7 +215,7 @@ class SpecimenBlueprint(content.Container):
                     retkw[key] = basekw[key]
         retkw.update({'type':self.type})
         return retkw
-        
+
     def createAliquotMold(self, specimen):
         """
         Loop through the aliquot in this folder, and 
@@ -255,9 +257,9 @@ class AliquotBlueprint(content.Item):
         return Aliquot(**kwargs)
 
     def getOmittedFields(self):
-        omitted=['type']
+        omitted = ['type']
         return omitted
-        
+
     def getFilter(self, basekw={}, states=[]):
         """
         return a dictionary with keywords for this item based on an existing set of keys

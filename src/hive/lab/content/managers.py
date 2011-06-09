@@ -128,7 +128,7 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
 
                     if filter is not None:
                         filters.append(filter)
-                        
+
             if len(filters):
                 filter = or_(*filters)
                 query = query.filter(filter)
@@ -321,6 +321,7 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
         entry.box = source.box
         entry.thawed_num = source.thawed_num
         entry.notes = source.notes
+        entry.sent_notes = source.sent_notes
         entry.modify_name = by
 
         if previous_state_id != entry.state_id:
