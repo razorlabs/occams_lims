@@ -505,7 +505,7 @@ class AliquotList(dexterity.DisplayForm):
     def labUrl(self):
         url = './'
         catalog = getToolByName(self.context, 'portal_catalog')
-        brains = catalog.search({'portal_type:hive.lab.researchlab'})
+        brains = catalog.search({'portal_type':'hive.lab.researchlab'})
         if len(brains):
             url = brains[0].getURL()
         return url
