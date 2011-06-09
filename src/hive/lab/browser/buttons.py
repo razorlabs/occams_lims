@@ -212,6 +212,19 @@ class AliquotButtonCore(ButtonCore):
         else:
             self.status = _(u"Please select %s to queue." % self.sampletype)
 
+    def changeState(self, action, state, acttitle):
+        """
+        Using the passed state, change the selected items to that state
+        """
+        selected = self.selected_items()
+        if selected:
+            for id, obj in selected:
+                setattr(obj, 'state', unicode(state))
+                newobj = self.dsmanager.put(obj, by=self.currentUser)
+            self.status = _(u"Your %s have been changed to the status of %s." % (self.sampletype, acttitle))
+        else:
+            self.status = _(u"Please select %s" % (self.sampletype))
+
     def saveChanges(self, action):
         """
         Apply changes to all items on the page
