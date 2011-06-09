@@ -415,6 +415,10 @@ class AliquotCreator(crud.EditForm):
         else:
             self.status = _(u"Please select aliquot templates." % (acttitle))
 
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+        
     @button.buttonAndHandler(_('Create Aliquot'), name='aliquot')
     def handleCreateAliquot(self, action):
         """
