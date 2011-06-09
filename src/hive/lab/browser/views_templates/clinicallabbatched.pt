@@ -11,10 +11,13 @@
     
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
-                Description of Form Here
+                Batched Specimens (To Be Group Processed)
                 <tal:crud replace="structure form" />
                 <br class="visualClear" />
-                Description of buttons here
+                <hr><br>
+		<p><b>Print Selected:</b> Saves all specimens and generates labels for selected specimens.</p>
+		<p><b>Save All Changes:</b> Saves all changes to specimens.</p>
+		<p><b>Complete Selected:</b> Marks selected specimens as processed and ready for aliquot.</p>
             </tal:hasdata>
             <tal:nodata tal:condition="not:form">
                 No Data 
