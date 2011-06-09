@@ -304,7 +304,7 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
 
             # specimen is not already in the data base, we need to create one
             entry = Model(specimen=specimen, type=term["aliquot_type"], create_name=by)
-            previous_state = term["aliquot_state"].id
+            previous_state = term["aliquot_state"]
             Session.add(entry)
 
         entry.analysis_status = term["aliquot_state"]
