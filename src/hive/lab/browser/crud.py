@@ -337,15 +337,28 @@ class SpecimenSupportForm(SpecimenCoreForm):
     @property
     def edit_schema(self):
         return None
-        
+
+
+    @property
+    def display_state(self):
+        return [u'complete','pending-draw','batched','postponed']
+
+  
     @property
     def editform_factory(self):
         return buttons.SpecimenRecoverButtons
  
     def getkwargs(self):
         sessionkeys = utils.getSession(self.context, self.request)
+        statefilter=False
+        if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
+            statefilter=True
         kw = IFilter(self.context).getFilter(sessionkeys)
+        if statefilter:
+            kw['state'] = self.display_state
         return kw
+ 
+
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -571,15 +584,20 @@ class AliquotCheckinForm(AliquotCoreForm):
             select('freezer', 'rack', 'box', 'notes')
         return fields
 
-#     def updateWidgets(self):
-#         super(AliquotCheckinForm, self).updateWidgets()
-#         if self.update_schema is not None:
-#             if 'thawed' in self.update_schema.keys():
-#                 self.update_schema['thawed'].widgetFactory = widgets.YesNoFieldWidget
-
     @property
     def display_state(self):
         return u"checked-out"
+
+    def getkwargs(self):
+        sessionkeys = utils.getSession(self.context, self.request)
+        statefilter=False
+        if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
+            statefilter=True
+        kw = IFilter(self.context).getFilter(sessionkeys)
+        if statefilter:
+            kw['state'] = self.display_state
+        return kw
+ 
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------   
@@ -641,7 +659,7 @@ class AliquotQueueForm(AliquotCoreForm):
         fields += field.Fields(IAliquot).\
             select( 'store_date')
         fields += field.Fields(IViewableAliquot).\
-            select('frb', 'special_instruction')
+            select('frb')
         fields += field.Fields(IAliquot).\
             select('notes')
         return fields

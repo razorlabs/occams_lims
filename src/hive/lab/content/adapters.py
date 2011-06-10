@@ -89,7 +89,15 @@ class ViewableAliquot(grok.Adapter):
     @property
     def patient_legacy_number(self):
         specimenobj = utils.get_specimen(self.context.specimen_dsid)
-        return utils.get_patient_legacy_number(specimenobj.subject_zid)
+        aeh = utils.get_patient_legacy_number(specimenobj.subject_zid)
+        mbn = utils.get_patient_master_book_number(specimenobj.subject_zid)
+        if aeh and mbn:
+            ret = '%s / %s' %(aeh, mbn)
+        elif aeh:
+            ret = aeh
+        else:
+            ret = mbn
+        return ret
 
     @property
     def study_title(self):
@@ -436,7 +444,7 @@ class LabelPrinter(grok.Adapter):
 #         queuelist = []
         queue = self.getLabelQueue()
 #for labelable in
-        return queue(sort_on='dsid', sort_order='descending')
+        return queue(sort_on='dsid', sort_order='ascending')
 #            queuelist.append(labelable)
 #        return queuelist
 

@@ -124,7 +124,7 @@ class IViewableAliquot(IAliquot, form.Schema):
         )
 
     patient_legacy_number = zope.schema.TextLine(
-        title=u"Patient Legacy (AEH) Number",
+        title=u"Patient AEH / MBN",
         readonly=True
         )
 
