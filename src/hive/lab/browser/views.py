@@ -16,6 +16,8 @@ from plone.directives import dexterity
 from zope.component import getSiteManager
 from zope.security import checkPermission
 from Products.CMFCore.utils import getToolByName
+from AccessControl import getSecurityManager
+
 
 # ------------------------------------------------------------------------------
 # Clinical Lab Views |
@@ -534,8 +536,38 @@ class AliquotCheckList(dexterity.DisplayForm):
         """
         kw = {}
         kw['state'] = u'queued'
+        kw['modify-name'] = self.currentUser
         for aliquot in self.dsmanager.filter_records(**kw):
             yield IViewableAliquot(aliquot)
+
+
+class AliquotReceipt(dexterity.DisplayForm):
+    """
+    Primary view for a clinical lab object.
+    """
+    grok.context(IResearchLab)
+    grok.require('hive.lab.ViewAliquot')
+    grok.name('receipt')
+
+    def __init__(self, context, request):
+        super(AliquotCheckList, self).__init__(context, request)
+        sm = getSiteManager(context)
+        ds = sm.queryUtility(IDatastore, 'fia')
+        self.dsmanager = IAliquotManager(ds)
+        self.getaliquot = self.getAliquot()
+        self.currentUser = getSecurityManager().getUser().getId()
+        
+    def getAliquot(self):
+        """
+        Get me some aliquot
+        """
+        
+        kw = {}
+        kw['state'] = u'pending-checkout'
+        kw['modify-name'] = self.currentUser
+        for aliquot in self.dsmanager.filter_records(**kw):
+            yield IViewableAliquot(aliquot)
+
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------

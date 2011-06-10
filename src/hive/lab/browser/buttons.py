@@ -582,6 +582,12 @@ class AliquotRecoverButtons(AliquotButtonCore):
         self._update_subforms()
         return self.request.response.redirect(self.action)
 
+    @button.buttonAndHandler(_('Hold'), name='hold')
+    def handleRecoverAliquot(self, action):
+        self.changeState(action, 'hold', 'Held')
+        self._update_subforms()
+        return self.request.response.redirect(self.action)
+
 #class AliquotEditManager(AliquotButtonCore):
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -610,6 +616,12 @@ class AliquotEditButtons(AliquotButtonCore):
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'pending-checkout', 'Checked Out')
+        self._update_subforms()
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Hold'), name='hold')
+    def handleRecoverAliquot(self, action):
+        self.changeState(action, 'hold', 'Held')
         self._update_subforms()
         return self.request.response.redirect(self.action)
         
@@ -692,7 +704,7 @@ class AliquotCheckoutButtons(AliquotButtonCore):
         self._update_subforms()
         return self.request.response.redirect(self.action)
 
-    @button.buttonAndHandler(_('Return To Hold'), name='queued')
+    @button.buttonAndHandler(_('Return To Queue'), name='queued')
     def handleRehold(self, action):
         self.changeState(action, 'queued', 'Held')
         self._update_subforms()
@@ -714,7 +726,7 @@ class AliquotQueueButtons(AliquotButtonCore):
     def prefix(self):
         return 'aliquot-queue.'
         
-    @button.buttonAndHandler(_('Queue & Hold'), name='queue')
+    @button.buttonAndHandler(_('Add to Queue'), name='queue')
     def handleQueue(self, action):
         self.changeState(action, 'queued', 'Queued')
         self._update_subforms()
@@ -723,6 +735,12 @@ class AliquotQueueButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
     def handleInaccurate(self, action):
         self.changeState(action, 'incorrect', 'incorrect')
+        self._update_subforms()
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Hold'), name='hold')
+    def handleRecoverAliquot(self, action):
+        self.changeState(action, 'hold', 'Held')
         self._update_subforms()
         return self.request.response.redirect(self.action)
         
@@ -748,7 +766,7 @@ class AliquotHoldButtons(AliquotButtonCore):
         self._update_subforms()
         return self.request.response.redirect(self.action)
 
-    @button.buttonAndHandler(_('Release Hold'), name='release')
+    @button.buttonAndHandler(_('Release From Queue'), name='release')
     def handleRelease(self, action):
         self.changeState(action, 'checked-in', 'Released')
         self._update_subforms()
