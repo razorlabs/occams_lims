@@ -36,7 +36,7 @@
 
   <body>
         <h1
-          class="documentFirstHeading">Sample Reciept</h1>
+          class="documentFirstHeading">Aliquot Reciept</h1>
 
         <table class="listing">
             <tr>
@@ -58,6 +58,9 @@
                 <th>
                     Volume / # of Cells
                 </th>
+                <th>
+                    Notes
+                </th>
             </tr>
             <div tal:repeat="aliquot view/getaliquot" tal:omit-tag="">
                 <tr tal:define="odd repeat/aliquot/odd" tal:attributes="class python: odd and 'odd' or 'even'">
@@ -70,6 +73,20 @@
                         <span tal:condition="python:hasattr(aliquot, 'volume') and aliquot.volume" tal:replace="aliquot/volume" />
                         
                         <span tal:condition="python:hasattr(aliquot, 'cell_amount') and aliquot.cell_amount" tal:replace="aliquot/cell_amount" />
+                    </td>
+                    <td >
+                        <span tal:condition="python:hasattr(aliquot, 'special_instruction') and aliquot.special_instruction" tal:omit-tag="">
+                            <span tal:replace="aliquot/special_instruction" />
+                            <br />
+                        </span>
+                        <span tal:condition="python:hasattr(aliquot, 'notes') and aliquot.notes" tal:omit-tag="">
+                            <span tal:replace="aliquot/notes" />
+                            <br />
+                        </span>
+                        <span tal:condition="python:hasattr(aliquot, 'sent_notes') and aliquot.sent_notes" tal:omit-tag="">
+                            <span tal:replace="aliquot/sent_notes" />
+                            <br />
+                        </span>
                     </td>
 
                 </tr>

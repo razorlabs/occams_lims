@@ -1,4 +1,5 @@
 from avrc.data.store.interfaces import IDatastore
+from avrc.data.store.batch import SqlBatch
 from beast.browser.crud import BatchNavigation
 from hive.lab import MessageFactory as _
 from hive.lab.interfaces.labels import ILabelPrinter
@@ -85,6 +86,15 @@ class ButtonCore(crud.EditForm):
 
         navigation.make_link = make_link
         return navigation()
+
+    @property
+    def batch(self):
+        query = self.context.getQuery()
+        batch_size = self.context.batch_size or sys.maxint
+        page = self._page()
+        return SqlBatch(
+            query, start=page*batch_size, size=batch_size)
+    #batch = zope.cachedescriptors.property.CachedProperty(batch)
 
     def changeState(self, action, state, acttitle):
         """
@@ -282,35 +292,35 @@ class SpecimenPendingButtons(SpecimenButtonCore):
     @button.buttonAndHandler(_('Save All Changes'), name='updated')
     def handleUpdate(self, action):
         self.saveChanges(action)
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'complete', 'completed')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Batch Selected'), name='batched')
     def handleBatchDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'batched', 'batched')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Postpone Selected'), name='postponed')
     def handlePostponeDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'postponed', 'postponed')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='rejected')
     def handleCancelDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'rejected', 'canceled')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -330,14 +340,14 @@ class SpecimenBatchedButtons(SpecimenButtonCore):
     @button.buttonAndHandler(_('Save All Changes'), name='updated')
     def handleUpdate(self, action):
         self.saveChanges(action)
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
         
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'complete', 'completed')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -357,28 +367,28 @@ class SpecimenPostponedButtons(SpecimenButtonCore):
     @button.buttonAndHandler(_('Save All Changes'), name='updated')
     def handleUpdate(self, action):
         self.saveChanges(action)
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
         
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'complete', 'completed')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Batch Selected'), name='batched')
     def handleBatchDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'batched', 'batched')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='cancel')
     def handleCancelDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'rejected', 'canceled')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
 # ------------------------------------------------------------------------------
@@ -394,7 +404,7 @@ class SpecimenRecoverButtons(SpecimenButtonCore):
     @button.buttonAndHandler(_('Recover selected'), name='recover')
     def handleRecover(self, action):
         self.changeState(action, 'pending-draw', 'recover')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
 # ------------------------------------------------------------------------------
@@ -415,7 +425,7 @@ class ReadySpecimenButtons(SpecimenButtonCore):
     @button.buttonAndHandler(_('Ready selected'), name='ready')
     def handleCompleteDraw(self, action):
         self.changeState(action, 'pending-aliquot', 'ready')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
 # ------------------------------------------------------------------------------
@@ -511,13 +521,13 @@ class AliquotCreator(crud.EditForm):
             if status is no_changes:
                 status = success
         self.status = status
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Specimen Complete'), name='complete')
     def handleCompleteSpecimen(self, action):
         self.changeState(action, 'aliquoted', 'completed')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
 
@@ -542,7 +552,7 @@ class AliquotPreparedButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
@@ -550,7 +560,7 @@ class AliquotPreparedButtons(AliquotButtonCore):
         self.saveChanges(action)
         self.queueLabels(action)
         self.changeState(action, 'checked-in', 'Checked In')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Print Selected'), name='print')
@@ -563,7 +573,7 @@ class AliquotPreparedButtons(AliquotButtonCore):
     def handleUnusedAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'unused', 'Unused')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 #class AliquotRecoverer(AliquotButtonCore):
 # ------------------------------------------------------------------------------
@@ -579,13 +589,13 @@ class AliquotRecoverButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Recover Aliquot'), name='recover')
     def handleRecoverAliquot(self, action):
         self.changeState(action, 'pending', 'Recovered')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Hold'), name='hold')
     def handleRecoverAliquot(self, action):
         self.changeState(action, 'hold', 'Held')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
 #class AliquotEditManager(AliquotButtonCore):
@@ -602,27 +612,27 @@ class AliquotEditButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check Back In'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-in', 'Checked In')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check Out'), name='checkout')
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'pending-checkout', 'Checked Out')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Hold'), name='hold')
     def handleRecoverAliquot(self, action):
         self.changeState(action, 'hold', 'Held')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
         
 # ------------------------------------------------------------------------------
@@ -670,14 +680,14 @@ class AliquotCheckinButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check In'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-in', 'Checked In')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
         
 # ------------------------------------------------------------------------------
@@ -690,30 +700,32 @@ class AliquotCheckoutButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-checkout.'
-
+    @button.buttonAndHandler(_('Print Receipt'), name='print')
+    def handleQueue(self, action):
+        return self.request.response.redirect('%s/%s' % (self.context.context.absolute_url(), 'receipt'))
+        
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
-        self._update_subforms()
         return self.request.response.redirect(self.action)
-        
+                
     @button.buttonAndHandler(_('Complete Check Out'), name='checkedout')
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-out', 'Checked Out')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Return To Queue'), name='queued')
     def handleRehold(self, action):
         self.changeState(action, 'queued', 'Held')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check Back In'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.changeState(action, 'checked-in', 'Checked In')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------        
@@ -725,23 +737,23 @@ class AliquotQueueButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-queue.'
-        
+   
     @button.buttonAndHandler(_('Add to Queue'), name='queue')
     def handleQueue(self, action):
         self.changeState(action, 'queued', 'Queued')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
     def handleInaccurate(self, action):
         self.changeState(action, 'incorrect', 'incorrect')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Hold'), name='hold')
     def handleRecoverAliquot(self, action):
         self.changeState(action, 'hold', 'Held')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
         
 # ------------------------------------------------------------------------------
@@ -763,25 +775,25 @@ class AliquotHoldButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Check Out'), name='checkout')
     def handleCheckout(self, action):
         self.changeState(action, 'pending-checkout', 'Checked Out')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Release From Queue'), name='release')
     def handleRelease(self, action):
         self.changeState(action, 'checked-in', 'Released')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
     def handleInaccurate(self, action):
         self.changeState(action, 'incorrect', 'incorrect')
-        self._update_subforms()
+        #
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Missing'), name='missing')
     def handleMissing(self, action):
         self.changeState(action, 'missing', 'Missing')
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)
 
 # ------------------------------------------------------------------------------
@@ -850,5 +862,5 @@ class LabelButtons(crud.EditForm):
         #self.context.labeler
         for id, label in selected:
             self.context.labeler.purgeLabel(id)
-        self._update_subforms()
+        
         return self.request.response.redirect(self.action)

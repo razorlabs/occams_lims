@@ -101,6 +101,11 @@ class IViewableSpecimen(form.Schema):
         readonly=True
         )
 
+    study_week = zope.schema.TextLine(
+        title=u"Study/Week",
+        readonly=True
+        )
+
     pretty_type = zope.schema.Choice(
         title=_(u"Specimen Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_type")

@@ -18,7 +18,8 @@ from sqlalchemy.types import Boolean, \
                              Unicode
 
 
-
+from hive.lab.content.objects import Aliquot as AliquotObject,\
+                                     Specimen as SpecimenObject
 
 __all__ = ('SpecimenAliquotTerm', 'Specimen', 'Aliquot', 'AliquotHistory',)
 
@@ -184,6 +185,50 @@ class Specimen(Model):
         dict()
         )
 
+    def objectify(self):
+        obj = SpecimenObject()
+        obj.dsid = self.id
+        obj.blueprint_zid = self.blueprint_zid
+        if self.subject is not None:
+            subject_zid = self.subject.zid
+        else:
+            subject_zid = None
+        obj.subject_zid = subject_zid
+        if self.protocol is not None:
+            protocol_zid = self.protocol.zid
+        else:
+            protocol_zid = None
+        obj.protocol_zid = protocol_zid
+        if self.state is not None:
+            state = self.state.value
+        else:
+            state = None
+        obj.state = state
+        obj.date_collected = self.collect_date
+        obj.time_collected = self.collect_time
+        if self.type is not None:
+            type = self.type.value
+        else:
+            type = None
+        obj.type = type
+        if self.destination is not None:
+            destination = self.destination.value
+        else:
+            destination = None
+        obj.destination = destination
+        obj.tubes = self.tubes
+        if self.tube_type is not None:
+            tube_type = self.tube_type.value
+        else:
+            tube_type = None
+        obj.tube_type = tube_type
+        obj.notes = self.notes
+        if self.visit is not None:
+            visit_zid = self.visit.zid
+        else:
+            visit_zid = None
+        obj.visit_zid = visit_zid
+        return obj
 
 class Aliquot(Model):
     """ Specialized table for aliquot parts generated from a specimen.
@@ -303,6 +348,50 @@ class Aliquot(Model):
     create_date = Column(DateTime, nullable=False, default=NOW)
 
     modify_date = Column(DateTime, nullable=False, default=NOW, onupdate=NOW)
+
+
+    def objectify(self):
+        obj = AliquotObject()
+        obj.dsid = self.id
+        obj.specimen_dsid = self.specimen.id
+        if self.type is not None:
+            type = self.type.value
+        else:
+            type = None
+        obj.type = type
+        if self.state is not None:
+            state = self.state.value
+        else:
+            state = None
+        obj.state = state
+        obj.volume = self.volume
+        obj.cell_amount = self.cell_amount
+        obj.store_date = self.store_date
+        obj.freezer = self.freezer
+        obj.rack = self.rack
+        obj.box = self.box
+        if self.storage_site is not None:
+            storage_site = self.storage_site.value
+        else:
+            storage_site = None
+        obj.storage_site = storage_site
+        obj.thawed_num = self.thawed_num
+        if self.analysis_status is not None:
+            analysis_status = self.analysis_status.value
+        else:
+            analysis_status = None
+        obj.analysis_status = analysis_status
+        obj.sent_date = self.sent_date
+        obj.sent_name = self.sent_name
+        obj.notes = self.notes
+        obj.sent_notes = self.sent_notes
+        if self.special_instruction is not None:
+            special_instruction = self.special_instruction.value
+        else:
+            special_instruction = None
+        obj.special_instruction = special_instruction
+        return obj
+
 
 
 class AliquotHistory(Model):

@@ -142,6 +142,7 @@ class IViewableAliquot(IAliquot, form.Schema):
         title=u"Study/Week",
         readonly=True
         )
+        
     vol_count = zope.schema.TextLine(
         title=_(u'Volume / Cell Count'),
         readonly=True,

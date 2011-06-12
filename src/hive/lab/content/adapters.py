@@ -61,6 +61,10 @@ class ViewableSpecimen(grok.Adapter):
         return utils.get_protocol_title(self.context.protocol_zid)
 
     @property
+    def study_week(self):
+        return "%s - %s" % (self.study_title, self.protocol_title)
+
+    @property
     def pretty_type(self):
         return self.context.type
 

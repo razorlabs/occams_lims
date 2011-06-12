@@ -84,14 +84,14 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
     _model = model.Specimen
     _type = Specimen
 
-    def filter_records(self, **kw):
+    def getFilter(self, **kw):
+
         """
         Generic specimen filter. Takes kw arguments, generally matching
         the ISpecimen interface
         """
         Session = self._datastore.getScopedSession()
         Model = self._model
-        Object = self._type
 
         query = Session.query(Model)
 
@@ -134,6 +134,16 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
                 query = query.filter(filter)
 
         query = query.order_by(Model.id.desc()).limit(200)
+        return query
+        
+    def filter_records(self, **kw):
+        """
+        Generic specimen filter. Takes kw arguments, generally matching
+        the ISpecimen interface
+        """
+
+        Object = self._type
+        query = self.getFilter(**kw)
         result = [Object.from_rslt(r) for r in query.all()]
         return result
 
@@ -214,7 +224,8 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
     _model = model.Aliquot
     _type = Aliquot
 
-    def filter_records(self, **kw):
+
+    def getFilter(self, **kw):
         """
         Generic aliquot filter. Takes kw arguments, generally matching
         the IAliquot interface
@@ -222,7 +233,6 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
         Session = self._datastore.getScopedSession()
         Model = self._model
         SpecimenModel = model.Specimen
-        Object = self._type
         query = Session.query(Model)
 
         if 'subject_zid' in kw and 'our_id' in kw:
@@ -262,7 +272,18 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
                 filter = or_(*filters)
                 query = query.filter(filter)
 
-        query = query.order_by(Model.id.desc()).limit(200)
+        query = query.order_by(Model.id.desc())
+        return query
+
+
+
+    def filter_records(self, **kw):
+        """
+        Generic aliquot filter. Takes kw arguments, generally matching
+        the IAliquot interface
+        """
+        Object = self._type
+        query = self.getFilter(**kw)
         result = [Object.from_rslt(r) for r in query.all()]
         return result
 
