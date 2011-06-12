@@ -1,6 +1,13 @@
 import os.path
 import migrate.versioning.api
-import migrate.exceptions
+
+try:
+    import migrate.versioning.exceptions import DatabaseAlreadyControlledError
+    from migrate.versioning.exceptions import DatabaseNotControlledError
+except ImportError:
+    from migrate.exceptions import DatabaseAlreadyControlledError
+    from migrate.exceptions import DatabaseNotControlledError
+
 
 from hive.lab.model import Model
 
@@ -21,7 +28,7 @@ def install(engine):
 
     try:
         migrate.versioning.api.db_version(url, REPOSITORY)
-    except migrate.exceptions.DatabaseNotControlledError:
+    except DatabaseNotControlledError:
         Model.metadata.create_all(engine)
 
         # Since it's a fresh install, start at repository version
@@ -37,7 +44,7 @@ def legacy(engine):
 
     try:
         migrate.versioning.api.version_control(url, REPOSITORY)
-    except migrate.exceptions.DatabaseAlreadyControlledError:
+    except DatabaseAlreadyControlledError:
         pass
 
 
@@ -61,7 +68,7 @@ def sync(engine, version=None):
     try:
         migrate.versioning.api.version_control(url, REPOSITORY)
         live_version = 0
-    except migrate.exceptions.DatabaseAlreadyControlledError:
+    except DatabaseAlreadyControlledError:
         live_version = int(migrate.versioning.api.db_version(url, REPOSITORY))
 
     if live_version != target_version:
