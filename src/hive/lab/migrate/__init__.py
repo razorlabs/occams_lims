@@ -2,7 +2,7 @@ import os.path
 import migrate.versioning.api
 
 try:
-    import migrate.versioning.exceptions import DatabaseAlreadyControlledError
+    from migrate.versioning.exceptions import DatabaseAlreadyControlledError
     from migrate.versioning.exceptions import DatabaseNotControlledError
 except ImportError:
     from migrate.exceptions import DatabaseAlreadyControlledError
