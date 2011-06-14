@@ -51,9 +51,11 @@
                 <th>
                     Status
                 </th>
+<!-- 
                 <th>
-                    Check Out / Inventory
+                    Check Out Inventory
                 </th>
+ -->
                 <th>
                     Aliquot ID
                 </th>
@@ -61,7 +63,7 @@
                     OUR#
                 </th>
                 <th>
-                    AEHID
+                    AEHID / MBN
                 </th>
                 <th>
                     Store Date
@@ -80,23 +82,15 @@
                 <tr tal:define="odd repeat/aliquot/odd" tal:attributes="class python: odd and 'odd' or 'even'">
                     <td style="border:solid black medium">
                     </td>
-                    <td tal:content="python:aliquot.state == u'queued' and 'Check Out' or 'Inventory'" />
+<!--                     <td tal:content="python:aliquot.state == u'queued' and 'Check Out' or 'Inventory'" /> -->
 
                     <td tal:content="aliquot/dsid" />
                     <td tal:content="aliquot/patient_title" />
                     <td tal:content="aliquot/patient_legacy_number" />
                     <td tal:content="aliquot/store_date" />
                     <td tal:content="aliquot/pretty_type" />
-                    <td >
-                        <span tal:condition="python:hasattr(aliquot, 'volume') and aliquot.volume" tal:replace="aliquot/volume" />
-                        
-                        <span tal:condition="python:hasattr(aliquot, 'cell_amount') and aliquot.cell_amount" tal:replace="aliquot/cell_amount" />
-                    </td>
-                    <td>
-                        <span tal:replace="aliquot/freezer|string:?" /> /                         <span tal:replace="aliquot/rack|string:?" /> /                         <span tal:replace="aliquot/box|string:?" />
-
-
-                    </td>
+                    <td tal:content="aliquot/vol_count" />
+                    <td tal:content="aliquot/frb" />                 
                 </tr>
             </div>
         </table>
