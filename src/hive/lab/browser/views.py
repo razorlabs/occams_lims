@@ -181,6 +181,7 @@ class ResearchLabView(dexterity.DisplayForm):
         kw = {'state':'pending-draw'}
         if dsmanager.count_records() < 1:
             return None
+        specimenlist=[]
         for specimen in dsmanager.filter_records(**kw):
             vspecimen = IViewableSpecimen(specimen)
             specimendict={}
