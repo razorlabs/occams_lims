@@ -11,19 +11,27 @@
     
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
-                Postponed Specimens (For Optional Processing) 
+                <p>Postponed Specimens (For Optional Processing)</p>
                 <tal:crud replace="structure form" />
                 <br class="visualClear" />
-                <hr><br>
-		<p><b>Print Selected:</b> Saves all specimens and generates labels for selected specimens.</p>
-                <p><b>Save All Changes:</b> Saves all changes to specimens.</p>
-		<p><b>Complete Selected:</b> Marks selected specimens as processed and ready for aliquot.</p>
-                <p><b>Batch Selected:</b> Moves selected specimens to the batch stage (for grouped processing at a later date).</p>
-                <p><b>Mark Selected Undrawn:</b> Marks selected specimens as
- undrawn (never to be processed).</p>
+                <ul>
+                    <li><b>Print Selected:</b> Saves all specimens and generates labels for selected specimens.</li>
+                    <li><b>Save All Changes:</b> Saves all changes to specimens.</li>
+                    <li><b><a href="./complete">Complete Selected</a>:</b> Marks selected specimens as processed and ready for aliquot. If you complete a specimen by accident, you can <a href="./complete">recover it</a>.</li>
+                    <li><b><a href="./batched">Batch Selected</a>:</b> Moves selected specimens to the <a href="./batched">batch stage</a> (for grouped processing at a later date).</li>
+                    <li><b>Mark Selected Undrawn:</b> Marks selected specimens as undrawn (never to be processed).If you complete a specimen by accident, you can <a href="./complete">recover it</a>.</li>
+                </ul>
             </tal:hasdata>
             <tal:nodata tal:condition="not:form">
-                No Data 
+                <p>There are no postponed specimen at this time.</p>
+                <br />
+                <b>Other Views</b>
+                <ul>
+                <li><a href="./">Pending Draw</a></li>
+                <li><a href="./batched">Batched</a></li>
+                <li><a href="./complete">Completed today</a></li>
+                </ul>
+                <p>If you feel that this is in error, contact the <a href="" tal:attributes="href string:mailto:${context/email_from_address}">site administrator</a>.</p>
             </tal:nodata>
         </tal:data>
         <br class="visualClear" />

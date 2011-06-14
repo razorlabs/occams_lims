@@ -11,16 +11,25 @@
     
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
-                Specimens Processed Today
+                <p>Specimens Processed Today</p>
                 <tal:crud replace="structure form" />
                 <br class="visualClear" />
-                <p><b>Recover Selected:</b> Moves selected specimens back to the pre-processing (view) stage in case of error.</p>
+                <ul>
+                    <li><b><a href="./">Recover Selected</a>:</b>  Moves selected specimens back to the pre-processing (view) stage in case of error.</li>
+                </ul>
             </tal:hasdata>
             <tal:nodata tal:condition="not:form">
-                No Data 
+                There are currently no specimen that have been completed with a draw date of today.
+                <br />
+                <b>Other Views</b>
+                <ul>
+                <li><a href="./">Pending Draw</a></li>
+                <li><a href="./batched">Batched</a></li>
+                <li><a href="./postponed">Postponed</a></li>
+                </ul>
+                <p>If you feel that this is in error, contact the <a href="" tal:attributes="href string:mailto:${context/email_from_address}">site administrator</a>.</p>
             </tal:nodata>
         </tal:data>
-
         <br class="visualClear" />
     </metal:content-core>
   </metal:content-core>

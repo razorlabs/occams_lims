@@ -552,21 +552,19 @@ class AliquotPreparedButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
-        
         return self.request.response.redirect(self.action)
-
-    @button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
-    def handleCheckinAliquot(self, action):
-        self.saveChanges(action)
-        self.queueLabels(action)
-        self.changeState(action, 'checked-in', 'Checked In')
         
-        return self.request.response.redirect(self.action)
-
     @button.buttonAndHandler(_('Print Selected'), name='print')
     def handlePrintAliquot(self, action):
         self.saveChanges(action)
         self.queueLabels(action)
+        return self.request.response.redirect(self.action)
+        
+    @button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
+    def handleCheckinAliquot(self, action):
+        self.saveChanges(action)
+        self.changeState(action, 'checked-in', 'Checked In')
+        
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
@@ -853,11 +851,11 @@ class LabelButtons(crud.EditForm):
     def handleRefresh(self, action):
         return self.request.response.redirect(self.action)
 
-    @button.buttonAndHandler(_('Remove Selected'), name='remove')
+    @button.buttonAndHandler(_('Clear Selected'), name='remove')
     def handleRemove(self, action):
         selected = self.selected_items()
         if not selected:
-            self.status = _(u"Please select items to Remove.")
+            self.status = _(u"Please select items to Clear.")
             return
         #self.context.labeler
         for id, label in selected:

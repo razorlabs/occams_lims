@@ -109,6 +109,10 @@ class SpecimenCoreForm(crud.CrudForm):
     def getQuery(self):
         kw = self.getkwargs()
         return self.dsmanager.getFilter(**kw)
+    
+    def getCount(self):
+        kw = self.getkwargs()
+        return self.dsmanager.count_records(**kw)
         
     def get_items(self):
         specimenlist = []
@@ -203,6 +207,10 @@ class AliquotCoreForm(crud.CrudForm):
     def getQuery(self):
         kw = self.getkwargs()
         return self.dsmanager.getFilter(**kw)
+
+    def getCount(self):
+        kw = self.getkwargs()
+        return self.dsmanager.count_records(**kw)
         
     def get_items(self):
         aliquotlist = []
@@ -349,7 +357,7 @@ class SpecimenSupportForm(SpecimenCoreForm):
 
     @property
     def display_state(self):
-        return [u'complete','pending-draw','batched','postponed']
+        return [u'complete',u'pending-draw',u'batched',u'postponed',u'aliquoted']
 
   
     @property
@@ -440,6 +448,9 @@ class AliquotCreator(AliquotCoreForm):
         self.update_schema['count'].widgetFactory = widgets.StorageFieldWidget
         super(AliquotCreator, self).updateWidgets()
 
+    def getCount(self):
+        kw = self.getkwargs()
+        return self.specimen_manager.count_records(**kw)
 
     def get_items(self):
         aliquotlist = []
@@ -473,14 +484,6 @@ class AliquotPreparedForm(AliquotCoreForm):
             kw['state'] = self.display_state
         return kw
 
-
-#     def get_items(self):
-#         aliquotlist = []
-#         kw = self.getkwargs()
-#         aliquot = self.dsmanager.filter_records(**kw)
-#         for aliquotobj in aliquot:
-#             aliquotlist.append((aliquotobj.dsid, aliquotobj))
-#         return aliquotlist
         
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -490,7 +493,11 @@ class AliquotCompletedForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count')
+            select('dsid')
+        fields += field.Fields(IAliquot).\
+            select('state')
+        fields += field.Fields(IViewableAliquot).\
+            select('store_date', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count')
         fields += field.Fields(IAliquot).\
             select('store_date')
         fields += field.Fields(IViewableAliquot).\
@@ -646,18 +653,6 @@ class AliquotListForm(AliquotCoreForm):
             kw['state'] = self.display_state
         return kw
 
-## have this produce a count of available, order by patient uid, with the 
-## Entry box for the count wanted to place on hold
-
-#     def get_items(self):
-# #         aliquotlist = []
-#         kw = self.getkwargs()
-#         aliquot = self.dsmanager.getFilter(**kw)
-#         return aliquot
-# #         for aliquotobj in aliquot:
-# #             aliquotlist.append((aliquotobj.dsid, aliquotobj))
-# #         return aliquotlist
-
 
 class AliquotQueueForm(AliquotCoreForm):
     """
@@ -774,11 +769,10 @@ class SpecimenFilterForm(FilterFormCore):
     """
     grok.context(ISpecimenSupport)
     grok.require('zope2.View')
-   
+
     @property
     def fields(self):
         omitables = self.omitables
-        omitables.append('show_all')
         return field.Fields(ISpecimenFilterForm).omit(*omitables)
         
 # ------------------------------------------------------------------------------
@@ -869,7 +863,8 @@ class LabelForm(crud.CrudForm):
        'protocol_title', 'pretty_type', 'date')
 
     def get_items(self):
+        brainz = self.labeler.getLabelBrains()
         labellist = []
-        for label in self.labeler.getLabelBrains():
+        for label in brainz:
             labellist.append((label.getPath(), label))
         return labellist

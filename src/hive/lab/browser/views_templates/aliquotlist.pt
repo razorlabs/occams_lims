@@ -11,43 +11,29 @@
         <tal:data define="form view/filter">
             <tal:hasdata tal:condition="form">
                 <p>
-                Enter the criteria you would like to use as a filter. The filter will persist while you are logged in.
+                Enter the criteria you would like to use as a filter. The filter will persist while you are logged in. Be sure to remove the filter to make sure you are seeing all available aliquot if that is your wish.
                 </p>
                 <tal:crud replace="structure form" />
-                <br class="visualClear" />
-                <ul>
-                    <li>
-                        <b>Filter</b>: Filter the results.
-                    </li>
-                    <li>
-                        <b>Remove Filter</b>: Remove the Filter.
-                    </li>
-                </ul>
             </tal:hasdata>
-            <tal:nodata tal:condition="not:form">
-                <p>
-                No Filter is available for this screen.
-                </p>
-            </tal:nodata>
         </tal:data>
-        <hr class="visualClear" />    
+        <br class="visualClear" />    
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
-                <p>All aliquot that matches the current filter. Note: a filter is automatically applied depending on your location in the site; For isntance, if you view a patient's aliquot, it will filter by that patient. View all of a type of aliquot, and it will filter to show just that type.
+                <p><b>Note:</b> a filter is automatically applied depending on your location in the site; For isntance, if you view a patient's aliquot, it will filter by that patient. View all of a type of aliquot, and it will filter to show just that type.
                 </p>
                 <tal:crud replace="structure form" />
                 <br class="visualClear" />
                 <ul>
-                    <li>
-                        <b>(De)Select All</b>: Select or deselect all items on the this form.
-                    </li>
                     <li>
                         <b>Queue & Hold</b>: Add the selected Aliquot to the checkout queue. The queue is available at the bottom of this screen.
                     </li>
                     <li>
                      <b>Mark Inaccurate</b>: Mark the selected aliquot as inaccurate. Edit them on the <a href="" tal:attributes="href string:${view/lab_url}/edit-aliquot">edit aliquot screen</a>.
                     </li>
-                </ul>
+                    <li>
+                     <b>Hold</b>: Place a hold on the aliquot. That will hide it in this view, and only make it available if the "Show all" option is selected in the filter above.
+                    </li>
+                    </ul>
             </tal:hasdata>
             <tal:nodata tal:condition="not:form">
                 <p>
@@ -66,19 +52,16 @@
                 <br class="visualClear" />
                 <ul>
                     <li>
-                        <b>(De)Select All</b>: Select or deselect all items on the this form.
-                    </li>
-                    <li>
                         <b>Print List</b>: Print a list to take to storage.
                     </li>
                     <li>
-                        <b>Check Out</b>: Place the selected aliquot in the fnial stage for check out. After you have selected all of the aliquot for check out, proceed to the <a href="" tal:attributes="href string:${view/lab_url}/checkout">check out screen</a>.
+                        <b><a href="" tal:attributes="href string:${view/lab_url}/checkout">Check Out</a></b>: Place the selected aliquot in the fnial stage for check out. After you have selected all of the aliquot for check out, proceed to the <a href="" tal:attributes="href string:${view/lab_url}/checkout">check out screen</a>.
                     </li>
                     <li>
-                        <b>Release Hold</b>:Release the hold on the selected aliquot, returning them to a checked in state.
+                        <b>Release from Queue</b>:Release the hold on the selected aliquot, returning them to a checked in state.
                     </li>
                     <li>
-                     <b>Mark Inaccurate</b>: Mark the selected aliquot as inaccurate. Edit them on the <a href="" tal:attributes="href string:${view/lab_url}/edit-aliquot">edit aliquot screen</a>.
+                     <b><a href="" tal:attributes="href string:${view/lab_url}/edit-aliquot">Mark Inaccurate</a></b>: Mark the selected aliquot as inaccurate. Edit them on the <a href="" tal:attributes="href string:${view/lab_url}/edit-aliquot">edit aliquot screen</a>.
                     </li>
                     <li>
                         <b>Mark Missing</b>: Mark the selected aliquot as missing.
@@ -87,11 +70,13 @@
             </tal:hasdata>
             <tal:nodata tal:condition="not:form">
                 <p>
-                No aliquot in the queue.
+                No aliquot in the checkout queue. 
                 </p>
-            </tal:nodata>
+                <ul><li>Head to the <a href="" tal:attributes="href string:${view/lab_url}/checkout">Checkout</a> Screen to finalize the checkout process.</li>
+                <li>Head to the <a href="" tal:attributes="href string:${view/lab_url}/edit-aliquot">Edit</a> Screen to modify incorrect aliquot.</li>
+                </ul>
+                </tal:nodata>
         </tal:data>
-        <br class="visualClear" />
     </metal:content-core>
   </metal:content-core>
 </html>

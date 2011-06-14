@@ -9,40 +9,28 @@
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
         <tal:data define="form view/filter">
-            <tal:hasdata tal:condition="form">
-                Description of Form Here
-                <tal:crud replace="structure form" />
+                <p>Use this form to view a subset of specimen. Use the "<b>Remove Filter</b>" button remove all filter options.</p>                <tal:crud replace="structure form" />
                 <br class="visualClear" />
-                Description of buttons here
-            </tal:hasdata>
-            <tal:nodata tal:condition="not:form">
-                No Data 
-            </tal:nodata>
+
         </tal:data>
-        <hr class="visualClear" />
+        <br class="visualClear" />
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
-                Description of Form Here
                 <tal:crud replace="structure form" />
                 <br class="visualClear" />
-                Description of buttons here
-            </tal:hasdata>
+                    <li><b>Recover Selected:</b>Moves selected specimens back to the pre-processing (view) stage in case of error.</li>
+                </tal:hasdata>
             <tal:nodata tal:condition="not:form">
-                No Data 
+                <p>No Specimen meet the current criteria. This could be because of a filter currently in place, or because no specimen are available in the current context (for a visit, patient, etc).</p>
             </tal:nodata>
         </tal:data>
         <tal:canrequest tal:condition="view/canRequestSpecimen">
         <hr class="visualClear" />
             <tal:data define="form view/requestmore">
                 <tal:hasdata tal:condition="form">
-                    Description of Form Here
+                    <p>Request More Specimen</p>
                     <tal:crud replace="structure form" />
-                    <br class="visualClear" />
-                    Description of buttons here
                 </tal:hasdata>
-                <tal:nodata tal:condition="not:form">
-                    No Data 
-                </tal:nodata>
             </tal:data>
         </tal:canrequest>
         <br class="visualClear" />

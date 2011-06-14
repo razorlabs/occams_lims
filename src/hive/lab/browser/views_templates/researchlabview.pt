@@ -8,8 +8,8 @@
       lang="en">
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
-	Specimens In The Clinical Lab Processing Queue
-        <table class="listing">
+	    <p>Specimens In The Clinical Lab Processing Queue</p>
+        <table class="listing" tal:condition="view/preview">
             <thead>
                 <tr>
                     <th>
@@ -50,10 +50,25 @@
             </tbody>
         </table>
         <br class="visualClear" />
-        <tal:crud  replace="structure view/crudform" />
+        <tal:data define="form view/crudform">
+            <tal:hasdata tal:condition="form">
+                <tal:crud  replace="structure form" />
+            	<br class="visualClear" />
+            	<ul><li>
+            	<b><a href="./ready">Ready Selected</a>:</b> Readies selected specimens for aliquot.</li></ul>
+            </tal:hasdata>
+            <tal:nodata tal:condition="not:form">
+                <p>No specimen are currently on their way. Check the <a href="./ready">readied specimen</a></p>
+                <br />
+                <b>Other Views</b>
+                <ul><li><a href="./ready">Ready to Aliquot</a></li>
+                <li><a href="./prepared">Prepared Aliquot</a></li>
+                <li><a href="./checkedin">Completed today</a></li>
+                </ul>
+                <p>If you feel that this is in error, contact the <a href="" tal:attributes="href string:mailto:${context/email_from_address}">site administrator</a>.</p>
+            </tal:nodata>
+        </tal:data>
         <br class="visualClear" />
-	<hr><br>
-	<p><b>Ready Selected:</b> Readies selected specimens for aliquot.</p>
     </metal:content-core>
   </metal:content-core>
 </html>

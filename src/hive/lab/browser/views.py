@@ -45,8 +45,8 @@ class ClinicalLabView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenPendingForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -73,8 +73,8 @@ class ClinicalLabBatched(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenBatchedForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -101,8 +101,8 @@ class ClinicalLabPostponed(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenPostponedForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -129,8 +129,8 @@ class ClinicalLabCompleted(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenRecoverForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -163,8 +163,8 @@ class ResearchLabView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.ReadySpecimenForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -179,7 +179,8 @@ class ResearchLabView(dexterity.DisplayForm):
         ds = sm.queryUtility(IDatastore, 'fia')
         dsmanager = ISpecimenManager(ds)
         kw = {'state':'pending-draw'}
-        specimenlist=[]
+        if dsmanager.count_records() < 1:
+            return None
         for specimen in dsmanager.filter_records(**kw):
             vspecimen = IViewableSpecimen(specimen)
             specimendict={}
@@ -213,8 +214,8 @@ class ResearchLabAliquotReady(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotCreator(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -227,8 +228,8 @@ class ResearchLabAliquotReady(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.LabelForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -257,8 +258,8 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotPreparedForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -271,8 +272,8 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotFilterForCheckinForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -285,8 +286,8 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.LabelForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'get_items') and not len(form.get_items()):
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -311,8 +312,8 @@ class ResearchLabAliquotCompleted(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotCompletedForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -338,8 +339,8 @@ class ResearchLabAliquotEditView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotEditForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -367,8 +368,8 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotCheckoutForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -381,8 +382,8 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotCheckoutUpdate(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -395,8 +396,8 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotQueueForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -423,8 +424,8 @@ class ResearchLabAliquotCheckinView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotCheckinForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -437,8 +438,8 @@ class ResearchLabAliquotCheckinView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotFilterForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -470,8 +471,8 @@ class AliquotList(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotListForm(context, self.request)
-#         if hasattr(form, 'get_items') and not len(form.get_items()):
-#             return None
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
@@ -484,7 +485,7 @@ class AliquotList(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotFilterForm(context, self.request)
-        if hasattr(form, 'get_items') and not len(form.get_items()):
+        if hasattr(form, 'getCount') and form.getCount() < 1:
             return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
@@ -529,6 +530,8 @@ class AliquotCheckList(dexterity.DisplayForm):
         ds = sm.queryUtility(IDatastore, 'fia')
         self.dsmanager = IAliquotManager(ds)
         self.getaliquot = self.getAliquot()
+        self.currentUser = getSecurityManager().getUser().getId()
+
 
     def getAliquot(self):
         """
@@ -592,7 +595,7 @@ class SpecimenSupport(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenSupportForm(context, self.request)
-        if hasattr(form, 'get_items') and not len(form.get_items()):
+        if hasattr(form, 'getCount') and form.getCount() < 1:
             return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
@@ -609,7 +612,7 @@ class SpecimenSupport(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.SpecimenFilterForm(context, self.request)
-        if hasattr(form, 'get_items') and not len(form.get_items()):
+        if hasattr(form, 'getCount') and form.getCount() < 1:
             return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)

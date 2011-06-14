@@ -11,16 +11,24 @@
     
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
-                Batched Specimens (To Be Group Processed)
+                <p>Batched Specimens (To Be Group Processed)</p>
                 <tal:crud replace="structure form" />
                 <br class="visualClear" />
-                <hr><br>
-		<p><b>Print Selected:</b> Saves all specimens and generates labels for selected specimens.</p>
-		<p><b>Save All Changes:</b> Saves all changes to specimens.</p>
-		<p><b>Complete Selected:</b> Marks selected specimens as processed and ready for aliquot.</p>
+                <ul>
+                    <li><b>Print Selected:</b> Saves all specimens and generates labels for selected specimens.</li>
+                    <li><b>Save All Changes:</b> Saves all changes to specimens.</li>
+                    <li><b><a href="./complete">Complete Selected</a>:</b> Marks selected specimens as processed and ready for aliquot. If you complete a specimen by accident, you can <a href="./complete">recover it</a>.</li>
+                    </ul>
             </tal:hasdata>
             <tal:nodata tal:condition="not:form">
-                No Data 
+                <p>There are no specimen currently batched for group processing. </p>
+                <b>Other Views:
+                <ul>
+                <ul><li><a href="./">Pending Draw</a></li>
+                <li><a href="./postponed">Postponed</a></li>
+                <li><a href="./complete">Completed today</a></li>
+                </ul>
+                <p>If you feel that this is in error, contact the <a href="" tal:attributes="href string:mailto:${context/email_from_address}">site administrator</a>.</p>
             </tal:nodata>
         </tal:data>
         <br class="visualClear" />

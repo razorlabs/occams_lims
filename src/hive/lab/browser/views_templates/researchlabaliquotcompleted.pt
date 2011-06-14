@@ -10,14 +10,24 @@
     <metal:content-core define-macro="content-core">
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
-                Description of Form Here
+                <p>Aliquot Processed Today</p>
                 <tal:crud replace="structure form" />
                 <br class="visualClear" />
-                Description of buttons here
-            </tal:hasdata>
+                <ul>
+                    <li><b><a href="./">Recover Selected</a>:</b>  Moves selected aliquot back to the pre-processing (prepared) stage in case of error.</li>
+                </ul>
+                </tal:hasdata>
             <tal:nodata tal:condition="not:form">
-                No Data 
-            </tal:nodata>
+                <p>There are no aliquot that were completed today.</p>
+                <br />
+                <b>Other Views</b>
+                <ul><li><a href="./">Specimen</a></li>
+                    <li><a href="./ready">Aliquot Templates</a></li>
+                <li><a href="./prepared">Prepared</a></li>
+                </ul>
+                <p><b>NOTE:</b> Sometimes items will not show here if the store date was mislabeled. To fix an error for such an aliquot, find the patient in question through the search interface.</p>
+                <p>If you feel that this is in error, contact the <a href="" tal:attributes="href string:mailto:${context/email_from_address}">site administrator</a>.</p>
+                </tal:nodata>
         </tal:data>
         <br class="visualClear" />
     </metal:content-core>

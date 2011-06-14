@@ -131,7 +131,7 @@ class ViewableAliquot(grok.Adapter):
         if self.context.volume is not None:
             return self.context.volume
         else:
-            return self.context_cell_amount
+            return self.context.cell_amount
 
     @property
     def store_date(self):
@@ -360,6 +360,7 @@ class LabeledAliquot(grok.Adapter):
     def protocol_title(self):
         specimenobj = utils.get_specimen(self.context.specimen_dsid)
         return utils.get_protocol_title(specimenobj.protocol_zid)
+        
     @property
     def pretty_type(self):
         parts = []
@@ -392,7 +393,7 @@ class LabeledAliquot(grok.Adapter):
         line1 = unicode(self.dsid)
         line2 = unicode('%s OUR# %s ' % (self.dsid, self.patient_title))
         line3 = unicode(self.date)
-        line4 = unicode(self.pretty_type)
+        line4 = unicode('%s - %s - %s' % (self.study_title, self.protocol_title, self.pretty_type))
         return [line1, line2, line3, line4]
 
 

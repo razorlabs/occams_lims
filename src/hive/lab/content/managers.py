@@ -135,6 +135,17 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
 
         query = query.order_by(Model.id.desc()).limit(200)
         return query
+
+    def count_records(self, **kw):
+        """
+        Generic specimen filter. Takes kw arguments, generally matching
+        the ISpecimen interface
+        """
+
+        Object = self._type
+        query = self.getFilter(**kw)
+        result = query.count()
+        return result
         
     def filter_records(self, **kw):
         """
@@ -275,7 +286,16 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
         query = query.order_by(Model.id.desc())
         return query
 
+    def count_records(self, **kw):
+        """
+        Generic specimen filter. Takes kw arguments, generally matching
+        the ISpecimen interface
+        """
 
+        Object = self._type
+        query = self.getFilter(**kw)
+        result = query.count()
+        return result
 
     def filter_records(self, **kw):
         """
