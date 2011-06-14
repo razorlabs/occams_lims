@@ -497,7 +497,7 @@ class AliquotCompletedForm(AliquotCoreForm):
         fields += field.Fields(IAliquot).\
             select('state')
         fields += field.Fields(IViewableAliquot).\
-            select('store_date', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count')
+            select('patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count')
         fields += field.Fields(IAliquot).\
             select('store_date')
         fields += field.Fields(IViewableAliquot).\
