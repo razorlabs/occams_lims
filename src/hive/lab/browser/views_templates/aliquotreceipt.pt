@@ -50,6 +50,9 @@
                     AEHID / MBN
                 </th>
                 <th>
+                    Study / Week
+                </th>
+                <th>
                     Store Date
                 </th>
                 <th>
@@ -67,13 +70,10 @@
                     <td tal:content="aliquot/dsid" />
                     <td tal:content="aliquot/patient_title" />
                     <td tal:content="aliquot/patient_legacy_number" />
+                    <td tal:content="aliquot/study_week" />
                     <td tal:content="aliquot/store_date" />
                     <td tal:content="aliquot/pretty_type" />
-                    <td >
-                        <span tal:condition="python:hasattr(aliquot, 'volume') and aliquot.volume" tal:replace="aliquot/volume" />
-                        
-                        <span tal:condition="python:hasattr(aliquot, 'cell_amount') and aliquot.cell_amount" tal:replace="aliquot/cell_amount" />
-                    </td>
+                    <td tal:content="aliquot/vol_count" />
                     <td >
                         <span tal:condition="python:hasattr(aliquot, 'special_instruction') and aliquot.special_instruction" tal:omit-tag="">
                             <span tal:replace="aliquot/special_instruction" />
