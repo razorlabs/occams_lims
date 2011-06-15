@@ -638,9 +638,9 @@ class AliquotListForm(AliquotCoreForm):
             select('dsid', 'state','patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count',
             'frb')
         fields += field.Fields(IAliquot).\
-            select('thawed_num', 'store_date')
+            select('store_date')
         fields += field.Fields(IViewableAliquot).\
-            select('special_instruction')
+            select('thawed_num','special_instruction')
         fields += field.Fields(IAliquot).\
             select('notes')
         return fields
