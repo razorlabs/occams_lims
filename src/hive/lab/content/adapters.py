@@ -155,10 +155,10 @@ class ViewableAliquot(grok.Adapter):
 
     @property
     def thawed_num(self):
-        if self.context.thawed_num is None or self.context.thawed_num < 0:
+        if self.context.thawed_num is None or int(self.context.thawed_num) < 0:
             return 0
         else:
-            return self.context.thawed_num
+            return int(self.context.thawed_num)
 # ------------------------------------------------------------------------------
 # Aliquoting Tools|
 # --------------
