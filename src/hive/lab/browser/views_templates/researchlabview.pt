@@ -53,6 +53,7 @@
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
                 <tal:crud  replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
             	<br class="visualClear" />
             	<ul><li>
             	<b><a href="./ready">Ready Selected</a>:</b> Readies selected specimens for aliquot.</li></ul>

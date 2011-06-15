@@ -13,6 +13,7 @@
             <tal:hasdata tal:condition="form">
                 <p>Specimen To Be Processed</p>
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                 <ul>
                     <li><b>Print Selected:</b> Saves all specimens and generates labels for selected specimens.</li>
@@ -34,7 +35,6 @@
                 <p>If you feel that this is in error, contact the <a href="" tal:attributes="href string:mailto:${context/email_from_address}">site administrator</a>.</p>
             </tal:nodata>
         </tal:data>
-        <br class="visualClear" />
     </metal:content-core>
   </metal:content-core>
 </html>

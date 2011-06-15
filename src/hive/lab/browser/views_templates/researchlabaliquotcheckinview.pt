@@ -14,14 +14,15 @@
                 Enter the criteria you would like to use as a filter the checked out aliquot. The filter will persist while you are logged in. Be sure to remove the filter to make sure you are seeing all available aliquot if that is your wish.
                 </p>
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
             </tal:hasdata>
-
+            <br class="visualClear" />
         </tal:data>
-                <br class="visualClear" />
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
                 <p>Checked out aliquot.</p>
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                     <li>
                         <b>Save Changes</b>: Save changes to all aliquot.
@@ -35,7 +36,6 @@
                 No Aliquot match your filter.</p>
             </tal:nodata>
         </tal:data>
-
     </metal:content-core>
   </metal:content-core>
 </html>
