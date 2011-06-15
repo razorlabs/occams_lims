@@ -357,7 +357,6 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
 
     def __init__(self, context, request):
         super(ResearchLabAliquotCheckoutView, self).__init__(context, request)
-
         self.crudform = self.getCrudForm()
         self.formhelper = self.getUpdater()
         self.aliquotqueue = self.aliquotQueue()
@@ -383,8 +382,6 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
         """
         context = self.context.aq_inner
         form = crud.AliquotCheckoutUpdate(context, self.request)
-        if hasattr(form, 'getCount') and form.getCount() < 1:
-            return None
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form

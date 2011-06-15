@@ -72,9 +72,11 @@ class ButtonCore(crud.EditForm):
         Provide a specimen manager for these buttons
         """
         super(crud.EditForm, self).__init__(context, request)
-        self.currentUser = getSecurityManager().getUser().getId()
 
-
+    @property
+    def currentUser(self):
+        return getSecurityManager().getUser().getId()
+        
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone
@@ -449,10 +451,13 @@ class AliquotCreator(crud.EditForm):
         ds = sm.queryUtility(IDatastore, 'fia')
         self.specimen_manager = ISpecimenManager(ds)
         self.aliquot_manager = IAliquotManager(ds)
-        self.currentUser = getSecurityManager().getUser().getId()
 
     editsubform_factory = OrderedSubForm
 
+    @property
+    def currentUser(self):
+        return getSecurityManager().getUser().getId()
+        
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone

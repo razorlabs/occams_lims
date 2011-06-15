@@ -57,8 +57,11 @@ class SpecimenCoreForm(crud.CrudForm):
         sm = getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
         self.dsmanager = ISpecimenManager(ds)
-        self.currentUser = getSecurityManager().getUser().getId()
         self.update_schema = self.edit_schema
+
+    @property
+    def currentUser(self):
+        return getSecurityManager().getUser().getId()
 
     ignoreContext = True
     addform_factory = crud.NullForm
@@ -135,13 +138,15 @@ class AliquotCoreForm(crud.CrudForm):
         self.specimen_manager = ISpecimenManager(ds)
         self.dsmanager = IAliquotManager(ds)
         self.update_schema = self.edit_schema
-        self.currentUser = getSecurityManager().getUser().getId()
-
 
     ignoreContext = True
     addform_factory = crud.NullForm
     batch_size = 25
 
+    @property
+    def currentUser(self):
+        return getSecurityManager().getUser().getId()
+        
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
@@ -573,7 +578,10 @@ class AliquotCheckoutForm(AliquotCoreForm):
     @property
     def display_state(self):
         return u"pending-checkout"
-
+        
+    def getkwargs(self):
+        kw = {'state':self.display_state, 'modify_name':self.currentUser}
+        return kw
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------   
@@ -657,6 +665,7 @@ class AliquotListForm(AliquotCoreForm):
 class AliquotQueueForm(AliquotCoreForm):
     """
     """
+
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
@@ -700,10 +709,13 @@ class AliquotCheckoutUpdate(form.Form):
         sm = getSiteManager(self)
         ds = sm.queryUtility(IDatastore, 'fia')
         self.dsmanager = IAliquotManager(ds)
-        self.currentUser = getSecurityManager().getUser().getId()
 
     ignoreContext = True
 
+    @property
+    def currentUser(self):
+        return getSecurityManager().getUser().getId()
+        
     @property
     def fields(self):
         selectables = ['sent_date', 'sent_name', 'sent_notes']
@@ -786,8 +798,11 @@ class SpecimenAddForm(z3cform.Form):
     def __init__(self, context, request):
         super(SpecimenAddForm, self).__init__(context, request)
         self.redirect_url = os.path.join(context.absolute_url(), '@@specimen')
-        self.currentUser = getSecurityManager().getUser().getId()
 
+    @property
+    def currentUser(self):
+        return getSecurityManager().getUser().getId()
+        
     def specimenVocabulary(self):
         context = self.context.aq_inner
         termlist = []

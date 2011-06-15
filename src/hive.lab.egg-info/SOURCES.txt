@@ -29,6 +29,7 @@ src/hive/lab/browser/crud.py
 src/hive/lab/browser/views.py
 src/hive/lab/browser/views_templates/aliquotchecklist.pt
 src/hive/lab/browser/views_templates/aliquotlist.pt
+src/hive/lab/browser/views_templates/aliquotreceipt.pt
 src/hive/lab/browser/views_templates/clinicallabbatched.pt
 src/hive/lab/browser/views_templates/clinicallabcompleted.pt
 src/hive/lab/browser/views_templates/clinicallabpostponed.pt

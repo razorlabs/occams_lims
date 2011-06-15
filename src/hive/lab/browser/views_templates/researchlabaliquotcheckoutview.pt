@@ -10,7 +10,7 @@
     <metal:content-core define-macro="content-core">
         <tal:data define="form view/aliquotqueue">
             <tal:hasdata tal:condition="form">
-                <p>Use this form to add data to all of the aliquot pending checkout.</p>
+                <p>Use this page to add data to all of the aliquot pending checkout, and complete checkout.</p>
                 <tal:crud replace="structure form" />
                 <br class="visualClear" />
                 <ul>
@@ -34,15 +34,12 @@
             </tal:hasdata>
         </tal:data>
         <br class="visualClear" />
-        <tal:data define="form view/formhelper">
+        <tal:data define="form view/crudform;updater view/formhelper">
             <tal:hasdata tal:condition="form">
+            
                 <p>Use this form to add data to all of the aliquot pending checkout.</p>
-                <tal:crud replace="structure form" />
-            </tal:hasdata>
-        </tal:data>
-        <br class="visualClear" />
-        <tal:data define="form view/crudform">
-            <tal:hasdata tal:condition="form">
+                <tal:crud replace="structure updater" />
+                <br class="visualClear" />
                 <tal:crud replace="structure form" />
                 <br class="visualClear" />
                 <ul>
@@ -62,7 +59,8 @@
                         <b>Check Back In</b>:Release the hold on the selected aliquot, returning them to a checked in state.
                     </li>
                 </ul>
-                </tal:hasdata>
+                
+            </tal:hasdata>
             <tal:nodata tal:condition="not:form">
                 No Aliquot are currently ready to be checked out.
             </tal:nodata>
