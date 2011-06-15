@@ -14,14 +14,16 @@
                 Enter the criteria you would like to use as a filter. The filter will persist while you are logged in. Be sure to remove the filter to make sure you are seeing all available aliquot if that is your wish.
                 </p>
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
             </tal:hasdata>
         </tal:data>
-        <br class="visualClear" />    
+        <br class="visualClear" />  
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
                 <p><b>Note:</b> a filter is automatically applied depending on your location in the site; For isntance, if you view a patient's aliquot, it will filter by that patient. View all of a type of aliquot, and it will filter to show just that type.
                 </p>
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                 <ul>
                     <li>
@@ -49,6 +51,7 @@
                    Aliquot currently queued for checkout. After developing your queue, verify that the aliquot you want are available before removing them from this screen.
                 </p>
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                 <ul>
                     <li>

@@ -10,13 +10,14 @@
     <metal:content-core define-macro="content-core">
         <tal:data define="form view/filter">
                 <p>Use this form to view a subset of specimen. Use the "<b>Remove Filter</b>" button remove all filter options.</p>                <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
-
         </tal:data>
         <br class="visualClear" />
         <tal:data define="form view/crudform">
             <tal:hasdata tal:condition="form">
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                     <li><b>Recover Selected:</b>Moves selected specimens back to the pre-processing (view) stage in case of error.</li>
                 </tal:hasdata>
@@ -30,10 +31,10 @@
                 <tal:hasdata tal:condition="form">
                     <p>Request More Specimen</p>
                     <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 </tal:hasdata>
             </tal:data>
         </tal:canrequest>
-        <br class="visualClear" />
     </metal:content-core>
   </metal:content-core>
 </html>

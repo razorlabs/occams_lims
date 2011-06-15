@@ -12,6 +12,7 @@
             <tal:hasdata tal:condition="form">
                 Aliquot that have incorrect data. Please update and return to the checked in state.
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                 <ul>
                     <li>
@@ -31,7 +32,6 @@
                 <p>No Aliquot are marked as inaccurate.</p>
             </tal:nodata>
         </tal:data>
-        <br class="visualClear" />
     </metal:content-core>
   </metal:content-core>
 </html>

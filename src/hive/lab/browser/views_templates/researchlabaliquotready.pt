@@ -12,6 +12,7 @@
             <tal:hasdata tal:condition="form">
                 <p>Aliquot Templates. Use these to create aliquot from the available specimen</p>
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                 <ul>
                     <li><b><a href="./prepared">Create Aliquot</a>:</b> Creates a number of specimen as denoted in the "count" column for each checked row.</li>

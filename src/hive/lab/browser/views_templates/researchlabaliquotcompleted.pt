@@ -12,6 +12,7 @@
             <tal:hasdata tal:condition="form">
                 <p>Aliquot Processed Today</p>
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                 <ul>
                     <li><b><a href="./">Recover Selected</a>:</b>  Moves selected aliquot back to the pre-processing (prepared) stage in case of error.</li>
@@ -29,7 +30,6 @@
                 <p>If you feel that this is in error, contact the <a href="" tal:attributes="href string:mailto:${context/email_from_address}">site administrator</a>.</p>
                 </tal:nodata>
         </tal:data>
-        <br class="visualClear" />
     </metal:content-core>
   </metal:content-core>
 </html>

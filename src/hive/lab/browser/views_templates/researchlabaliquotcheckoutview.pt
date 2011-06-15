@@ -12,6 +12,7 @@
             <tal:hasdata tal:condition="form">
                 <p>Use this page to add data to all of the aliquot pending checkout, and complete checkout.</p>
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                 <ul>
                     <li>
@@ -39,8 +40,10 @@
             
                 <p>Use this form to add data to all of the aliquot pending checkout.</p>
                 <tal:crud replace="structure updater" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                 <ul>
                     <li>

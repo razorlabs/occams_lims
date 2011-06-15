@@ -17,6 +17,7 @@
             <tal:hasdata tal:condition="form">
                 <p>All aliquot that are currently being processed. Be sure to Print labels before finalizing the check in process.</p>
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                 <ul>
                     <li><b>Save All Changes:</b> Saves all changes to aliquot.</li>
@@ -41,6 +42,7 @@
         <tal:data define="form view/labelqueue">
             <tal:hasdata tal:condition="form">
                 <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
                 <ul>
                     <li><b>Print Selected:</b> Prints selected aliquot labels to pdf, and clears the list.</li>
@@ -53,7 +55,6 @@
                 <p>No labels currently in the queue.</p>
             </tal:nodata>
         </tal:data>
-        <br class="visualClear" />
     </metal:content-core>
   </metal:content-core>
 </html>
