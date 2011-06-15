@@ -134,7 +134,6 @@ class ViewableAliquot(grok.Adapter):
             ret = self.context.cell_amount
         else:
             ret = u'--'
-            
         return ret
         
     @property
@@ -154,6 +153,12 @@ class ViewableAliquot(grok.Adapter):
             b = self.context.box
         return "%s/%s/%s" % (f, r, b)
 
+    @property
+    def thawed_num(self):
+        if self.context.thawed_num is None or self.context.thawed_num < 0:
+            return 0
+        else:
+            return self.context.thawed_num
 # ------------------------------------------------------------------------------
 # Aliquoting Tools|
 # --------------

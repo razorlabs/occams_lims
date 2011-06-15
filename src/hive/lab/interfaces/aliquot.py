@@ -168,7 +168,13 @@ class IViewableAliquot(IAliquot, form.Schema):
         title=_(u'Thawed'),
         required = False
         )
-    
+        
+    thawed_num = zope.schema.Int(
+        title=_(u'Thawed'),
+        required = False
+        )
+
+
 class IAliquotFilter(zope.interface.Interface):
 
     def getAliquotFilter(basekw, states):
