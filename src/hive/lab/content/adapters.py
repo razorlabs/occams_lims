@@ -129,11 +129,14 @@ class ViewableAliquot(grok.Adapter):
     @property
     def vol_count(self):
         if self.context.volume is not None and self.context.volume > 0:
-            return self.context.volume
+            ret = self.context.volume
         elif self.context.cell_amount is not None and self.context.cell_amount > 0:
-            return self.context.cell_amount
+            ret = self.context.cell_amount
         else:
-            return u'--'
+            ret = u'--'
+            
+        return ret
+        
     @property
     def store_date(self):
         return self.context.store_date
