@@ -1,4 +1,4 @@
-from avrc.data.store._item import AbstractItem
+from avrc.data.store.storage import Item
 from hive.lab import utilities as utils
 from hive.lab.interfaces.aliquot import IAliquot, IAliquotBlueprint
 from hive.lab.interfaces.lab import IFilterForm
@@ -11,12 +11,11 @@ from zope.schema.fieldproperty import FieldProperty
 import zope.component
 import zope.interface
 
-class Specimen(AbstractItem):
+class Specimen(Item):
     """ See `ISpecimen`
     """
     zope.interface.implements(ISpecimen)
-
-
+    
     dsid = FieldProperty(ISpecimen['dsid'])
     blueprint_zid = FieldProperty(ISpecimen['blueprint_zid'])
     subject_zid = FieldProperty(ISpecimen['subject_zid'])
@@ -87,7 +86,7 @@ class Specimen(AbstractItem):
             visit = None
         return visit
 
-class Aliquot(AbstractItem):
+class Aliquot(Item):
     """ See `IAliquot`
     """
     zope.interface.implements(IAliquot)

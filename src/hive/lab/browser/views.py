@@ -1,7 +1,12 @@
-from avrc.data.store.interfaces import IDatastore
-from beast.browser.crud import NestedFormView
+from z3c.saconfig import named_scoped_session
+from avrc.data.store.interfaces import IDataStore
+
+from beast.browser.crud import NestedFormView, \
+                               wrappableAddForm
 from five import grok
-from hive.lab import MessageFactory as _
+from hive.lab import MessageFactory as _, \
+                     SCOPED_SESSION_KEY
+                     
 from hive.lab.browser import crud
 from hive.lab.interfaces.aliquot import IAliquotSupport,\
                                         IViewableAliquot,\
@@ -175,9 +180,7 @@ class ResearchLabView(dexterity.DisplayForm):
         Create a form instance.
         @return: z3c.form wrapped for Plone 3 view
         """
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        dsmanager = ISpecimenManager(ds)
+        dsmanager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
         kw = {'state':'pending-draw'}
         if dsmanager.count_records() < 1:
             return None
@@ -524,12 +527,9 @@ class AliquotCheckList(dexterity.DisplayForm):
 
     def __init__(self, context, request):
         super(AliquotCheckList, self).__init__(context, request)
-        sm = getSiteManager(context)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        self.dsmanager = IAliquotManager(ds)
+        self.dsmanager = IAliquotManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
         self.getaliquot = self.getAliquot()
         self.currentUser = getSecurityManager().getUser().getId()
-
 
     def getAliquot(self):
         """
@@ -552,9 +552,7 @@ class AliquotReceipt(dexterity.DisplayForm):
 
     def __init__(self, context, request):
         super(AliquotReceipt, self).__init__(context, request)
-        sm = getSiteManager(context)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        self.dsmanager = IAliquotManager(ds)
+        self.dsmanager = IAliquotManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
         self.getaliquot = self.getAliquot()
         self.currentUser = getSecurityManager().getUser().getId()
         

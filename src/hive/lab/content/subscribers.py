@@ -1,8 +1,11 @@
 from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
 from Products.ZCatalog.ZCatalog import manage_addZCatalog
-from avrc.data.store.interfaces import IDatastore
+
+from z3c.saconfig import named_scoped_session
+from avrc.data.store.interfaces import IDataStore
 from five import grok
-from hive.lab import MessageFactory as _
+from hive.lab import MessageFactory as _, \
+                     SCOPED_SESSION_KEY
 from hive.lab.interfaces.labels import ILabel,\
                                        ILabelSheet
 from hive.lab.interfaces.managers import ISpecimenManager
@@ -36,9 +39,7 @@ def handleRequestedSpecimenAdded(visit, event):
     intids = zope.component.getUtility(IIntIds)
     patient = visit.aq_parent
     patient_zid = intids.getId(patient)
-    sm = zope.component.getSiteManager(visit)
-    ds = sm.queryUtility(IDatastore, 'fia')
-    specimen_manager = ISpecimenManager(ds)
+    specimen_manager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
 
     for cycle_relation in visit.cycles:
         cycle_zid = cycle_relation.to_id

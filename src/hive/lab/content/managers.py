@@ -1,6 +1,7 @@
-from avrc.data.store import model as dsmodel
-from avrc.data.store._manager import AbstractDatastoreConventionalManager
-from avrc.data.store.interfaces import IDatastore
+from avrc.data.store.ext.clinical import model as dsmodel
+# from avrc.data.store._manager import AbstractDatastoreConventionalManager
+from avrc.data.store.interfaces import IDataStore
+
 from five import grok
 from hive.lab import model
 from hive.lab.content.objects import Aliquot, \
@@ -13,28 +14,80 @@ from sqlalchemy import or_
 from zope.schema.vocabulary import SimpleTerm, \
                                    SimpleVocabulary
 
+
+from zope.component import adapts
+from zope.interface import implements
+
 # ----------------------------------------------------------------------
 # Data Store Managers
 # ----------------------------------------------------------------------
 
-class DatastoreManagercore(AbstractDatastoreConventionalManager):
+class BaseConventionalManager(object):
+    """
+    """
+    _Model = None
+    _Vocab = None
 
-    _model = None
-    _type = None
-
-    def putProperties(self, rslt, source):
-        """ Add the items from the source to ds """
-
+    def __init__(self, datastore):
+        self.datastore = datastore
+        
     def get(self, key):
-        Session = self._datastore.getScopedSession()
-        Model = self._model
-        Object = self._type
+        """ See `IBaseConventionalManager.get`
+        """
+        session = self.datastore.session
+        result = session.query(self._Model)\
+            .filter_by(id=int(key), is_active=True)\
+            .first()
+        return result and result.objectify() or None
 
-        record_rslt = Session.query(Model)\
-                        .filter_by(id=int(key))\
-                        .first()
+    def keys(self, on=None, ever=False):
+        raise NotImplementedError
 
-        return record_rslt and Object.from_rslt(record_rslt) or None
+    def lifecycles(self, key):
+        raise NotImplementedError
+
+    def has(self, key, on=None, ever=False):
+        """ see `IBaseConventionalManager.has`
+        """
+        session = self.datastore.session
+        result = session.query(self._Model)\
+            .filter_by(id=int(key), is_active=True)\
+            .first()
+        return result and True or False
+
+    def purge(self, key, on=None, ever=False):
+        raise NotImplementedError
+
+    def retire(self, key):
+        """ See `IBaseConventionalManager.retire`
+        """
+        session = self.datastore.session
+        if key is not None:
+            result = session.query(self._Model) \
+                .filter_by(id=key) \
+                .first()
+        if result:
+            result.is_active = False
+            session.flush()
+        else:
+            raise Exception('Invalid Key')
+        return None
+
+    def restore(self, key):
+        """ See `IBaseConventionalManager.restore`
+        """
+        session = self.datastore.session
+        if key is not None:
+            result = session.query(self._Model) \
+                .filter_by(id=key) \
+                .first()
+        if result:
+            result.is_active = True
+            session.flush()
+            return result.objectify()
+        else:
+            raise Exception('Invalid Key')
+        return None
 
     def get_vocabulary(self, name):
         """ Utility method for retrieving supported vocabulary terms for
@@ -45,10 +98,10 @@ class DatastoreManagercore(AbstractDatastoreConventionalManager):
             Returns:
                 SimpleVocabulary object
         """
-        Session = self._datastore.getScopedSession()
+        session = self.datastore.session
 
         term_list = []
-        term_q = Session.query(model.SpecimenAliquotTerm)\
+        term_q = session.query(self._Vocab)\
                   .filter_by(vocabulary_name=name)
 
         for term_rslt in term_q.all():
@@ -57,96 +110,36 @@ class DatastoreManagercore(AbstractDatastoreConventionalManager):
                 token=term_rslt.token,
                 title=term_rslt.title
                 ))
-
         return SimpleVocabulary(term_list)
 
-    def setupVocabulary(self, vocabularies):
-        Session = self._datastore.getScopedSession()
-
-        for vocabulary_name, vocabulary_obj in vocabularies.items():
-            for term_obj in vocabulary_obj:
-                Session.add(model.SpecimenAliquotTerm(
-                    vocabulary_name=unicode(vocabulary_name),
-                    title=term_obj.title and unicode(term_obj.title) or None,
-                    token=unicode(term_obj.token),
-                    value=unicode(term_obj.value)
-                    ))
-
-        Session.flush()
-
-    def filter_records(self, **kw):
-            raise NotImplementedError
-
-class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
-    grok.context(IDatastore)
-    grok.provides(ISpecimenManager)
-
-    _model = model.Specimen
-    _type = Specimen
-
-    def getFilter(self, **kw):
-
+    def vocab_map(self, source, **kw):
         """
-        Generic specimen filter. Takes kw arguments, generally matching
-        the ISpecimen interface
+        see IBaseConventionalManager.vocab_map
         """
-        Session = self._datastore.getScopedSession()
-        Model = self._model
+        session = self.datastore.session
+        map = {}
+        for attr_name, vocab_name in kw.items():
+            value = getattr(source, attr_name, None)
 
-        query = Session.query(Model)
+            if value:
+                map[vocab_name] = session.query(self._Vocab)\
+                                .filter_by(vocabulary_name=vocab_name,
+                                           value=value
+                                           )\
+                                .first()
+            else:
+                map[vocab_name] = None
+        return map
 
-        if 'subject_zid' in kw and 'our_id' in kw:
-            del kw['our_id']
-
-        for key, item in kw.items():
-            if not isinstance(item, list):
-                item = [item]
-
-            filters = []
-
-            for value in item:
-                if value is not None:
-                    if key == 'state':
-                        filter = Model.state.has(value=unicode(value))
-                    elif key == 'type':
-                        filter = Model.type.has(value=unicode(value))
-                    elif key == 'before_date':
-                        filter = Model.collect_date <= value
-                    elif key == 'after_date':
-                        filter = Model.collect_date >= value
-                    elif key == 'protocol_zid':
-                        filter = Model.protocol.has(zid=value)
-                    elif key == 'our_id':
-                        filter = Model.subject.has(uid=value)
-                    elif key == 'subject_zid':
-                        filter = Model.subject.has(zid=value)
-                    elif key == 'modify_name':
-                        if value is not None:
-                            filter = Model.modify_name == unicode(value)
-                        else:
-                            filter = None
-                    else:
-                        print '%s is not a valid filter' % key
-                        filter = None
-
-                    if filter is not None:
-                        filters.append(filter)
-
-            if len(filters):
-                filter = or_(*filters)
-                query = query.filter(filter)
-
-        query = query.order_by(Model.id.desc()).limit(200)
-        return query
+    def makefilter(self, **kw):
+        """
+        """
+        raise NotImplementedError
 
     def count_records(self, **kw):
+        """ see ISpecimenManager.count_records
         """
-        Generic specimen filter. Takes kw arguments, generally matching
-        the ISpecimen interface
-        """
-
-        Object = self._type
-        query = self.getFilter(**kw)
+        query = self.makefilter(**kw)
         result = query.count()
         return result
         
@@ -155,102 +148,95 @@ class DatastoreSpecimenManager(DatastoreManagercore, grok.Adapter):
         Generic specimen filter. Takes kw arguments, generally matching
         the ISpecimen interface
         """
-
-        Object = self._type
-        query = self.getFilter(**kw)
-        result = [Object.from_rslt(r) for r in query.all()]
+        query = self.makefilter(**kw)
+        result = [r.objectify() for r in query.all()]
         return result
+    
+## -----------------------------------------------------------
+# TODO: damote - Move this to a  setup script
+## -----------------------------------------------------------
+#     def setupVocabulary(self, vocabularies):
+#         """
+#         """
+#         session = self.datastore.session
+#         for vocabulary_name, vocabulary_obj in vocabularies.items():
+#             for term_obj in vocabulary_obj:
+#                 term = self._Vocab(
+#                         vocabulary_name=unicode(vocabulary_name),
+#                         title=term_obj.title and unicode(term_obj.title) or None,
+#                         token=unicode(term_obj.token),
+#                         value=unicode(term_obj.value)
+#                         )  
+#                 session.add(term)
+#         session.flush()
 
-    def put(self, source):
 
-        Session = self._datastore.getScopedSession()
-        Model = self._model
 
-        # Find the 'vocabulary' objects for the database relation
-        keywords = {"state": u"specimen_state",
-                    "tube_type": u"specimen_tube_type",
-                    "destination": u"specimen_destination",
-                    "type": u"specimen_type"
-                    }
+class SpecimenManager(BaseConventionalManager):
+    adapts(IDataStore)
+    implements(ISpecimenManager)
 
-        rslt = {}
+    _Model = model.Specimen
+    _Vocab = model.SpecimenAliquotTerm
+    
+    def put(self, source, by=None):
+        """ See `ISpecimenManager.put`
+        """
+        session = self.datastore.session
 
-        for attr_name, vocab_name in keywords.items():
-            value = getattr(source, attr_name, None)
-
-            if value:
-                rslt[vocab_name] = Session.query(model.SpecimenAliquotTerm)\
-                                .filter_by(vocabulary_name=vocab_name,
-                                           value=value
-                                           )\
-                                .first()
-            else:
-                rslt[vocab_name] = None
-
+        ### Build Specimen Vocabulary
+        kw = {"state": u"specimen_state",
+              "tube_type": u"specimen_tube_type",
+              "destination": u"specimen_destination",
+              "type": u"specimen_type"
+              }
+              
+        map = self.vocab_map(source, **kw)
+        
         if source.dsid is not None:
-            record_rslt = Session.query(Model)\
-                            .filter_by(id=source.dsid)\
-                            .first()
+            entry = session.query(model.Specimen) \
+                .filter_by(id=source.dsid) \
+                .first()
+
         else:
             # which enrollment we get the subject from.
+            subject = session.query(dsmodel.Subject)\
+                        .filter_by(zid=source.subject_zid)\
+                        .first()
 
-            subject_rslt = Session.query(dsmodel.Subject)\
-                            .filter_by(zid=source.subject_zid)\
-                            .first()
-
-            protocol_rslt = Session.query(dsmodel.Protocol)\
-                            .filter_by(zid=source.protocol_zid)\
-                            .first()
-
+            protocol = session.query(dsmodel.Protocol)\
+                        .filter_by(zid=source.protocol_zid)\
+                        .first()
+                            
             # specimen is not already in the data base, we need to create one
-            record_rslt = Model(
-                subject=subject_rslt,
-                protocol=protocol_rslt,
-                type=rslt["specimen_type"],
-                )
+            entry = model.Specimen()
+            entry.subject = subject
+            entry.protocol = protocol
+            entry.type = type=map["specimen_type"]
+            session.add(entry)
 
-            Session.add(record_rslt)
-
-        record_rslt.blueprint_zid = source.blueprint_zid
-        record_rslt.destination = rslt["specimen_destination"]
-        record_rslt.state = rslt["specimen_state"]
-        record_rslt.collect_date = source.date_collected
-        record_rslt.collect_time = source.time_collected
-        record_rslt.tubes = source.tubes
-        record_rslt.tube_type = rslt["specimen_tube_type"]
-        record_rslt.notes = source.notes
-
-        Session.flush()
+        entry.blueprint_zid = source.blueprint_zid
+        entry.destination = map["specimen_destination"]
+        entry.state = map["specimen_state"]
+        entry.collect_date = source.date_collected
+        entry.collect_time = source.time_collected
+        entry.tubes = source.tubes
+        entry.tube_type = map["specimen_tube_type"]
+        entry.notes = source.notes
 
         if not source.dsid:
-            source.dsid = record_rslt.id
-
+            source.dsid = entry.id
         return source
 
-    def aliquot(self, key):
-        return IAliquotManager(self._datastore, self.get(key))
-
-
-class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
-    grok.context(IDatastore)
-    grok.provides(IAliquotManager)
-
-    _model = model.Aliquot
-    _type = Aliquot
-
-
-    def getFilter(self, **kw):
+    def makefilter(self, **kw):
+        """ see ISpecimenManager.makefilter
         """
-        Generic aliquot filter. Takes kw arguments, generally matching
-        the IAliquot interface
-        """
-        Session = self._datastore.getScopedSession()
-        Model = self._model
-        SpecimenModel = model.Specimen
-        query = Session.query(Model)
+        session = self.datastore.session
+        query = session.query(model.Specimen)
 
         if 'subject_zid' in kw and 'our_id' in kw:
             del kw['our_id']
+
         for key, item in kw.items():
             if not isinstance(item, list):
                 item = [item]
@@ -259,22 +245,22 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
             for value in item:
                 if value is not None:
                     if key == 'state':
-                        filter = Model.state.has(value=unicode(value))
+                        filter = model.Specimen.state.has(value=unicode(value))
                     elif key == 'type':
-                        filter = Model.type.has(value=unicode(value))
+                        filter = model.Specimen.type.has(value=unicode(value))
                     elif key == 'before_date':
-                        filter = Model.store_date <= value
+                        filter = model.Specimen.collect_date <= value
                     elif key == 'after_date':
-                        filter = Model.store_date >= value
+                        filter = model.Specimen.collect_date >= value
                     elif key == 'protocol_zid':
-                        filter = Model.specimen.has(SpecimenModel.protocol.has(zid=value))
+                        filter = model.Specimen.protocol.has(zid=value)
                     elif key == 'our_id':
-                        filter = Model.specimen.has(SpecimenModel.subject.has(uid=value))
+                        filter = model.Specimen.subject.has(uid=value)
                     elif key == 'subject_zid':
-                        filter = Model.specimen.has(SpecimenModel.subject.has(zid=value))
+                        filter = model.Specimen.subject.has(zid=value)
                     elif key == 'modify_name':
                         if value is not None:
-                            filter = Model.modify_name == unicode(value)
+                            filter = model.Specimen.modify_name == unicode(value)
                         else:
                             filter = None
                     else:
@@ -288,77 +274,49 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
                 filter = or_(*filters)
                 query = query.filter(filter)
 
-        query = query.order_by(Model.id.desc())
+        query = query.order_by(model.Specimen.id.desc())
         return query
 
-    def count_records(self, **kw):
-        """
-        Generic specimen filter. Takes kw arguments, generally matching
-        the ISpecimen interface
-        """
+#     def aliquot(self, key):
+#         return IAliquotManager(self.datastore, self.get(key))
 
-        Object = self._type
-        query = self.getFilter(**kw)
-        result = query.count()
-        return result
 
-    def filter_records(self, **kw):
-        """
-        Generic aliquot filter. Takes kw arguments, generally matching
-        the IAliquot interface
-        """
-        Object = self._type
-        query = self.getFilter(**kw)
-        result = [Object.from_rslt(r) for r in query.all()]
-        return result
+class AliquotManager(BaseConventionalManager):
+    adapts(IDataStore)
+    implements(IAliquotManager)
+
+    _Model = model.Aliquot
+    _Vocab = model.SpecimenAliquotTerm
 
     def put(self, source, by=None):
-
-        Session = self._datastore.getScopedSession()
-        Model = self._model
-
-        # Find the 'term' objects for the database relation
-        column_vocabulary_map = dict(
-            state=u"aliquot_state",
-            type=u"aliquot_type",
-            storage_site=u"aliquot_storage_site",
-            analysis_status=u"aliquot_analysis_status",
-            special_instruction=u"aliquot_special_instruction",
+        session = self.datastore.session
+        kw = dict(
+                state=u"aliquot_state",
+                type=u"aliquot_type",
+                storage_site=u"aliquot_storage_site",
+                analysis_status=u"aliquot_analysis_status",
+                special_instruction=u"aliquot_special_instruction",
             )
-
-        term = dict()
-
+            
         previous_state_id = None
-
-        for attr_name, vocab_name in column_vocabulary_map.items():
-            value = getattr(source, attr_name, None)
-            if value:
-                term[vocab_name] = (
-                    Session.query(model.SpecimenAliquotTerm)
-                    .filter_by(vocabulary_name=vocab_name, value=value)
-                    .first()
-                    )
-            else:
-                term[vocab_name] = None
-
+        map = self.vocab_map(source, **kw)
         if source.dsid is not None:
-            entry = Session.query(Model).get(source.dsid)
+            entry = session.query(model.Aliquot).get(source.dsid)
             previous_state = entry.state
         else:
             # which enrollment we get the subject from.
-            specimen = Session.query(model.Specimen).get(source.specimen_dsid)
-
+            specimen = session.query(model.Specimen).get(source.specimen_dsid)
             # specimen is not already in the data base, we need to create one
-            entry = Model(specimen=specimen, type=term["aliquot_type"], create_name=by)
-            previous_state = term["aliquot_state"]
-            Session.add(entry)
+            entry = model.Aliquot(specimen=specimen, type=map["aliquot_type"], create_name=by)
+            previous_state = map["aliquot_state"]
+            session.add(entry)
 
-        entry.analysis_status = term["aliquot_state"]
+        entry.analysis_status = map["aliquot_state"]
         entry.sent_date = source.sent_date
         entry.sent_name = source.sent_name
-        entry.special_instruction = term["aliquot_special_instruction"]
-        entry.storage_site = term["aliquot_storage_site"]
-        entry.state = term["aliquot_state"]
+        entry.special_instruction = map["aliquot_special_instruction"]
+        entry.storage_site = map["aliquot_storage_site"]
+        entry.state = map["aliquot_state"]
         entry.volume = source.volume
         entry.cell_amount = source.cell_amount
         entry.store_date = source.store_date
@@ -378,11 +336,61 @@ class DatastoreAliquotManager(DatastoreManagercore, grok.Adapter):
                 action_date=model.NOW,
                 create_name=by,
                 )
-            Session.add(history)
+            session.add(history)
 
-        Session.flush()
+        session.flush()
 
         if not source.dsid:
             source.dsid = entry.id
-
         return source
+
+    def makefilter(self, **kw):
+        """
+        Generic aliquot filter. Takes kw arguments, generally matching
+        the IAliquot interface
+        """
+        session = self.datastore.session
+        query = session.query(model.Aliquot)
+
+        if 'subject_zid' in kw and 'our_id' in kw:
+            del kw['our_id']
+        for key, item in kw.items():
+            if not isinstance(item, list):
+                item = [item]
+
+            filters = []
+            for value in item:
+                if value is not None:
+                    if key == 'state':
+                        filter = model.Aliquot.state.has(value=unicode(value))
+                    elif key == 'type':
+                        filter = model.Aliquot.type.has(value=unicode(value))
+                    elif key == 'before_date':
+                        filter = model.Aliquot.store_date <= value
+                    elif key == 'after_date':
+                        filter = model.Aliquot.store_date >= value
+                    elif key == 'protocol_zid':
+                        filter = model.Aliquot.specimen.has(model.Specimen.protocol.has(zid=value))
+                    elif key == 'our_id':
+                        filter = model.Aliquot.specimen.has(model.Specimen.subject.has(uid=value))
+                    elif key == 'subject_zid':
+                        filter = model.Aliquot.specimen.has(model.Specimen.subject.has(zid=value))
+                    elif key == 'modify_name':
+                        if value is not None:
+                            filter = model.Aliquot.modify_name == unicode(value)
+                        else:
+                            filter = None
+                    else:
+                        print '%s is not a valid filter' % key
+                        filter = None
+
+                    if filter is not None:
+                        filters.append(filter)
+
+            if len(filters):
+                filter = or_(*filters)
+                query = query.filter(filter)
+
+        query = query.order_by(model.Aliquot.id.desc())
+        return query
+

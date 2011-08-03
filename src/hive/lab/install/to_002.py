@@ -14,7 +14,9 @@ from plone.dexterity.utils import addContentToContainer
 from plone.dexterity.utils import createContent
 
 from avrc.aeh import Logger as default_logger
-from avrc.data.store.interfaces import IDatastore
+from avrc.data.store.interfaces import IDataStore
+from z3c.saconfig import named_scoped_session
+from hive.lab import SCOPED_SESSION_KEY
 
 from zope.schema import Float 
 from hive.lab import migrate
@@ -35,7 +37,7 @@ def import_(context, logger=default_logger):
     """
     logger.info(u'Upgrading Datastores')
 
-    datastore = queryUtility(IDatastore, u'fia', context) 
+    datastore = IDataStore(named_scoped_session(SCOPED_SESSION_KEY))
 
     # 1) Make sure that blueprint zid has been added as a column to specimen 
     addBlueprintColumn(context, datastore)
@@ -341,8 +343,8 @@ def cleanupStudiesCycles(context):
                 
                 
 def addBlueprintIds(context):
-    datastore = queryUtility(IDatastore, u'fia', context) 
-    session = datastore.getScopedSession()
+    datastore =IDataStore(named_scoped_session(SCOPED_SESSION_KEY))
+    session = datastore.session
     catalog = getToolByName(context, 'portal_catalog')
     specimen_brains = catalog(portal_type='hive.lab.specimenblueprint')
     intids = getUtility(IIntIds)

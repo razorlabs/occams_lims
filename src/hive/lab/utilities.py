@@ -1,6 +1,6 @@
 from Products.CMFCore.utils import getToolByName
-from avrc.data.store.interfaces import IDatastore
-
+from z3c.saconfig import named_scoped_session
+from avrc.data.store.interfaces import IDataStore
 from hive.lab.interfaces.managers import ISpecimenManager
 from lovely.session.memcached import MemCachedSessionDataContainer
 from plone.memoize import ram
@@ -8,6 +8,7 @@ from zope import component
 from zope.app.intid.interfaces import IIntIds
 from zope.component import getSiteManager
 from zope.site.hooks import getSite
+from hive.lab import SCOPED_SESSION_KEY
 
 # ------------------------------------------------------------------------------
 # Utilities to cache patient data for specimen and aliquot
@@ -72,10 +73,7 @@ def get_protocol_title(zid):
 
 @ram.cache(_render_details_cachekey)
 def get_specimen(zid):
-    site = getSite()
-    sm = getSiteManager(site)
-    ds = sm.queryUtility(IDatastore, 'fia')
-    specimen_manager = ISpecimenManager(ds)
+    specimen_manager = ISpecimenManager( IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
     return specimen_manager.get(zid)
 
 @ram.cache(_render_details_cachekey)

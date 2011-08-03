@@ -1,9 +1,8 @@
 """ Lab Models
 """
-
-from avrc.data.store.model import Model, \
-                                  Visit, \
-                                  visit_protocol_table
+from avrc.data.store.model import Model
+from avrc.data.store.ext.clinical.model import Visit, \
+                                               visit_protocol_table
 from sqlalchemy import text
 from sqlalchemy.orm import relation as Relationship
 from sqlalchemy.schema import Column, \

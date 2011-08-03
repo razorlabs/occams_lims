@@ -1,6 +1,6 @@
 from Products.ZCatalog.interfaces import ICatalogBrain
-from avrc.aeh.content.patient import IPatient
-from avrc.aeh.content.visit import IVisit
+from avrc.aeh.interfaces import IPatient, \
+                                IVisit
 from cStringIO import StringIO
 from five import grok
 from hive.lab import MessageFactory as _,\

@@ -1,7 +1,10 @@
-from avrc.data.store.interfaces import IDatastore
+
+
 from avrc.data.store.batch import SqlBatch
+from avrc.data.store.interfaces import IDataStore
 from beast.browser.crud import BatchNavigation
-from hive.lab import MessageFactory as _
+from hive.lab import MessageFactory as _, \
+                     SCOPED_SESSION_KEY
 from hive.lab.interfaces.labels import ILabelPrinter
 from hive.lab.interfaces.managers import IAliquotManager,\
                                          ISpecimenManager
@@ -14,7 +17,7 @@ from z3c.form.interfaces import DISPLAY_MODE
 from zope.component import getSiteManager
 from AccessControl import getSecurityManager
 
-
+from z3c.saconfig import named_scoped_session
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -160,9 +163,7 @@ class SpecimenButtonCore(ButtonCore):
         if hasattr(context, 'dsmanager') and context.dsmanager is not None:
             self.dsmanager = context.dsmanager
         else:
-            sm = getSiteManager(self)
-            ds = sm.queryUtility(IDatastore, 'fia')
-            self.dsmanager = ISpecimenManager(ds)
+            self.dsmanager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
         self.sampletype = _(u"specimen")
 
     def printLabels(self, action):
@@ -205,9 +206,7 @@ class AliquotButtonCore(ButtonCore):
         if hasattr(context, 'dsmanager') and context.dsmanager is not None:
             self.dsmanager = context.dsmanager
         else:
-            sm = getSiteManager(self)
-            ds = sm.queryUtility(IDatastore, 'fia')
-            self.dsmanager = ISpecimenManager(ds)
+            self.dsmanager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
         self.sampletype = _(u"aliquot")
 
 
@@ -448,9 +447,8 @@ class AliquotCreator(crud.EditForm):
         """
         super(AliquotCreator, self).__init__(context, request)
         sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        self.specimen_manager = ISpecimenManager(ds)
-        self.aliquot_manager = IAliquotManager(ds)
+        self.specimen_manager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
+        self.aliquot_manager = IAliquotManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
 
     editsubform_factory = OrderedSubForm
 

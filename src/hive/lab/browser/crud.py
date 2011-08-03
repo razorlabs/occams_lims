@@ -1,10 +1,12 @@
 from Products.statusmessages.interfaces import IStatusMessage
-from avrc.data.store.interfaces import IDatastore
+from z3c.saconfig import named_scoped_session
+from avrc.data.store.interfaces import IDataStore
 from beast.browser import widgets
 from datetime import date
 from five import grok
 from hive.lab import MessageFactory as _,\
-                     utilities as utils
+                     utilities as utils, \
+                     SCOPED_SESSION_KEY
 from hive.lab.browser import buttons
 from hive.lab.interfaces.aliquot import IAliquot,\
                                         IAliquotGenerator,\
@@ -54,9 +56,7 @@ class SpecimenCoreForm(crud.CrudForm):
     """
     def __init__(self, context, request):
         super(SpecimenCoreForm, self).__init__(context, request)
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        self.dsmanager = ISpecimenManager(ds)
+        self.dsmanager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
         self.update_schema = self.edit_schema
 
     @property
@@ -83,7 +83,7 @@ class SpecimenCoreForm(crud.CrudForm):
         if field == 'patient_title':
             visit = item.visit()
             if visit is not None:
-                 url = '%s/specimen' % visit.absolute_url()
+                url = '%s/specimen' % visit.absolute_url()
             else:
                 intids = zope.component.getUtility(IIntIds)
                 patient = intids.getObject(item.subject_zid)
@@ -111,7 +111,7 @@ class SpecimenCoreForm(crud.CrudForm):
 
     def getQuery(self):
         kw = self.getkwargs()
-        return self.dsmanager.getFilter(**kw)
+        return self.dsmanager.makefilter(**kw)
     
     def getCount(self):
         kw = self.getkwargs()
@@ -133,10 +133,8 @@ class AliquotCoreForm(crud.CrudForm):
 
     def __init__(self, context, request):
         super(AliquotCoreForm, self).__init__(context, request)
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        self.specimen_manager = ISpecimenManager(ds)
-        self.dsmanager = IAliquotManager(ds)
+        self.specimen_manager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
+        self.dsmanager = IAliquotManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
         self.update_schema = self.edit_schema
 
     ignoreContext = True
@@ -211,7 +209,7 @@ class AliquotCoreForm(crud.CrudForm):
 
     def getQuery(self):
         kw = self.getkwargs()
-        return self.dsmanager.getFilter(**kw)
+        return self.dsmanager.makefilter(**kw)
 
     def getCount(self):
         kw = self.getkwargs()
@@ -421,10 +419,7 @@ class AliquotCreator(AliquotCoreForm):
     """
     def __init__(self, context, request):
         super(AliquotCreator, self).__init__(context, request)
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        self.specimen_manager = ISpecimenManager(ds)
-
+        self.specimen_manager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
     editform_factory = buttons.AliquotCreator
 
     @property
@@ -706,9 +701,7 @@ class AliquotCheckoutUpdate(form.Form):
 
     def __init__(self, context, request):
         super(AliquotCheckoutUpdate, self).__init__(context, request)
-        sm = getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        self.dsmanager = IAliquotManager(ds)
+        self.dsmanager = IAliquotManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
 
     ignoreContext = True
 
@@ -841,9 +834,7 @@ class SpecimenAddForm(z3cform.Form):
     @button.buttonAndHandler(_('Request More Specimen'), name='requestSpecimen',
     condition=lambda self: checkPermission('hive.lab.RequestSpecimen', self.context))
     def requestSpecimen(self, action):
-        sm = zope.component.getSiteManager(self)
-        ds = sm.queryUtility(IDatastore, 'fia')
-        specimen_manager = ISpecimenManager(ds)
+        specimen_manager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
         data, errors = self.extractData()
         messages = IStatusMessage(self.request)
         if errors:
