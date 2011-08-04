@@ -1,5 +1,3 @@
-
-
 from avrc.data.store.batch import SqlBatch
 from avrc.data.store.interfaces import IDataStore
 from beast.browser.crud import BatchNavigation
@@ -12,7 +10,7 @@ from plone.z3cform.crud import crud
 from z3c.form import button,\
                      field,\
                      form as z3cform
-                     
+import sys              
 from z3c.form.interfaces import DISPLAY_MODE
 from zope.component import getSiteManager
 from AccessControl import getSecurityManager
@@ -109,7 +107,7 @@ class ButtonCore(crud.EditForm):
         if selected:
             for id, obj in selected:
                 setattr(obj, 'state', unicode(state))
-                newobj = self.dsmanager.put(obj)
+                self.dsmanager.put(obj)
             self.status = _(u"Your %s have been changed to the status of %s." % (self.sampletype, acttitle))
         else:
             self.status = _(u"Please select %s" % (self.sampletype))
@@ -140,7 +138,7 @@ class ButtonCore(crud.EditForm):
                     if status is no_changes:
                         status = success
             if updated:
-                newobj = self.dsmanager.put(obj)
+                self.dsmanager.put(obj)
         self.status = status
 
 
@@ -231,7 +229,7 @@ class AliquotButtonCore(ButtonCore):
         if selected:
             for id, obj in selected:
                 setattr(obj, 'state', unicode(state))
-                newobj = self.dsmanager.put(obj, by=self.currentUser)
+                self.dsmanager.put(obj, by=self.currentUser)
             self.status = _(u"Your %s have been changed to the status of %s." % (self.sampletype, acttitle))
         else:
             self.status = _(u"Please select %s" % (self.sampletype))
@@ -262,7 +260,7 @@ class AliquotButtonCore(ButtonCore):
                     if status is no_changes:
                         status = success
             if updated:
-                newobj = self.dsmanager.put(obj, by=self.currentUser)
+                self.dsmanager.put(obj, by=self.currentUser)
         self.status = status
 
     @button.buttonAndHandler(_('Select All'), name='selectall')
@@ -446,7 +444,6 @@ class AliquotCreator(crud.EditForm):
         Provide a specimen manager for these buttons
         """
         super(AliquotCreator, self).__init__(context, request)
-        sm = getSiteManager(self)
         self.specimen_manager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
         self.aliquot_manager = IAliquotManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
 
@@ -477,7 +474,7 @@ class AliquotCreator(crud.EditForm):
             for id, aliquottemplate in selected:
                 specimenobj = self.context.specimen_manager.get(aliquottemplate.specimen_dsid)
                 setattr(specimenobj, 'state', unicode(state))
-                newspecimen = self.context.specimen_manager.put(specimenobj)
+                self.context.specimen_manager.put(specimenobj)
             self.status = _(u"Your specimen have been %s." % (acttitle))
         else:
             self.status = _(u"Please select aliquot templates." % (acttitle))
@@ -520,7 +517,7 @@ class AliquotCreator(crud.EditForm):
                 if hasattr(blueprint, 'dsid'):
                     # the put has updated blueprint. reset it.
                     blueprint.dsid = None
-                newaliquot = self.aliquot_manager.put(blueprint, by=self.currentUser)
+                self.aliquot_manager.put(blueprint, by=self.currentUser)
             if status is no_changes:
                 status = success
         self.status = status
@@ -594,7 +591,7 @@ class AliquotRecoverButtons(AliquotButtonCore):
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Hold'), name='hold')
-    def handleRecoverAliquot(self, action):
+    def handleHoldAliquot(self, action):
         self.changeState(action, 'hold', 'Held')
         
         return self.request.response.redirect(self.action)
@@ -675,7 +672,7 @@ class AliquotCheckinButtons(AliquotButtonCore):
                     if status is no_changes:
                         status = success
             if updated:
-                newobj = self.dsmanager.put(obj, by=self.currentUser)
+                self.dsmanager.put(obj, by=self.currentUser)
         self.status = status
 
     @button.buttonAndHandler(_('Save Changes'), name='save')

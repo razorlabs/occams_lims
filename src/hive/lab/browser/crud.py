@@ -32,7 +32,6 @@ from z3c.form import button,\
                      form as z3cform
 from z3c.form.interfaces import DISPLAY_MODE
 from zope.app.intid.interfaces import IIntIds
-from zope.component import getSiteManager
 from zope.schema.vocabulary import SimpleTerm,\
                                    SimpleVocabulary
 import datetime

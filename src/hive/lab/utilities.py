@@ -6,8 +6,6 @@ from lovely.session.memcached import MemCachedSessionDataContainer
 from plone.memoize import ram
 from zope import component
 from zope.app.intid.interfaces import IIntIds
-from zope.component import getSiteManager
-from zope.site.hooks import getSite
 from hive.lab import SCOPED_SESSION_KEY
 
 # ------------------------------------------------------------------------------

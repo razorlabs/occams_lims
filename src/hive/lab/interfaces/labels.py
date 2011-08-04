@@ -3,10 +3,6 @@ from plone.directives import form
 import zope.interface
 import zope.schema
 
-
-
-
-
 class ILabelSheet(form.Schema):
     """
         info for building a pdf of labels

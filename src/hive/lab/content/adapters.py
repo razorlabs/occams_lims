@@ -9,8 +9,8 @@ from hive.lab.content.factories import LabelGenerator
 
 from hive.lab.interfaces.aliquot import IAliquot,\
                                         IAliquotGenerator,\
-                                        IViewableAliquot,\
-                                        IAliquotFilterForm
+                                        IViewableAliquot
+
 from hive.lab.interfaces.lab import IFilterForm,\
                                     IResearchLab
 from hive.lab.interfaces.labels import ILabel,\

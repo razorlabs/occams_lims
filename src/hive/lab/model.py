@@ -1,8 +1,9 @@
 """ Lab Models
 """
 from avrc.data.store.model import Model
-from avrc.data.store.ext.clinical.model import Visit, \
-                                               visit_protocol_table
+from avrc.aeh.model import Visit, \
+                           visit_protocol_table
+                           
 from sqlalchemy import text
 from sqlalchemy.orm import relation as Relationship
 from sqlalchemy.schema import Column, \
@@ -186,6 +187,7 @@ class Specimen(Model):
 
     def objectify(self):
         obj = SpecimenObject()
+        obj.id = self.id
         obj.dsid = self.id
         obj.blueprint_zid = self.blueprint_zid
         if self.subject is not None:
@@ -351,6 +353,7 @@ class Aliquot(Model):
 
     def objectify(self):
         obj = AliquotObject()
+        obj.id = self.id
         obj.dsid = self.id
         obj.specimen_dsid = self.specimen.id
         if self.type is not None:

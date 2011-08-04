@@ -1,6 +1,7 @@
 from avrc.data.store.storage import Item
 from hive.lab import utilities as utils
-from hive.lab.interfaces.aliquot import IAliquot, IAliquotBlueprint
+from hive.lab.interfaces.aliquot import IAliquot, \
+                                        IAliquotBlueprint
 from hive.lab.interfaces.lab import IFilterForm
 from hive.lab.interfaces.specimen import ISpecimen, \
                                          ISpecimenBlueprint

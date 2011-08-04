@@ -1,6 +1,5 @@
 from avrc.data.store.interfaces import IManager
 
-
 class IBaseConventionalManager(IManager):
     """
     """

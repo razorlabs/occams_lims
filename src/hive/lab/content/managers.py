@@ -1,11 +1,7 @@
-from avrc.data.store.ext.clinical import model as dsmodel
-# from avrc.data.store._manager import AbstractDatastoreConventionalManager
+from avrc.aeh import model as dsmodel
 from avrc.data.store.interfaces import IDataStore
 
-from five import grok
 from hive.lab import model
-from hive.lab.content.objects import Aliquot, \
-                                     Specimen
 
 from hive.lab.interfaces.managers import IAliquotManager, \
                                          ISpecimenManager
