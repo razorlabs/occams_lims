@@ -34,21 +34,21 @@
         title="Available Specimen"
         description="Make Specimen Available for an object."
         provides="hive.lab.interfaces.specimen.IAvailableSpecimen"
-        for="avrc.aeh.content.study.IStudy"
+        for="avrc.aeh.interfaces.IStudy"
     />
     
     <plone:behavior
         title="Required Specimen"
         description="Make Specimen Required for an object."
         provides="hive.lab.interfaces.specimen.IRequiredSpecimen"
-        for="avrc.aeh.content.cycle.ICycle"
+        for="avrc.aeh.interfaces.ICycle"
     />
     
     <plone:behavior
         title="Requested Specimen"
         description="Make Specimen Required for an object."
         provides="hive.lab.interfaces.specimen.IRequestedSpecimen"
-        for="avrc.aeh.content.visit.IVisit"
+        for="avrc.aeh.interfaces.IVisit"
     />
     
     <plone:behavior
