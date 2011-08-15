@@ -1,19 +1,19 @@
+from AccessControl import getSecurityManager
 from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
 from Products.ZCatalog.ZCatalog import manage_addZCatalog
-
-from z3c.saconfig import named_scoped_session
 from avrc.data.store.interfaces import IDataStore
 from five import grok
 from hive.lab import MessageFactory as _, \
                      SCOPED_SESSION_KEY
-from hive.lab.interfaces.labels import ILabel,\
+from hive.lab.interfaces.labels import ILabel, \
                                        ILabelSheet
 from hive.lab.interfaces.managers import ISpecimenManager
 from hive.lab.interfaces.specimen import IRequestedSpecimen
+from z3c.saconfig import named_scoped_session
 from zope.app.intid.interfaces import IIntIds
 from zope.lifecycleevent import IObjectAddedEvent
 import zope.component
-from AccessControl import getSecurityManager
+
 
 @grok.subscribe(ILabelSheet, IObjectAddedEvent)
 def handleLabelSheetAdded(sheet, event):

@@ -1,27 +1,23 @@
 from Products.ZCatalog.interfaces import ICatalogBrain
-from avrc.aeh.interfaces import IPatient, \
-                                IVisit
+from avrc.aeh.interfaces import IPatient, IVisit
 from cStringIO import StringIO
 from five import grok
-from hive.lab import MessageFactory as _,\
+from hive.lab import MessageFactory as _, \
                      utilities as utils
 from hive.lab.content.factories import LabelGenerator
-
-from hive.lab.interfaces.aliquot import IAliquot,\
-                                        IAliquotGenerator,\
+from hive.lab.interfaces.aliquot import IAliquot, \
+                                        IAliquotGenerator, \
                                         IViewableAliquot
-
-from hive.lab.interfaces.lab import IFilterForm,\
+from hive.lab.interfaces.lab import IFilterForm, \
                                     IResearchLab
-from hive.lab.interfaces.labels import ILabel,\
-                                       ILabelPrinter,\
+from hive.lab.interfaces.labels import ILabel, \
+                                       ILabelPrinter, \
                                        ILabelSheet
-
-from hive.lab.interfaces.specimen import IBlueprintForSpecimen,\
-                                         IFilter,\
-                                         ISpecimen,\
+from hive.lab.interfaces.specimen import IBlueprintForSpecimen, \
+                                         IFilter, \
+                                         ISpecimen, \
                                          IViewableSpecimen
-from zope.app.intid.interfaces import IIntIds                         
+from zope.app.intid.interfaces import IIntIds
 import datetime
 import zope.component
 
@@ -96,7 +92,7 @@ class ViewableAliquot(grok.Adapter):
         aeh = utils.get_patient_legacy_number(specimenobj.subject_zid)
         mbn = utils.get_patient_master_book_number(specimenobj.subject_zid)
         if aeh and mbn:
-            ret = '%s / %s' %(aeh, mbn)
+            ret = '%s / %s' % (aeh, mbn)
         elif aeh:
             ret = aeh
         else:
@@ -200,7 +196,7 @@ class LabFilter(grok.Adapter):
     grok.context(IResearchLab)
 
     def getOmittedFields(self):
-        omitted=[]
+        omitted = []
         return omitted
         
     def getFilter(self, basekw={}, states=[]):
@@ -232,7 +228,7 @@ class PatientFilter(grok.Adapter):
     grok.context(IPatient)
 
     def getOmittedFields(self):
-        omitted=['patient']
+        omitted = ['patient']
         return omitted
     
     def getFilter(self, basekw={}, states=[]):
@@ -266,7 +262,7 @@ class VisitFilter(grok.Adapter):
 
 
     def getOmittedFields(self):
-        omitted=['patient', 'before_date','after_date']
+        omitted = ['patient', 'before_date', 'after_date']
         return omitted
         
     def getFilter(self, basekw={}, states=[]):
@@ -492,3 +488,4 @@ class LabelPrinter(grok.Adapter):
         content = stream.getvalue()
         stream.close()
         return content
+

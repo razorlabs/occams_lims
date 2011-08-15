@@ -1,7 +1,7 @@
-from hive.lab import MessageFactory as _,\
+from hive.lab import MessageFactory as _, \
                      vocabularies
-from hive.lab.interfaces.lab import IFilter,\
-                                    IFilterForm,\
+from hive.lab.interfaces.lab import IFilter, \
+                                    IFilterForm, \
                                     IChecklistSupport
 from hive.lab.interfaces.labels import ILabel
 from plone.directives import form
@@ -166,12 +166,12 @@ class IViewableAliquot(IAliquot, form.Schema):
  
     thawed = zope.schema.Bool(
         title=_(u'Thawed'),
-        required = False
+        required=False
         )
         
     thawed_num = zope.schema.Int(
         title=_(u'Thawed'),
-        required = False
+        required=False
         )
 
 

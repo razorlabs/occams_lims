@@ -2,6 +2,7 @@ from reportlab.graphics.barcode import code39
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 
+
 '''
 
 v0.1 by SL Kosakovsky Pond (spond@ucsd.edu)
@@ -50,8 +51,8 @@ class LabelGenerator(object):
         self.font_face = 'Helvetica'
         self.canvas = self.createCanvas(filename)
         
-        self.grid   = self.drawGrid()
-        self.row    = 0
+        self.grid = self.drawGrid()
+        self.row = 0
         self.column = -1
         self.rows = self.no_down
         self.cols = self.no_across
@@ -65,7 +66,7 @@ class LabelGenerator(object):
             filename = filetitle
         newcanvas = canvas.Canvas(
                         filename,
-                        pagesize = (self.page_width * inch,
+                        pagesize=(self.page_width * inch,
                                      self.page_height * inch),
                         )
         newcanvas.setTitle(filetitle)
@@ -74,7 +75,7 @@ class LabelGenerator(object):
         newcanvas.setLineCap(1) # round
         newcanvas.setLineJoin(0) # mitre
         newcanvas.setLineWidth(0.1) # line width = 0.5 pts
-        newcanvas.setFont(self.font_face,12)
+        newcanvas.setFont(self.font_face, 12)
         return newcanvas
         
     def drawGrid (self):
@@ -89,13 +90,13 @@ class LabelGenerator(object):
         labelBoxes = []
         current_x = self.side_margin
         for row in range (self.no_across):
-            labelBoxes += [[],]
+            labelBoxes += [[], ]
             current_y = self.page_height - self.top_margin
             for col in range(self.no_down):
-                labelBoxes[len(labelBoxes)-1] += [[inch * current_x,
+                labelBoxes[len(labelBoxes) - 1] += [[inch * current_x,
                                 inch * (current_y - self.label_height),
                                 inch * self.label_width,
-                                inch * self.label_height],]
+                                inch * self.label_height], ]
                 current_y = current_y - self.vert_pitch
             current_x += self.horz_pitch
         return  labelBoxes
@@ -106,7 +107,7 @@ class LabelGenerator(object):
         """
         for aColumn in self.grid:
             for aBox in aColumn:
-                self.canvas.roundRect(aBox[0], aBox[1], aBox[2], aBox[3], self.label_round*inch)
+                self.canvas.roundRect(aBox[0], aBox[1], aBox[2], aBox[3], self.label_round * inch)
         return self.grid
         
     def getNextBox(self, startcol=None, startrow=None):
@@ -123,7 +124,7 @@ class LabelGenerator(object):
         if self.row == self.rows:
             self.row = 0
             self.canvas.showPage()
-        return(self.row,self.column)
+        return(self.row, self.column)
 
     def writeLabels(self):
         '''
@@ -144,7 +145,7 @@ class LabelGenerator(object):
         self.drawABox(grid_position, labelines, barcodeline)
 
 
-    def drawABox (self, theBox, labelLines, barCodeLine = -1):
+    def drawABox (self, theBox, labelLines, barCodeLine= -1):
         '''
         draw the text contained in the string list (labelLines), one per line
         font size is computed to fit all the lines vertically, and then readjusted
@@ -159,19 +160,19 @@ class LabelGenerator(object):
 
         lineCount = len(labelLines)
         if (lineCount): #things to do
-            if barCodeLine >=0 and barCodeLine < lineCount:
+            if barCodeLine >= 0 and barCodeLine < lineCount:
                 lineCount += 1
-            fontSize = theBox[3] / (1+lineCount)
+            fontSize = theBox[3] / (1 + lineCount)
             #if fontSize < 7:
             #    fontSize = 7
 
-            margin         = fontSize
-            availableWidth = theBox[2] - margin*2
+            margin = fontSize
+            availableWidth = theBox[2] - margin * 2
 
-            self.canvas.setFontSize (fontSize-1)
+            self.canvas.setFontSize (fontSize - 1)
             self.canvas.saveState()
             p = self.canvas.beginPath()
-            p.rect(theBox[0],theBox[1],theBox[2],theBox[3])
+            p.rect(theBox[0], theBox[1], theBox[2], theBox[3])
             #c.clipPath(p,stroke=0)
 
             current_y = theBox [1] + theBox[3] - fontSize * 1.2
@@ -180,19 +181,20 @@ class LabelGenerator(object):
                 stringWidth = self.canvas.stringWidth (aLine)
 
                 if stringWidth > availableWidth:
-                    self.canvas.setFontSize ((fontSize-1)*availableWidth/stringWidth)
+                    self.canvas.setFontSize ((fontSize - 1) * availableWidth / stringWidth)
 
                 if lineIDX == barCodeLine:
-                    current_y         -= fontSize
-                    ratio               = 2.2
-                    elementWidth    = 7+2.2*3;
-                    barcode=code39.Standard39(aLine, barWidth=(availableWidth-3)/elementWidth/(3+len(aLine)), ratio = ratio,
-                                                     barHeight=2*fontSize,humanReadable=False,quiet=True,lquiet=1.5,rquiet=1.5)
+                    current_y -= fontSize
+                    ratio = 2.2
+                    elementWidth = 7 + 2.2 * 3;
+                    barcode = code39.Standard39(aLine, barWidth=(availableWidth - 3) / elementWidth / (3 + len(aLine)), ratio=ratio,
+                                                     barHeight=2 * fontSize, humanReadable=False, quiet=True, lquiet=1.5, rquiet=1.5)
 
-                    barcode.drawOn(self.canvas,theBox[0] + margin, current_y)
+                    barcode.drawOn(self.canvas, theBox[0] + margin, current_y)
                 else:
                     self.canvas.drawString (theBox[0] + margin, current_y, aLine)
                 current_y -= fontSize
-                self.canvas.setFontSize (fontSize-1)
+                self.canvas.setFontSize (fontSize - 1)
 
             self.canvas.restoreState()
+

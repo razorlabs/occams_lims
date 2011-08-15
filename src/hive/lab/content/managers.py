@@ -1,18 +1,14 @@
 from avrc.aeh import model as dsmodel
 from avrc.data.store.interfaces import IDataStore
-
 from hive.lab import model
-
 from hive.lab.interfaces.managers import IAliquotManager, \
                                          ISpecimenManager
-
 from sqlalchemy import or_
+from zope.component import adapts
+from zope.interface import implements
 from zope.schema.vocabulary import SimpleTerm, \
                                    SimpleVocabulary
 
-
-from zope.component import adapts
-from zope.interface import implements
 
 # ----------------------------------------------------------------------
 # Data Store Managers
@@ -208,7 +204,7 @@ class SpecimenManager(BaseConventionalManager):
             entry = model.Specimen()
             entry.subject = subject
             entry.protocol = protocol
-            entry.type = type=map["specimen_type"]
+            entry.type = type = map["specimen_type"]
             session.add(entry)
 
         entry.blueprint_zid = source.blueprint_zid

@@ -1,12 +1,12 @@
 from Products.CMFCore.utils import getToolByName
-from z3c.saconfig import named_scoped_session
 from avrc.data.store.interfaces import IDataStore
+from hive.lab import SCOPED_SESSION_KEY
 from hive.lab.interfaces.managers import ISpecimenManager
 from lovely.session.memcached import MemCachedSessionDataContainer
 from plone.memoize import ram
+from z3c.saconfig import named_scoped_session
 from zope import component
 from zope.app.intid.interfaces import IIntIds
-from hive.lab import SCOPED_SESSION_KEY
 
 # ------------------------------------------------------------------------------
 # Utilities to cache patient data for specimen and aliquot
@@ -71,7 +71,7 @@ def get_protocol_title(zid):
 
 @ram.cache(_render_details_cachekey)
 def get_specimen(zid):
-    specimen_manager = ISpecimenManager( IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
+    specimen_manager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
     return specimen_manager.get(zid)
 
 @ram.cache(_render_details_cachekey)
@@ -118,3 +118,4 @@ def getPatientForFilter(context, pid):
         return intids.getId(results[0].getObject())
 
     return None
+

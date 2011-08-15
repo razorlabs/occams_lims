@@ -1,14 +1,14 @@
-from z3c.saconfig import named_scoped_session
 from avrc.data.store.interfaces import IDataStore
 from five import grok
+from hive.lab import SCOPED_SESSION_KEY
 from hive.lab.interfaces.managers import ISpecimenManager
+from z3c.saconfig import named_scoped_session
 from zope import component
 from zope.intid.interfaces import IIntIds
 from zope.schema.interfaces import IContextSourceBinder
-from zope.schema.vocabulary import SimpleTerm,\
+from zope.schema.vocabulary import SimpleTerm, \
                                    SimpleVocabulary
 
-from hive.lab import SCOPED_SESSION_KEY
 
 class SpecimenVocabulary(object):
     """
@@ -81,3 +81,4 @@ class SpecimenAliquotVocabulary(object):
     def __call__(self, context):
         vocab = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY))).get_vocabulary(self.vocabulary_name)
         return vocab
+

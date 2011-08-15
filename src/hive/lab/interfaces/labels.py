@@ -141,3 +141,4 @@ class ILabelPrinter(zope.interface.Interface):
         Create the label page, and output
         """
         pass
+

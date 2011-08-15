@@ -1,9 +1,10 @@
 """ Lab Models
 """
-from avrc.data.store.model import Model
 from avrc.aeh.model import Visit, \
-                           visit_protocol_table
-                           
+                          visit_protocol_table
+from avrc.data.store.model import Model
+from hive.lab.content.objects import Aliquot as AliquotObject, \
+                                     Specimen as SpecimenObject
 from sqlalchemy import text
 from sqlalchemy.orm import relation as Relationship
 from sqlalchemy.schema import Column, \
@@ -16,18 +17,12 @@ from sqlalchemy.types import Boolean, \
                              Integer, \
                              Time, \
                              Unicode
-
-
-from hive.lab.content.objects import Aliquot as AliquotObject,\
-                                     Specimen as SpecimenObject
-
+                           
 __all__ = ('SpecimenAliquotTerm', 'Specimen', 'Aliquot', 'AliquotHistory',)
-
 
 NOW = text('CURRENT_TIMESTAMP')
 
 FALSE = text('FALSE')
-
 
 
 class SpecimenAliquotTerm(Model):
@@ -439,3 +434,4 @@ class AliquotHistory(Model):
     create_date = Column(DateTime, nullable=False, default=NOW)
 
     create_name = Column(Unicode, nullable=False)
+

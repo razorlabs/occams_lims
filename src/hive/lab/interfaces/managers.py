@@ -41,3 +41,4 @@ class IAliquotManager(IBaseConventionalManager):
 
 class ISpecimenManager(IBaseConventionalManager):
     """  interface for managing specimen """
+

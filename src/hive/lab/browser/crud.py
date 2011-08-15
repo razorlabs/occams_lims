@@ -1,46 +1,46 @@
+from AccessControl import getSecurityManager
 from Products.statusmessages.interfaces import IStatusMessage
-from z3c.saconfig import named_scoped_session
 from avrc.data.store.interfaces import IDataStore
 from beast.browser import widgets
 from datetime import date
 from five import grok
-from hive.lab import MessageFactory as _,\
+from hive.lab import MessageFactory as _, \
                      utilities as utils, \
                      SCOPED_SESSION_KEY
 from hive.lab.browser import buttons
-from hive.lab.interfaces.aliquot import IAliquot,\
-                                        IAliquotGenerator,\
-                                        IAliquotSupport,\
-                                        IViewableAliquot,\
+from hive.lab.interfaces.aliquot import IAliquot, \
+                                        IAliquotGenerator, \
+                                        IAliquotSupport, \
+                                        IViewableAliquot, \
                                         IAliquotFilterForm
-from hive.lab.interfaces.lab import IFilter,\
-                                    IFilterForm,\
+from hive.lab.interfaces.lab import IFilter, \
+                                    IFilterForm, \
                                     IResearchLab
-from hive.lab.interfaces.labels import ILabelPrinter,\
+from hive.lab.interfaces.labels import ILabelPrinter, \
                                        ILabel
-from hive.lab.interfaces.managers import IAliquotManager,\
+from hive.lab.interfaces.managers import IAliquotManager, \
                                          ISpecimenManager
-from hive.lab.interfaces.specimen import IBlueprintForSpecimen,\
-                                         IViewableSpecimen,\
-                                         ISpecimen,\
-                                        ISpecimenSupport,\
-                                        ISpecimenFilterForm
+from hive.lab.interfaces.specimen import IBlueprintForSpecimen, \
+                                         IViewableSpecimen, \
+                                         ISpecimen, \
+                                         ISpecimenSupport, \
+                                         ISpecimenFilterForm
 from plone.directives import form
 from plone.z3cform.crud import crud
-from z3c.form import button,\
-                     field,\
+from z3c.form import button, \
+                     field, \
                      form as z3cform
 from z3c.form.interfaces import DISPLAY_MODE
+from z3c.saconfig import named_scoped_session
 from zope.app.intid.interfaces import IIntIds
-from zope.schema.vocabulary import SimpleTerm,\
+from zope.schema.vocabulary import SimpleTerm, \
                                    SimpleVocabulary
+from zope.security import checkPermission
 import datetime
 import os.path
-import zope.schema
 import zope.component
 import zope.interface
-from zope.security import checkPermission
-from AccessControl import getSecurityManager
+import zope.schema
 
 # ------------------------------------------------------------------------------
 # Base Forms |
@@ -359,7 +359,7 @@ class SpecimenSupportForm(SpecimenCoreForm):
 
     @property
     def display_state(self):
-        return [u'complete',u'pending-draw',u'batched',u'postponed',u'aliquoted']
+        return [u'complete', u'pending-draw', u'batched', u'postponed', u'aliquoted']
 
   
     @property
@@ -368,9 +368,9 @@ class SpecimenSupportForm(SpecimenCoreForm):
  
     def getkwargs(self):
         sessionkeys = utils.getSession(self.context, self.request)
-        statefilter=False
+        statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
-            statefilter=True
+            statefilter = True
         kw = IFilter(self.context).getFilter(sessionkeys)
         if statefilter:
             kw['state'] = self.display_state
@@ -475,9 +475,9 @@ class AliquotPreparedForm(AliquotCoreForm):
 
     def getkwargs(self):
         sessionkeys = utils.getSession(self.context, self.request)
-        statefilter=False
+        statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
-            statefilter=True
+            statefilter = True
         kw = IFilter(self.context).getFilter(sessionkeys)
         if statefilter:
             kw['state'] = self.display_state
@@ -500,7 +500,7 @@ class AliquotCompletedForm(AliquotCoreForm):
         fields += field.Fields(IAliquot).\
             select('store_date')
         fields += field.Fields(IViewableAliquot).\
-            select('frb','special_instruction')
+            select('frb', 'special_instruction')
         fields += field.Fields(IAliquot).\
             select('notes')
         return fields
@@ -533,7 +533,7 @@ class AliquotEditForm(AliquotCoreForm):
     @property
     def edit_schema(self):
         fields = field.Fields(IAliquot).\
-            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box','thawed_num')
+            select('volume', 'cell_amount', 'store_date', 'freezer', 'rack', 'box', 'thawed_num')
         fields += field.Fields(IViewableAliquot).\
             select('special_instruction')
         fields += field.Fields(IAliquot).\
@@ -556,7 +556,7 @@ class AliquotCheckoutForm(AliquotCoreForm):
         fields = field.Fields(IViewableAliquot).\
             select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count',)
         fields += field.Fields(IAliquot).\
-            select( 'store_date')
+            select('store_date')
         fields += field.Fields(IViewableAliquot).\
             select('frb', 'special_instruction')
         fields += field.Fields(IAliquot).\
@@ -589,7 +589,7 @@ class AliquotCheckinForm(AliquotCoreForm):
         fields = field.Fields(IViewableAliquot).\
             select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type')
         fields += field.Fields(IAliquot).\
-            select( 'store_date')
+            select('store_date')
         fields += field.Fields(IViewableAliquot).\
             select('special_instruction', 'sent_date', 'sent_name', 'sent_notes')
         return fields
@@ -608,9 +608,9 @@ class AliquotCheckinForm(AliquotCoreForm):
 
     def getkwargs(self):
         sessionkeys = utils.getSession(self.context, self.request)
-        statefilter=False
+        statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
-            statefilter=True
+            statefilter = True
         kw = IFilter(self.context).getFilter(sessionkeys)
         if statefilter:
             kw['state'] = self.display_state
@@ -629,12 +629,12 @@ class AliquotListForm(AliquotCoreForm):
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot).\
-            select('dsid', 'state','patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count',
+            select('dsid', 'state', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count',
             'frb')
         fields += field.Fields(IAliquot).\
             select('store_date')
         fields += field.Fields(IViewableAliquot).\
-            select('thawed_num','special_instruction')
+            select('thawed_num', 'special_instruction')
         fields += field.Fields(IAliquot).\
             select('notes')
         return fields
@@ -647,9 +647,9 @@ class AliquotListForm(AliquotCoreForm):
 
     def getkwargs(self):
         sessionkeys = utils.getSession(self.context, self.request)
-        statefilter=False
+        statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
-            statefilter=True
+            statefilter = True
         kw = IFilter(self.context).getFilter(sessionkeys)
         if statefilter:
             kw['state'] = self.display_state
@@ -665,7 +665,7 @@ class AliquotQueueForm(AliquotCoreForm):
         fields = field.Fields(IViewableAliquot).\
             select('dsid', 'state', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count')
         fields += field.Fields(IAliquot).\
-            select( 'store_date')
+            select('store_date')
         fields += field.Fields(IViewableAliquot).\
             select('frb')
         fields += field.Fields(IAliquot).\
@@ -873,3 +873,4 @@ class LabelForm(crud.CrudForm):
         for label in brainz:
             labellist.append((label.getPath(), label))
         return labellist
+

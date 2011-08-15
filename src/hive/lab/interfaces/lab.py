@@ -1,4 +1,4 @@
-from hive.lab import MessageFactory as _,\
+from hive.lab import MessageFactory as _, \
                      vocabularies
 from plone.directives import form
 import zope.interface

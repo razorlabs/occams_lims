@@ -1,21 +1,18 @@
+from AccessControl import getSecurityManager
 from avrc.data.store.batch import SqlBatch
 from avrc.data.store.interfaces import IDataStore
 from beast.browser.crud import BatchNavigation
 from hive.lab import MessageFactory as _, \
                      SCOPED_SESSION_KEY
 from hive.lab.interfaces.labels import ILabelPrinter
-from hive.lab.interfaces.managers import IAliquotManager,\
+from hive.lab.interfaces.managers import IAliquotManager, \
                                          ISpecimenManager
 from plone.z3cform.crud import crud
-from z3c.form import button,\
-                     field,\
-                     form as z3cform
-import sys              
+from z3c.form import button, field, form as z3cform
 from z3c.form.interfaces import DISPLAY_MODE
-from zope.component import getSiteManager
-from AccessControl import getSecurityManager
-
 from z3c.saconfig import named_scoped_session
+import sys
+
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -96,7 +93,7 @@ class ButtonCore(crud.EditForm):
         batch_size = self.context.batch_size or sys.maxint
         page = self._page()
         return SqlBatch(
-            query, start=page*batch_size, size=batch_size)
+            query, start=page * batch_size, size=batch_size)
     #batch = zope.cachedescriptors.property.CachedProperty(batch)
 
     def changeState(self, action, state, acttitle):
@@ -862,3 +859,4 @@ class LabelButtons(crud.EditForm):
             self.context.labeler.purgeLabel(id)
         
         return self.request.response.redirect(self.action)
+

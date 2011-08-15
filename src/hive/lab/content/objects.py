@@ -8,9 +8,9 @@ from hive.lab.interfaces.specimen import ISpecimen, \
 from plone.dexterity import content
 from zope.app.intid.interfaces import IIntIds
 from zope.schema.fieldproperty import FieldProperty
-
 import zope.component
 import zope.interface
+
 
 class Specimen(Item):
     """ See `ISpecimen`
@@ -281,3 +281,4 @@ class AliquotBlueprint(content.Item):
                     retkw[key] = basekw[key]
         retkw.update({'type':self.aliquot_type})
         return retkw
+

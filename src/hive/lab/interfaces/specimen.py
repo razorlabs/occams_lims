@@ -1,11 +1,11 @@
-from hive.lab import MessageFactory as _,\
+from hive.lab import MessageFactory as _, \
                      vocabularies
-from hive.lab.interfaces.lab import IFilter,\
+from hive.lab.interfaces.lab import IFilter, \
                                     IFilterForm
 from hive.lab.interfaces.labels import ILabel
 from plone.directives import form
 from plone.formwidget.contenttree import ObjPathSourceBinder
-from z3c.relationfield.schema import RelationList,\
+from z3c.relationfield.schema import RelationList, \
                                      RelationChoice
 import zope.interface
 import zope.schema

@@ -62,14 +62,14 @@
         title="Aliquot View"
         description="Make this item Show Filtered Aliquot"
         provides="hive.lab.interfaces.aliquot.IAliquotSupport"
-        for="plone.dexterity.interfaces.IDexterityContent"
+        for="avrc.aeh.interfaces.IClinicalObject"
     />
     
     <plone:behavior
         title="Specimen View"
         description="Make this item Show Filtered Aliquot"
         provides="hive.lab.interfaces.specimen.ISpecimenSupport"
-        for="plone.dexterity.interfaces.IDexterityContent"
+        for="avrc.aeh.interfaces.IClinicalObject"
     />
 
 </configure>
