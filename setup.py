@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '0.4.0'
+version = '0.4.1'
 
 setup(name='hive.lab',
       version=version,
@@ -26,17 +26,17 @@ setup(name='hive.lab',
       zip_safe=False,
       install_requires=[
         'setuptools',
-        'beast.browser',                    # Tools for browser displays
-        'collective.autopermission',        # Schema permissions
-        'plone.dexterity',                  # Dexterity FTI
-        'avrc.data.store',                  # EAV Back-end
-        'avrc.data.registry',               # OUR number generator
+        'beast.browser', # Tools for browser displays
+        'collective.autopermission', # Schema permissions
+        'plone.dexterity', # Dexterity FTI
+        'avrc.data.store', # EAV Back-end
+        'avrc.data.registry', # OUR number generator
         'plone.behavior',
-        'plone.app.registry',                # For registering the behaviors
+        'plone.app.registry', # For registering the behaviors
         'avrc.aeh',
-        'reportlab',                        # PDF label generator
-        'xlutils',                          # Excel Export
-        'z3c.form >= 2.4.1',                 # For attributes to work correctly 
+        'reportlab', # PDF label generator
+        'xlutils', # Excel Export
+        'z3c.form >= 2.4.1', # For attributes to work correctly 
         # -*- Extra requirements: -*-
       ],
       entry_points="""
