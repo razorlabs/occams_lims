@@ -4,10 +4,13 @@ from five import grok
 
 from z3c.saconfig import named_scoped_session
 
-from avrc.aeh.interfaces import IPatient
+from avrc.aeh.interfaces import IVisit
+from avrc.aeh.interfaces import IClinicalMarker
 from avrc.data.store.interfaces import IDataStore
 
-@grok.subscribe(IPatient, IObjectWillBeRemovedEvent)
+from hive.lab import Logger as log
+
+@grok.subscribe(IVisit, IObjectWillBeRemovedEvent)
 def handlePatientRemoved(item, event):
     """ Retires samples when a Patient is about to removed from
         the Plone content tree.
@@ -18,5 +21,6 @@ def handlePatientRemoved(item, event):
         Should an error occurr in the future, this would probably be the
         starting point. 
     """
-    msg = 'Retiring specimen on patient delete is not implemented'
-    raise NotImplementedError(msg)
+    zid = IClinicalMarker(item).zid
+    msg = 'Retiring specimen on patient delete is not implemented Visit(zid=%d)'
+    log.warn(msg % zid)
