@@ -40,11 +40,7 @@ setup(name='hive.lab',
         'beast.browser', # Tools for browser displays
       ],
       entry_points="""
-      # -*- Entry points: -*-
-
       [z3c.autoinclude.plugin]
       target = plone
       """,
-      setup_requires=["PasteScript"],
-      paster_plugins=["ZopeSkel"],
       )
