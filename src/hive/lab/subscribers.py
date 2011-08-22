@@ -2,7 +2,7 @@
 from OFS.interfaces import IObjectWillBeRemovedEvent
 from five import grok
 
-from sqlalchemy.orm import named_scoped_session
+from z3c.saconfig import named_scoped_session
 
 from avrc.aeh.interfaces import IPatient
 from avrc.data.store.interfaces import IDataStore
