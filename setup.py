@@ -33,8 +33,7 @@ setup(name='hive.lab',
         'reportlab', # PDF label generator
         'xlutils', # Excel Export
         'z3c.form >= 2.4.1', # For attributes to work correctly
-        'sqlalchemy',
-        'sqlalchemy-migrate',
+        'SQLAlchemy',
         'avrc.aeh',
         'avrc.data.store', # EAV Back-end
         'avrc.data.registry', # OUR number generator
