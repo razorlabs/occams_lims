@@ -1,33 +1,28 @@
 import os.path
 import migrate.versioning.api
+import migrate.exceptions
 
-try:
-    from migrate.versioning.exceptions import DatabaseAlreadyControlledError
-    from migrate.versioning.exceptions import DatabaseNotControlledError
-except ImportError:
-    from migrate.exceptions import DatabaseAlreadyControlledError
-    from migrate.exceptions import DatabaseNotControlledError
-
-from hive.lab.model import Model
+from avrc.data.store.model import Model
 
 
 REPOSITORY = os.path.dirname(__file__)
 
 
 def install(engine):
-    """ Install the databases.
-        This method will setup the database models using the specified engine
-        bind. This is simply a convenience method for creating the database
-        tables as well as keeping this module self-contained.
+    """ 
+    Install the databases.
+    This method will setup the database models using the specified engine
+    bind. This is simply a convenience method for creating the database
+    tables as well as keeping this module self-contained.
 
-        Arguments:
-            ``engine``: An SQLAlchemy engine object.
+    Arguments:
+        ``engine``: An SQLAlchemy engine object.
     """
     url = str(engine.url)
 
     try:
         migrate.versioning.api.db_version(url, REPOSITORY)
-    except DatabaseNotControlledError:
+    except migrate.exceptions.DatabaseNotControlledError:
         Model.metadata.create_all(engine)
 
         # Since it's a fresh install, start at repository version
@@ -36,25 +31,27 @@ def install(engine):
 
 
 def legacy(engine):
-    """ Helper method for the sole purpose of putting a legacy database under
-        version control. Once under version control, sync may be called.
+    """ 
+    Helper method for the sole purpose of putting a legacy database under
+    version control. Once under version control, sync may be called.
     """
     url = str(engine.url)
 
     try:
         migrate.versioning.api.version_control(url, REPOSITORY)
-    except DatabaseAlreadyControlledError:
+    except migrate.exceptions.DatabaseAlreadyControlledError:
         pass
 
 
 def sync(engine, version=None):
-    """ Synchronizes the version of the current model to the live database
-        model.
-        
-        This method assumes that the database has already been previously
-        installed. Since there was not version control previously, if the 
-        database is not tagged then it will assume version 0 and try to
-        upgrade.
+    """ 
+    Synchronizes the version of the current model to the live database
+    model.
+    
+    This method assumes that the database has already been previously
+    installed. Since there was not version control previously, if the 
+    database is not tagged then it will assume version 0 and try to
+    upgrade.
     """
     url = str(engine.url)
     live_version = None
@@ -67,7 +64,7 @@ def sync(engine, version=None):
     try:
         migrate.versioning.api.version_control(url, REPOSITORY)
         live_version = 0
-    except DatabaseAlreadyControlledError:
+    except migrate.exceptions.DatabaseAlreadyControlledError:
         live_version = int(migrate.versioning.api.db_version(url, REPOSITORY))
 
     if live_version != target_version:
