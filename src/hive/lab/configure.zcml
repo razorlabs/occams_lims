@@ -34,7 +34,7 @@
       name="hive_lab_install"
       title="Additional product setup."
       description="Installs additional dependencies."
-      handler=".setuphandlers.importVarious"
+      handler="hive.lab.setuphandlers.importVarious"
       />
       
   <!-- Upgrade support for existing installations -->    

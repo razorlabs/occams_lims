@@ -36,7 +36,6 @@ setup(name='hive.lab',
 #        'SQLAlchemy',
         'avrc.aeh',
         'avrc.data.store', # EAV Back-end
-        'avrc.data.registry', # OUR number generator
         'beast.browser', # Tools for browser displays
       ],
       entry_points="""
