@@ -5,7 +5,8 @@ import hive.lab.upgrades.migrate
 
 
 def importVarious(context):
-    """ GenericSetup conventional handle for importing miscellaneous steps.
+    """ 
+    GenericSetup conventional handle for importing miscellaneous steps.
     """
 
     if context.readDataFile('default.txt') is None:
