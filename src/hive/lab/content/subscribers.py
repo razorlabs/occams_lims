@@ -35,21 +35,22 @@ def handleRequestedSpecimenAdded(visit, event):
     """
     When a visit is added, automatically add the requested specimen
     """
-    user = getSecurityManager().getUser().getId()
-    intids = zope.component.getUtility(IIntIds)
-    patient = visit.aq_parent
-    patient_zid = intids.getId(patient)
-    specimen_manager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
-
-    for cycle_relation in visit.cycles:
-        cycle_zid = cycle_relation.to_id
-        cycle = cycle_relation.to_object
-
-        if cycle.related_specimen is not None and len(cycle.related_specimen):
-            for specimen_relation in cycle.related_specimen:
-                specimenBlueprint = specimen_relation.to_object
-                specimen = specimenBlueprint.createSpecimen(patient_zid, cycle_zid, visit.visit_date)
-                specimen_manager.put(specimen)
+    if visit.require_specimen:
+        user = getSecurityManager().getUser().getId()
+        intids = zope.component.getUtility(IIntIds)
+        patient = visit.aq_parent
+        patient_zid = intids.getId(patient)
+        specimen_manager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
+    
+        for cycle_relation in visit.cycles:
+            cycle_zid = cycle_relation.to_id
+            cycle = cycle_relation.to_object
+    
+            if cycle.related_specimen is not None and len(cycle.related_specimen):
+                for specimen_relation in cycle.related_specimen:
+                    specimenBlueprint = specimen_relation.to_object
+                    specimen = specimenBlueprint.createSpecimen(patient_zid, cycle_zid, visit.visit_date)
+                    specimen_manager.put(specimen)
 
 ## TODO: make specimen includer for add cycle to visit
                 #We don't want duplicate specimen

@@ -116,7 +116,7 @@ class IViewableSpecimen(form.Schema):
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_tube_type"),
         )
 
-class ISpecimenSupport(zope.interface.Interface):
+class ISpecimenSupport(form.Schema):
     """
     Marker class for items that have specimen associated with them
     """
