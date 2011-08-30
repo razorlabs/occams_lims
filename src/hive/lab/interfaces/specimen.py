@@ -9,7 +9,7 @@ from z3c.relationfield.schema import RelationList, \
                                      RelationChoice
 import zope.interface
 import zope.schema
-
+from z3c.form.interfaces import IAddForm
 
 class ISpecimen(zope.interface.Interface):
     """ Mostly copied from aeh forms. Tons of work to do still. """
@@ -207,11 +207,25 @@ class IRequestedSpecimen(ISpecimenSupport):
     """
     Marker class for items that require specimen
     """
-
+    form.fieldset('specimen', label=u"Specimen",
+                  fields=['require_specimen'])
+                  
+    form.omitted('require_specimen')
+    form.no_omit(IAddForm, 'require_specimen')
+    require_specimen = zope.schema.Bool(
+        title=_(u"label_requested_specimen", default=u"Create Required Specimen?"),
+        description=_(u"By default, the system will create specimen for items that require them. You can disable this feature by unchecking this box."),
+        default=True,
+        required=False
+    )
+    
     def getSpecimen():
         """
         Function that provides specimen associated with the object
         """
+
+zope.interface.alsoProvides(IRequestedSpecimen, form.IFormFieldProvider)
+
 
 class ISpecimenFilterForm(IFilterForm):
     """
