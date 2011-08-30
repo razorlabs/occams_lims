@@ -8,12 +8,9 @@ def importVarious(context):
     """ 
     GenericSetup conventional handle for importing miscellaneous steps.
     """
-
-    if context.readDataFile('default.txt') is None:
+    if context.readDataFile('hive-lab.txt') is None:
         return
-
     portal = context.getSite()
-
     setupSQLDatabase(portal)
 
 
