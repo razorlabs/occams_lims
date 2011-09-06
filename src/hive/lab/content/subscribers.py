@@ -35,7 +35,12 @@ def handleRequestedSpecimenAdded(visit, event):
     """
     When a visit is added, automatically add the requested specimen
     """
-    if visit.require_specimen:
+
+    # The behavior will not inject the property if it is created through
+    # Python via createContent, so we must double check here so that
+    # an AttributeError is not raised.
+    check = 'require_specimen'
+    if getattr(visit, check, IRequestedSpecimen[check].default):
         user = getSecurityManager().getUser().getId()
         intids = zope.component.getUtility(IIntIds)
         patient = visit.aq_parent

@@ -15,4 +15,14 @@
     profile="hive.lab:default"
     />
 
+  <genericsetup:upgradeStep
+    title="Make spcimen optional"
+    description="Enables functinality to make specimen optional."
+    source="002"
+    destination="003"
+    handler=".handlers.to_003.import_"
+    profile="hive.lab:default"
+    />
+
+
 </configure>
