@@ -1,0 +1,53 @@
+
+Cannot add cycle:
+    2011-09-02T13:08:52 ERROR Zope.SiteErrorLog 1314994132.390.688934539826 https://avrcdata.ucsd.edu/aeh-clinical-db/020-positive/++add++avrc.aeh.cycle
+    Traceback (innermost last):
+    Module ZPublisher.Publish, line 134, in publish
+    Module Zope2.App.startup, line 301, in commit
+    Module transaction._manager, line 89, in commit
+    Module transaction._transaction, line 329, in commit
+    Module transaction._transaction, line 443, in _commitResources
+    Module ZODB.Connection, line 567, in commit
+    Module ZODB.Connection, line 623, in _commit
+    Module ZODB.Connection, line 658, in _store_objects
+    Module ZODB.serialize, line 422, in serialize
+    Module ZODB.serialize, line 431, in _dump
+    PicklingError: Can't pickle <class 'avrc.aeh.specimen.specimen.ACD'>: import of module avrc.aeh.specimen.specimen failed
+    
+
+    Notes
+        Cycle uses IRequireSpecimen behaviour
+
+    removed in r3946
+
+Cannot add visit:
+    Traceback (innermost last):
+    Module ZPublisher.Publish, line 126, in publish
+    Module ZPublisher.mapply, line 77, in mapply
+    Module ZPublisher.Publish, line 46, in call_object
+    Module z3c.form.form, line 215, in __call__
+    Module plone.z3cform.fieldsets.extensible, line 59, in update
+    Module plone.z3cform.patch, line 30, in GroupForm_update
+    Module z3c.form.group, line 138, in update
+    Module z3c.form.action, line 99, in execute
+    Module z3c.form.button, line 315, in __call__
+    Module z3c.form.button, line 170, in __call__
+    Module avrc.aeh.browser.base, line 215, in handleAdd
+    Module plone.dexterity.utils, line 147, in addContentToContainer
+    Module Products.BTreeFolder2.BTreeFolder2, line 455, in _setObject
+    Module zope.event, line 23, in notify
+    Module zope.component.event, line 24, in dispatch
+    Module zope.component._api, line 136, in subscribers
+    Module zope.component.registry, line 321, in subscribers
+    Module zope.interface.adapter, line 575, in subscribers
+    Module zope.component.event, line 32, in objectEventNotify
+    Module zope.component._api, line 136, in subscribers
+    Module zope.component.registry, line 321, in subscribers
+    Module zope.interface.adapter, line 575, in subscribers
+    Module hive.lab.content.subscribers, line 38, in handleRequestedSpecimenAdded
+    AttributeError: require_specimen
+
+    Notes:
+        Visit uses IRequestedSpecimen behaviour
+
+    http://code.google.com/p/dexterity/issues/detail?id=102
