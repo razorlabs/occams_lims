@@ -1,18 +1,26 @@
 from AccessControl import getSecurityManager
 from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
 from Products.ZCatalog.ZCatalog import manage_addZCatalog
-from avrc.data.store.interfaces import IDataStore
 from five import grok
+from z3c.saconfig import named_scoped_session
+from zope.app.intid.interfaces import IIntIds
+from zope.lifecycleevent import IObjectAddedEvent
+import zope.component
+from OFS.interfaces import IObjectWillBeRemovedEvent
+
+from avrc.data.store.interfaces import IDataStore
+
+from avrc.aeh.interfaces import IVisit
+from avrc.aeh.interfaces import IClinicalMarker
+
 from hive.lab import MessageFactory as _, \
                      SCOPED_SESSION_KEY
 from hive.lab.interfaces.labels import ILabel, \
                                        ILabelSheet
 from hive.lab.interfaces.managers import ISpecimenManager
 from hive.lab.interfaces.specimen import IRequestedSpecimen
-from z3c.saconfig import named_scoped_session
-from zope.app.intid.interfaces import IIntIds
-from zope.lifecycleevent import IObjectAddedEvent
-import zope.component
+from hive.lab import Logger as log
+
 
 
 @grok.subscribe(ILabelSheet, IObjectAddedEvent)
@@ -45,7 +53,8 @@ def handleRequestedSpecimenAdded(visit, event):
         intids = zope.component.getUtility(IIntIds)
         patient = visit.aq_parent
         patient_zid = intids.getId(patient)
-        specimen_manager = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
+        datastore = IDataStore(named_scoped_session(SCOPED_SESSION_KEY))
+        specimen_manager = ISpecimenManager(datastore)
     
         for cycle_relation in visit.cycles:
             cycle_zid = cycle_relation.to_id
@@ -57,9 +66,9 @@ def handleRequestedSpecimenAdded(visit, event):
                     specimen = specimenBlueprint.createSpecimen(patient_zid, cycle_zid, visit.visit_date)
                     specimen_manager.put(specimen)
 
-## TODO: make specimen includer for add cycle to visit
-                #We don't want duplicate specimen
-
+#                # TODO: make specimen includer for add cycle to visit
+#                # We don't want duplicate specimen
+#
 #                 foundSpecimen = False
 # 
 #                 for spec in visit.requestedSpecimen():
@@ -67,4 +76,16 @@ def handleRequestedSpecimenAdded(visit, event):
 #                     and spec.protocol_zid == protocol_zid:
 #                 foundSpecimen = True
 
-
+@grok.subscribe(IVisit, IObjectWillBeRemovedEvent)
+def handleVisitRemoved(item, event):
+    """ Retires samples when a Patient is about to removed from
+        the Plone content tree.
+        
+        TODO: It's still unclear how this exactly is going to work, as it would
+        be nice to mark the specimen as destroyed. But this highly depends
+        on the workflow (lab technitians ACTUALLY destroying the samples).
+        Should an error occurr in the future, this would probably be the
+        starting point. 
+    """
+    zid = IClinicalMarker(item).zid
+     
