@@ -15,9 +15,9 @@ setup(name='hive.lab',
         "Programming Language :: Python",
         ],
       keywords='',
-      author='',
-      author_email='',
-      url='http://svn.plone.org/svn/collective/',
+      author='BEAST Core Development Team',
+      author_email='beast@ucsd.edu',
+      url='https://github.com/beastcore/hive.lab',
       license='GPL',
       packages=find_packages('src', exclude=['ez_setup']),
       package_dir={'':'src'},
@@ -27,17 +27,19 @@ setup(name='hive.lab',
       install_requires=[
         'setuptools',
         'collective.autopermission', # Schema permissions
-        'plone.dexterity', # Dexterity FTI
+        'plone.app.dexterity', # Dexterity FTI
         'plone.behavior',
         'plone.app.registry', # For registering the behaviors
         'reportlab', # PDF label generator
         'xlutils', # Excel Export
         'z3c.form >= 2.4.1', # For attributes to work correctly
-#        'SQLAlchemy',
         'avrc.aeh',
         'avrc.data.store', # EAV Back-end
         'beast.browser', # Tools for browser displays
       ],
+    extras_require=dict(
+        test=['plone.app.testing'],
+        ),
       entry_points="""
       [z3c.autoinclude.plugin]
       target = plone
