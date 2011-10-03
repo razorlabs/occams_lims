@@ -6,8 +6,6 @@ version = '0.4.5'
 setup(name='hive.lab',
       version=version,
       description="Lab Inventory management",
-      long_description=open("README.txt").read() + "\n" +
-                       open(os.path.join("docs", "HISTORY.txt")).read(),
       # Get more strings from
       # http://pypi.python.org/pypi?:action=list_classifiers
       classifiers=[
