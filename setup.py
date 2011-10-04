@@ -34,6 +34,7 @@ setup(name='hive.lab',
         'avrc.aeh',
         'avrc.data.store', # EAV Back-end
         'beast.browser', # Tools for browser displays
+        'lovely.session', # for session support
       ],
     extras_require=dict(
         test=['plone.app.testing'],

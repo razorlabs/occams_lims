@@ -2,12 +2,13 @@ from plone.app.testing import PloneSandboxLayer
 from plone.app.testing import applyProfile
 from plone.app.testing import PLONE_FIXTURE
 from plone.app.testing import IntegrationTesting
+from avrc.aeh.testing import CLINICAL_FIXTURE
 
 from zope.configuration import xmlconfig
 
-class ClinicalLayer(PloneSandboxLayer):
+class LabLayer(PloneSandboxLayer):
 
-    defaultBases = (PLONE_FIXTURE,)
+    defaultBases = (CLINICAL_FIXTURE,)
     
     def setUpZope(self, app, configurationContext):
         # Load ZCML
@@ -17,5 +18,5 @@ class ClinicalLayer(PloneSandboxLayer):
     def setUpPloneSite(self, portal):
         applyProfile(portal, 'hive.lab:default')
 
-CLINICAL_FIXTURE = ClinicalLayer()
-CLINICAL_INTEGRATION_TESTING = IntegrationTesting(bases=(CLINICAL_FIXTURE,), name="hive:Integration")
+LAB_FIXTURE = LabLayer()
+LAB_INTEGRATION_TESTING = IntegrationTesting(bases=(LAB_FIXTURE,), name="hive:Integration")
