@@ -25,7 +25,7 @@ setup(
         'setuptools',
         'collective.autopermission', # Schema permissions
         'lovely.session', # for session support
-        'plone.app.dexterity', # Dexterity FTI
+        'plone.app.dexterity [grok]', # Dexterity FTI
         'plone.behavior',
         'plone.app.registry', # For registering the behaviors
         'reportlab', # PDF label generator
