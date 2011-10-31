@@ -91,7 +91,16 @@ def getSession(context, request):
     session_manager = MemCachedSessionDataContainer()
     session_manager.cacheName = u'hive.lab.session'
     session_manager.__name__ = 'session_manager'
-    return session_manager[str(request['__ac'])]
+    if request.has_key('__ac'):
+        ## This will happen in the majority of cases
+        sessionkey = str(request['__ac'])
+    elif request.has_key('_auth'):
+        # If logged in as a zope user, this shows
+        sessionkey = str(request('_auth'))
+    else:
+        # Should probably not do this.
+        sessionkey = 'none'
+    return session_manager[sessionkey]
 
 
 ## TODO: Move this to aeh
