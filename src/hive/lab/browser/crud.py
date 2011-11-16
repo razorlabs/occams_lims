@@ -12,7 +12,8 @@ from hive.lab.interfaces.aliquot import IAliquot, \
                                         IAliquotGenerator, \
                                         IAliquotSupport, \
                                         IViewableAliquot, \
-                                        IAliquotFilterForm
+                                        IAliquotFilterForm, \
+                                        IInventoryFilterForm
 from hive.lab.interfaces.lab import IFilter, \
                                     IFilterForm, \
                                     IResearchLab
@@ -545,6 +546,49 @@ class AliquotEditForm(AliquotCoreForm):
         return u"incorrect"
 
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+class AliquotInventoryForm(AliquotCoreForm):
+    """
+    Base Crud form for editing specimen. Some specimen will need to be 
+    """
+    @property
+    def editform_factory(self):
+        return buttons.AliquotEditButtons
+
+    @property
+    def view_schema(self):
+        fields = field.Fields(IViewableAliquot).\
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count',)
+        fields += field.Fields(IAliquot).\
+            select('store_date', 'inventory_date')
+        fields += field.Fields(IViewableAliquot).\
+            select('frb', 'special_instruction')
+        return fields
+
+    @property
+    def edit_schema(self):
+        fields = field.Fields(IAliquot).\
+            select('notes')
+        return fields
+
+    @property
+    def display_state(self):
+        return u"checked-in"
+
+    def getkwargs(self):
+        sessionkeys = utils.getSession(self.context, self.request)
+        statefilter = False
+        if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
+            statefilter = True
+        kw={}
+        for location in ('freezer', 'rack', 'box'):
+            if sessionkeys.has_key(location):
+                kw[location] = sessionkeys[location]
+        if statefilter:
+            kw['state'] = self.display_state
+        return kw
+
+# ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------   
 class AliquotCheckoutForm(AliquotCoreForm):
     """
@@ -753,6 +797,17 @@ class AliquotFilterForm(FilterFormCore):
     def fields(self):
         omitables = self.omitables
         return field.Fields(IAliquotFilterForm).omit(*omitables)
+
+class AliquotInventoryFilterForm(FilterFormCore):
+    """
+    Take form data and apply it to the session so that filtering takes place.
+    """
+    grok.context(IAliquotSupport)
+    grok.require('zope2.View')
+
+    @property
+    def fields(self):
+        return field.Fields(IInventoryFilterForm)
 
 class AliquotFilterForCheckinForm(FilterFormCore):
     """

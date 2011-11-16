@@ -70,6 +70,11 @@ class IAliquot(zope.interface.Interface):
         required=False
         )
 
+    inventory_date = zope.schema.Date(
+        title=_(u'Date inventoried'),
+        required=False
+        )
+
     sent_date = zope.schema.Date(
         title=_(u'Date sent'),
         required=False
@@ -250,3 +255,27 @@ class IAliquotFilterForm(IFilterForm):
     type = zope.schema.Choice(title=u"Type of Aliquot",
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type"), required=False
         )
+
+class IInventoryFilterForm(form.Schema):
+    """
+    """
+    freezer = zope.schema.TextLine(
+        title=_(u'Freezer'),
+        required=False,
+        )
+
+    rack = zope.schema.TextLine(
+        title=_(u'Rack'),
+        required=False,
+        )
+
+    box = zope.schema.TextLine(
+        title=_(u'Box'),
+        required=False,
+        )
+
+    # not_inventoried= zope.schema.Bool(
+    #     title=_(u"Show all Samples"),
+    #     description=_(u"Show all samples, including missing, never drawn, checked out, etc"),
+    #     required=False
+    #     )

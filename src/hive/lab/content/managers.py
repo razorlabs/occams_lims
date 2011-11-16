@@ -353,10 +353,17 @@ class AliquotManager(BaseConventionalManager):
             filters = []
             for value in item:
                 if value is not None:
+
                     if key == 'state':
                         filter = model.Aliquot.state.has(value=unicode(value))
                     elif key == 'type':
                         filter = model.Aliquot.type.has(value=unicode(value))
+                    elif key == 'freezer':
+                            filter = model.Aliquot.freezer == unicode(value)
+                    elif key == 'rack':
+                            filter = model.Aliquot.rack == unicode(value)
+                    elif key == 'box':
+                            filter = model.Aliquot.box == unicode(value)
                     elif key == 'before_date':
                         filter = model.Aliquot.store_date <= value
                     elif key == 'after_date':

@@ -439,6 +439,49 @@ class ResearchLabAliquotCheckinView(dexterity.DisplayForm):
         view = view.__of__(context)
         view.form_instance = form
         return view
+
+
+class ResearchLabAliquotInventoryView(dexterity.DisplayForm):
+    """
+    Primary view for a clinical lab object.
+    """
+    grok.context(IResearchLab)
+    grok.require('hive.lab.ModifyAliquot')
+    grok.name('inventory')
+
+    def __init__(self, context, request):
+        super(ResearchLabAliquotInventoryView, self).__init__(context, request)
+        self.crudform = self.getCrudForm()
+        self.filter = self.filterAliquot()
+
+    def getCrudForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = crud.AliquotInventoryForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+    def filterAliquot(self):
+        """ Create a form instance.
+            Returns:
+                z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = crud.AliquotInventoryFilterForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
 # ------------------------------------------------------------------------------
 # Crud Forms
 # ------------------------------------------------------------------------------
