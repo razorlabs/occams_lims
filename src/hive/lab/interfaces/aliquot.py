@@ -7,7 +7,7 @@ from hive.lab.interfaces.labels import ILabel
 from plone.directives import form
 import zope.interface
 import zope.schema
-
+from datetime import date
 class IAliquot(zope.interface.Interface):
     """ Mostly copied from aeh forms. Tons of work to do still. """
 
@@ -256,7 +256,7 @@ class IAliquotFilterForm(IFilterForm):
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type"), required=False
         )
 
-class IInventoryFilterForm(form.Schema):
+class IInventoryFilterForm(IAliquotFilterForm):
     """
     """
     freezer = zope.schema.TextLine(
@@ -274,8 +274,12 @@ class IInventoryFilterForm(form.Schema):
         required=False,
         )
 
-    # not_inventoried= zope.schema.Bool(
-    #     title=_(u"Show all Samples"),
-    #     description=_(u"Show all samples, including missing, never drawn, checked out, etc"),
-    #     required=False
-    #     )
+    inventory_date = zope.schema.Date(
+        title=_(u"'Not Inventoried Since'"),
+        description=_(u"Show samples that have not been inventoried since this date"),
+        required=False
+        )
+
+@form.default_value(field=IInventoryFilterForm['inventory_date'])
+def default_date(data):
+    return date.today().replace(year=date.today().year - 3)

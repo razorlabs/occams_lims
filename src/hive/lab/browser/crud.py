@@ -553,7 +553,7 @@ class AliquotInventoryForm(AliquotCoreForm):
     """
     @property
     def editform_factory(self):
-        return buttons.AliquotEditButtons
+        return buttons.AliquotInventoryButtons
 
     @property
     def view_schema(self):
@@ -581,9 +581,13 @@ class AliquotInventoryForm(AliquotCoreForm):
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             statefilter = True
         kw={}
-        for location in ('freezer', 'rack', 'box'):
-            if sessionkeys.has_key(location):
-                kw[location] = sessionkeys[location]
+        for key in ( 'type','freezer', 'rack', 'box'):
+            if sessionkeys.has_key(key):
+                kw[key] = sessionkeys[key]
+        if sessionkeys.has_key('patient'):
+            kw['subject_zid'] = utils.getPatientForFilter(self.context, sessionkeys['patient'])
+        if sessionkeys.has_key('inventory_date'):
+            kw['inventory_date'] = sessionkeys['inventory_date']
         if statefilter:
             kw['state'] = self.display_state
         return kw
@@ -807,7 +811,18 @@ class AliquotInventoryFilterForm(FilterFormCore):
 
     @property
     def fields(self):
-        return field.Fields(IInventoryFilterForm)
+        omitables=['after_date','before_date', 'show_all']
+        return field.Fields(IInventoryFilterForm).omit(*omitables)
+
+    def updateWidgets(self):
+        super(AliquotInventoryFilterForm, self).updateWidgets()
+        if 'freezer' in self.widgets.keys():
+            self.widgets['freezer'].widgetFactory = widgets.StorageFieldWidget
+        if 'rack' in self.widgets.keys():
+            self.widgets['rack'].widgetFactory = widgets.StorageFieldWidget
+        if 'box' in self.widgets.keys():
+            self.widgets['box'].widgetFactory = widgets.StorageFieldWidget
+
 
 class AliquotFilterForCheckinForm(FilterFormCore):
     """
