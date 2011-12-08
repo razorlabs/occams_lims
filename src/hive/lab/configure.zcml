@@ -45,11 +45,6 @@
   <adapter factory=".content.managers.SpecimenManager" />
   <adapter factory=".content.managers.AliquotManager" />
 
-  <utility 
-      name="hive.lab.session"
-      provides="lovely.memcached.interfaces.IMemcachedClient"
-      factory="lovely.memcached.utility.MemcachedClient" />
-  
   <plone:behavior
       title="Available Specimen"
       description="Make Specimen Available for an object."
