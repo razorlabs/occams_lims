@@ -2,7 +2,6 @@ from Products.CMFCore.utils import getToolByName
 from avrc.data.store.interfaces import IDataStore
 from hive.lab import SCOPED_SESSION_KEY
 from hive.lab.interfaces.managers import ISpecimenManager
-from lovely.session.memcached import MemCachedSessionDataContainer
 from plone.memoize import ram
 from z3c.saconfig import named_scoped_session
 from zope import component
@@ -82,25 +81,6 @@ def get_patient_initials(zid):
         return unicode(patient.initials)
     else:
         return None
-
-
-
-def getSession(context, request):
-    """
-    """
-    session_manager = MemCachedSessionDataContainer()
-    session_manager.cacheName = u'hive.lab.session'
-    session_manager.__name__ = 'session_manager'
-    if request.has_key('__ac'):
-        ## This will happen in the majority of cases
-        sessionkey = str(request['__ac'])
-    elif request.has_key('_auth'):
-        # If logged in as a zope user, this shows
-        sessionkey = str(request('_auth'))
-    else:
-        # Should probably not do this.
-        sessionkey = 'none'
-    return session_manager[sessionkey]
 
 
 ## TODO: Move this to aeh

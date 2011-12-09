@@ -5,7 +5,6 @@ from beast.browser import widgets
 from datetime import date
 from five import grok
 from hive.lab import MessageFactory as _, \
-                     utilities as utils, \
                      SCOPED_SESSION_KEY
 from hive.lab.browser import buttons
 from hive.lab.interfaces.aliquot import IAliquot, \
@@ -223,6 +222,7 @@ class AliquotCoreForm(crud.CrudForm):
             aliquotlist.append((aliquotobj.dsid, aliquotobj))
         return aliquotlist
 
+from collective.beaker.interfaces import ISession
 class FilterFormCore(form.Form):
     """
     Take form data and apply it to the session so that filtering takes place.
@@ -233,7 +233,7 @@ class FilterFormCore(form.Form):
     
     def __init__(self, context, request):
         super(FilterFormCore, self).__init__(context, request)
-        self.session = utils.getSession(context, request)
+        self.session = ISession(request)
         self.default_kw = IFilter(context).getFilter()
         self.omitables = IFilter(context).getOmittedFields()
 
@@ -262,6 +262,7 @@ class FilterFormCore(form.Form):
                 self.session[key] = value
             elif self.session.has_key(key):
                 del self.session[key]
+        self.session.save()
 
         return self.request.response.redirect(self.action)
 
@@ -368,7 +369,7 @@ class SpecimenSupportForm(SpecimenCoreForm):
         return buttons.SpecimenRecoverButtons
  
     def getkwargs(self):
-        sessionkeys = utils.getSession(self.context, self.request)
+        sessionkeys = ISession(self.request)
         statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             statefilter = True
@@ -475,7 +476,7 @@ class AliquotPreparedForm(AliquotCoreForm):
         return u'pending'
 
     def getkwargs(self):
-        sessionkeys = utils.getSession(self.context, self.request)
+        sessionkeys = ISession(self.request)
         statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             statefilter = True
@@ -655,7 +656,7 @@ class AliquotCheckinForm(AliquotCoreForm):
         return u"checked-out"
 
     def getkwargs(self):
-        sessionkeys = utils.getSession(self.context, self.request)
+        sessionkeys = ISession(self.request)
         statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             statefilter = True
@@ -694,7 +695,7 @@ class AliquotListForm(AliquotCoreForm):
         return u"checked-in"
 
     def getkwargs(self):
-        sessionkeys = utils.getSession(self.context, self.request)
+        sessionkeys = ISession(self.request)
         statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             statefilter = True
