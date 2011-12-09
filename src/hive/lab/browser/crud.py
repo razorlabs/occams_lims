@@ -5,6 +5,7 @@ from beast.browser import widgets
 from datetime import date
 from five import grok
 from hive.lab import MessageFactory as _, \
+                      utilities as utils, \
                      SCOPED_SESSION_KEY
 from hive.lab.browser import buttons
 from hive.lab.interfaces.aliquot import IAliquot, \
@@ -577,7 +578,7 @@ class AliquotInventoryForm(AliquotCoreForm):
         return u"checked-in"
 
     def getkwargs(self):
-        sessionkeys = utils.getSession(self.context, self.request)
+        sessionkeys = ISession(self.request)
         statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             statefilter = True
