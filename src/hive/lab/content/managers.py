@@ -315,6 +315,7 @@ class AliquotManager(BaseConventionalManager):
         entry.freezer = source.freezer
         entry.rack = source.rack
         entry.box = source.box
+        entry.inventory_date = source.inventory_date
         entry.thawed_num = source.thawed_num
         entry.notes = source.notes
         entry.sent_notes = source.sent_notes
@@ -353,12 +354,21 @@ class AliquotManager(BaseConventionalManager):
             filters = []
             for value in item:
                 if value is not None:
+
                     if key == 'state':
                         filter = model.Aliquot.state.has(value=unicode(value))
                     elif key == 'type':
                         filter = model.Aliquot.type.has(value=unicode(value))
+                    elif key == 'freezer':
+                            filter = model.Aliquot.freezer == unicode(value)
+                    elif key == 'rack':
+                            filter = model.Aliquot.rack == unicode(value)
+                    elif key == 'box':
+                            filter = model.Aliquot.box == unicode(value)
+                    elif key == 'inventory_date':
+                            filter = ((model.Aliquot.inventory_date <= value) | (model.Aliquot.inventory_date == None))
                     elif key == 'before_date':
-                        filter = model.Aliquot.store_date <= value
+                        filter = model.Aliquot.store_date <= value 
                     elif key == 'after_date':
                         filter = model.Aliquot.store_date >= value
                     elif key == 'protocol_zid':

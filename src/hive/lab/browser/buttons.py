@@ -12,7 +12,7 @@ from z3c.form import button, field, form as z3cform
 from z3c.form.interfaces import DISPLAY_MODE
 from z3c.saconfig import named_scoped_session
 import sys
-
+from datetime import date
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -791,6 +791,41 @@ class AliquotHoldButtons(AliquotButtonCore):
         
         return self.request.response.redirect(self.action)
 
+
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+#class QueueManager(AliquotButtonCore):
+class AliquotInventoryButtons(AliquotButtonCore):
+    """
+    """
+    z3cform.extends(AliquotButtonCore)
+
+    @property
+    def prefix(self):
+        return 'aliquot-inventory.'
+        
+    @button.buttonAndHandler(_('Mark Inventoried'), name='inventory')
+    def handleInventory(self, action):
+        selected = self.selected_items()
+        if selected:
+            for id, obj in selected:
+                setattr(obj, 'inventory_date',date.today())
+                self.dsmanager.put(obj)
+            self.status = _(u"Your Aliquot have been inventoried.")
+        else:
+            self.status = _(u"Please select Aliquot to inventory")
+
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
+    def handleInaccurate(self, action):
+        self.changeState(action, 'incorrect', 'incorrect')
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Mark Missing'), name='missing')
+    def handleMissing(self, action):
+        self.changeState(action, 'missing', 'Missing')
+        return self.request.response.redirect(self.action)
 # ------------------------------------------------------------------------------
 # Label Buttons |
 # --------------
