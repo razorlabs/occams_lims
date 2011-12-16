@@ -5,14 +5,15 @@ from beast.browser import widgets
 from datetime import date
 from five import grok
 from hive.lab import MessageFactory as _, \
-                     utilities as utils, \
+                      utilities as utils, \
                      SCOPED_SESSION_KEY
 from hive.lab.browser import buttons
 from hive.lab.interfaces.aliquot import IAliquot, \
                                         IAliquotGenerator, \
                                         IAliquotSupport, \
                                         IViewableAliquot, \
-                                        IAliquotFilterForm
+                                        IAliquotFilterForm, \
+                                        IInventoryFilterForm
 from hive.lab.interfaces.lab import IFilter, \
                                     IFilterForm, \
                                     IResearchLab
@@ -222,6 +223,7 @@ class AliquotCoreForm(crud.CrudForm):
             aliquotlist.append((aliquotobj.dsid, aliquotobj))
         return aliquotlist
 
+from collective.beaker.interfaces import ISession
 class FilterFormCore(form.Form):
     """
     Take form data and apply it to the session so that filtering takes place.
@@ -232,7 +234,7 @@ class FilterFormCore(form.Form):
     
     def __init__(self, context, request):
         super(FilterFormCore, self).__init__(context, request)
-        self.session = utils.getSession(context, request)
+        self.session = ISession(request)
         self.default_kw = IFilter(context).getFilter()
         self.omitables = IFilter(context).getOmittedFields()
 
@@ -261,6 +263,7 @@ class FilterFormCore(form.Form):
                 self.session[key] = value
             elif self.session.has_key(key):
                 del self.session[key]
+        self.session.save()
 
         return self.request.response.redirect(self.action)
 
@@ -367,7 +370,7 @@ class SpecimenSupportForm(SpecimenCoreForm):
         return buttons.SpecimenRecoverButtons
  
     def getkwargs(self):
-        sessionkeys = utils.getSession(self.context, self.request)
+        sessionkeys = ISession(self.request)
         statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             statefilter = True
@@ -474,7 +477,7 @@ class AliquotPreparedForm(AliquotCoreForm):
         return u'pending'
 
     def getkwargs(self):
-        sessionkeys = utils.getSession(self.context, self.request)
+        sessionkeys = ISession(self.request)
         statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             statefilter = True
@@ -545,6 +548,53 @@ class AliquotEditForm(AliquotCoreForm):
         return u"incorrect"
 
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+class AliquotInventoryForm(AliquotCoreForm):
+    """
+    Base Crud form for editing specimen. Some specimen will need to be 
+    """
+    @property
+    def editform_factory(self):
+        return buttons.AliquotInventoryButtons
+
+    @property
+    def view_schema(self):
+        fields = field.Fields(IViewableAliquot).\
+            select('dsid', 'patient_title', 'patient_legacy_number', 'study_week', 'pretty_type', 'vol_count',)
+        fields += field.Fields(IAliquot).\
+            select('store_date', 'inventory_date')
+        fields += field.Fields(IViewableAliquot).\
+            select('frb', 'special_instruction')
+        return fields
+
+    @property
+    def edit_schema(self):
+        fields = field.Fields(IAliquot).\
+            select('notes')
+        return fields
+
+    @property
+    def display_state(self):
+        return u"checked-in"
+
+    def getkwargs(self):
+        sessionkeys = ISession(self.request)
+        statefilter = False
+        if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
+            statefilter = True
+        kw={}
+        for key in ( 'type','freezer', 'rack', 'box'):
+            if sessionkeys.has_key(key):
+                kw[key] = sessionkeys[key]
+        if sessionkeys.has_key('patient'):
+            kw['subject_zid'] = utils.getPatientForFilter(self.context, sessionkeys['patient'])
+        if sessionkeys.has_key('inventory_date'):
+            kw['inventory_date'] = sessionkeys['inventory_date']
+        if statefilter:
+            kw['state'] = self.display_state
+        return kw
+
+# ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------   
 class AliquotCheckoutForm(AliquotCoreForm):
     """
@@ -607,7 +657,7 @@ class AliquotCheckinForm(AliquotCoreForm):
         return u"checked-out"
 
     def getkwargs(self):
-        sessionkeys = utils.getSession(self.context, self.request)
+        sessionkeys = ISession(self.request)
         statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             statefilter = True
@@ -646,7 +696,7 @@ class AliquotListForm(AliquotCoreForm):
         return u"checked-in"
 
     def getkwargs(self):
-        sessionkeys = utils.getSession(self.context, self.request)
+        sessionkeys = ISession(self.request)
         statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             statefilter = True
@@ -753,6 +803,28 @@ class AliquotFilterForm(FilterFormCore):
     def fields(self):
         omitables = self.omitables
         return field.Fields(IAliquotFilterForm).omit(*omitables)
+
+class AliquotInventoryFilterForm(FilterFormCore):
+    """
+    Take form data and apply it to the session so that filtering takes place.
+    """
+    grok.context(IAliquotSupport)
+    grok.require('zope2.View')
+
+    @property
+    def fields(self):
+        omitables=['after_date','before_date', 'show_all']
+        return field.Fields(IInventoryFilterForm).omit(*omitables)
+
+    def updateWidgets(self):
+        super(AliquotInventoryFilterForm, self).updateWidgets()
+        if 'freezer' in self.widgets.keys():
+            self.widgets['freezer'].widgetFactory = widgets.StorageFieldWidget
+        if 'rack' in self.widgets.keys():
+            self.widgets['rack'].widgetFactory = widgets.StorageFieldWidget
+        if 'box' in self.widgets.keys():
+            self.widgets['box'].widgetFactory = widgets.StorageFieldWidget
+
 
 class AliquotFilterForCheckinForm(FilterFormCore):
     """
