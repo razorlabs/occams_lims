@@ -378,6 +378,7 @@ class Aliquot(Model):
         else:
             analysis_status = None
         obj.analysis_status = analysis_status
+        obj.inventory_date = self.inventory_date
         obj.sent_date = self.sent_date
         obj.sent_name = self.sent_name
         obj.notes = self.notes

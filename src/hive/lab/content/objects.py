@@ -279,6 +279,6 @@ class AliquotBlueprint(content.Item):
                         retkw['before_date'] = basekw[key]
                 else:
                     retkw[key] = basekw[key]
-        retkw.update({'type':self.aliquot_type})
+        retkw.update({'type':hasattr(self, 'type') and self.type or self.aliquot_type})
         return retkw
 

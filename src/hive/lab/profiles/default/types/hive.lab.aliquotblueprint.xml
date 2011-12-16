@@ -20,7 +20,7 @@
  <!-- class used for content items -->
  <property name="klass">hive.lab.content.objects.AliquotBlueprint</property>
 
- <property name="add_permission">hive.lab.AddBlueprintst</property>
+ <property name="add_permission">hive.lab.AddBlueprints</property>
  
  <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />

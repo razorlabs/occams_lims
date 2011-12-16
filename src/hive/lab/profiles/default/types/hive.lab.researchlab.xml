@@ -48,7 +48,8 @@
   <alias from="edit-aliquot" to="@@edit-aliquot" />
   <alias from="checkout" to="@@checkout" />
   <alias from="checkin" to="@@checkin" />
-  
+    <alias from="inventory" to="@@inventory" />
+
   <!-- Actions -->
   <action title="View" action_id="view" category="object" condition_expr=""
     url_expr="string:${object_url}/" visible="True">
@@ -94,6 +95,10 @@
   <action title="Checkin" action_id="checkin" category="object" condition_expr=""
     url_expr="string:${object_url}/checkin" visible="True">
     <permission value="hive: Check In Aliquot" />
+  </action>
+  <action title="Inventory" action_id="inventory" category="object" condition_expr=""
+    url_expr="string:${object_url}/inventory" visible="True">
+    <permission value="hive: Modify Aliquot" />
   </action>
 
 
