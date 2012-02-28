@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '0.4.5'
+version = '0.4.6'
 
 setup(
     name='hive.lab',
@@ -24,7 +24,7 @@ setup(
     install_requires=[
         'setuptools',
         'collective.autopermission', # Schema permissions
-        'lovely.session', # for session support
+        'collective.beaker', # for session support
         'plone.app.dexterity [grok]', # Dexterity FTI
         'plone.behavior',
         'plone.app.registry', # For registering the behaviors
