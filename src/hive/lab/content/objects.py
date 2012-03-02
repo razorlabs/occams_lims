@@ -106,6 +106,7 @@ class Aliquot(Item):
     storage_site = FieldProperty(IAliquot["storage_site"])
     thawed_num = FieldProperty(IAliquot["thawed_num"])
     analysis_status = FieldProperty(IAliquot["analysis_status"])
+    inventory_date = FieldProperty(IAliquot["inventory_date"])
     sent_date = FieldProperty(IAliquot["sent_date"])
     sent_name = FieldProperty(IAliquot["sent_name"])
     notes = FieldProperty(IAliquot["notes"])
@@ -144,6 +145,8 @@ class Aliquot(Item):
         else:
             analysis_status = None
         obj.analysis_status = analysis_status
+        obj.inventory_date = rslt.inventory_date
+
         obj.sent_date = rslt.sent_date
         obj.sent_name = rslt.sent_name
         obj.notes = rslt.notes
