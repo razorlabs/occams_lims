@@ -282,4 +282,4 @@ class IInventoryFilterForm(IAliquotFilterForm):
 
 @form.default_value(field=IInventoryFilterForm['inventory_date'])
 def default_date(data):
-    return date.today().replace(year=date.today().year - 3)
+    return date.today().replace(year=date.today().year - 4)
