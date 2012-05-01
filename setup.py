@@ -33,7 +33,7 @@ setup(
         'z3c.form >= 2.4.1', # For attributes to work correctly
 
         'avrc.aeh',
-        'avrc.data.store', # EAV Back-end
+        'occams.datastore [postgres]',
         'beast.browser', # Tools for browser displays
         ],
     extras_require=dict(
