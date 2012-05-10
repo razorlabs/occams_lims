@@ -8,8 +8,6 @@ from zope.lifecycleevent import IObjectAddedEvent
 import zope.component
 from OFS.interfaces import IObjectWillBeRemovedEvent
 
-from avrc.data.store.interfaces import IDataStore
-
 from avrc.aeh.interfaces import IVisit
 from avrc.aeh.interfaces import IClinicalMarker
 
@@ -55,11 +53,11 @@ def handleRequestedSpecimenAdded(visit, event):
         patient_zid = intids.getId(patient)
         datastore = IDataStore(named_scoped_session(SCOPED_SESSION_KEY))
         specimen_manager = ISpecimenManager(datastore)
-    
+
         for cycle_relation in visit.cycles:
             cycle_zid = cycle_relation.to_id
             cycle = cycle_relation.to_object
-    
+
             if cycle.related_specimen is not None and len(cycle.related_specimen):
                 for specimen_relation in cycle.related_specimen:
                     specimenBlueprint = specimen_relation.to_object
@@ -70,7 +68,7 @@ def handleRequestedSpecimenAdded(visit, event):
 #                # We don't want duplicate specimen
 #
 #                 foundSpecimen = False
-# 
+#
 #                 for spec in visit.requestedSpecimen():
 #                     if newSpecimen.specimen_type == spec.specimen_type \
 #                     and spec.protocol_zid == protocol_zid:
@@ -80,12 +78,12 @@ def handleRequestedSpecimenAdded(visit, event):
 def handleVisitRemoved(item, event):
     """ Retires samples when a Patient is about to removed from
         the Plone content tree.
-        
+
         TODO: It's still unclear how this exactly is going to work, as it would
         be nice to mark the specimen as destroyed. But this highly depends
         on the workflow (lab technitians ACTUALLY destroying the samples).
         Should an error occurr in the future, this would probably be the
-        starting point. 
+        starting point.
     """
     zid = IClinicalMarker(item).zid
-     
+

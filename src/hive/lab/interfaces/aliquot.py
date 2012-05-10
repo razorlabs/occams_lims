@@ -24,9 +24,10 @@ class IAliquot(zope.interface.Interface):
         title=_(u'Type'),
         )
 
-    state = zope.schema.TextLine(
+    state = zope.schema.Choice(
         title=_(u'State'),
-        required=False
+        required=False,
+        values=[]
         )
 
     volume = zope.schema.Float(
@@ -92,12 +93,12 @@ class IAliquot(zope.interface.Interface):
                 u'on hold:'),
         required=False,
         )
-        
+
     sent_notes = zope.schema.Text(
         title=_(u'Notes on this aliquot (if any):'),
         required=False
         )
-        
+
     notes = zope.schema.Text(
         title=_(u'Notes on this aliquot (if any):'),
         required=False
@@ -147,7 +148,7 @@ class IViewableAliquot(IAliquot, form.Schema):
         title=u"Study/Week",
         readonly=True
         )
-        
+
     vol_count = zope.schema.TextLine(
         title=_(u'Volume / Cell Count'),
         readonly=True,
@@ -168,12 +169,12 @@ class IViewableAliquot(IAliquot, form.Schema):
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_special_instruction"),
         required=True,
         )
- 
+
     thawed = zope.schema.Bool(
         title=_(u'Thawed'),
         required=False
         )
-        
+
     thawed_num = zope.schema.Int(
         title=_(u'Thawed'),
         required=False
@@ -248,10 +249,10 @@ class IAliquotLabel(ILabel):
         title=_(u"Aliquot Type"),
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type")
         )
-        
+
 class IAliquotFilterForm(IFilterForm):
     """
-    """  
+    """
     type = zope.schema.Choice(title=u"Type of Aliquot",
         source=vocabularies.SpecimenAliquotVocabulary(u"aliquot_type"), required=False
         )

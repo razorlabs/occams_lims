@@ -10,18 +10,18 @@
 
   <include package="plone.behavior" file="meta.zcml"/>
   <include file="permissions.zcml" />
-  
+
   <!-- Include configuration for dependencies listed in setup.py -->
   <includeDependencies package="." />
-  
+
   <!-- Grok the package to initialize schema interfaces and content classes -->
   <!-- Note that because we include this command, sub-packages no longer
      need configure.zcml files. (We also don't need to specify them in
      <include> tags.)
   -->
-     
+
   <grok:grok package="." exclude="upgrades" />
-    
+
   <genericsetup:registerProfile
       name="default"
       directory="profiles/default"
@@ -29,21 +29,22 @@
       description="Installs components necessary for providing HIVe Lab services."
       provides="Products.GenericSetup.interfaces.EXTENSION"
       />
-      
+
   <genericsetup:importStep
       name="hive_lab_install"
       title="Additional product setup."
       description="Installs additional dependencies."
       handler="hive.lab.setuphandlers.importVarious"
       />
-      
-  <!-- Upgrade support for existing installations -->    
-  <include package=".upgrades" />  
+
+  <!-- Upgrade support for existing installations -->
+  <include package=".upgrades" />
 
   <browser:resourceDirectory name="hive.lab" directory="static" />
 
-  <adapter factory=".content.managers.SpecimenManager" />
-  <adapter factory=".content.managers.AliquotManager" />
+  <!-- Managers are going away, this just breaks -->
+<!--   <adapter factory=".content.managers.SpecimenManager" />
+  <adapter factory=".content.managers.AliquotManager" /> -->
 
   <plone:behavior
       title="Available Specimen"
@@ -51,40 +52,40 @@
       provides="hive.lab.interfaces.specimen.IAvailableSpecimen"
       for="avrc.aeh.interfaces.IStudy"
       />
-  
+
   <plone:behavior
       title="Required Specimen"
       description="Make Specimen Required for an object."
       provides="hive.lab.interfaces.specimen.IRequiredSpecimen"
       for="avrc.aeh.interfaces.ICycle"
       />
-  
+
   <plone:behavior
       title="Requested Specimen"
       description="Make Specimen Required for an object."
       provides="hive.lab.interfaces.specimen.IRequestedSpecimen"
       for="avrc.aeh.interfaces.IVisit"
       />
-  
+
   <plone:behavior
       title="Label Sheet"
       description="Make this lab produce labels"
       provides="hive.lab.interfaces.labels.ILabelSheet"
       for="hive.lab.interfaces.lab.ILab"
       />
-  
+
   <plone:behavior
       title="Aliquot View"
       description="Make this item Show Filtered Aliquot"
       provides="hive.lab.interfaces.aliquot.IAliquotSupport"
       for="avrc.aeh.interfaces.IClinicalObject"
       />
-  
+
   <plone:behavior
       title="Specimen View"
       description="Make this item Show Filtered Aliquot"
       provides="hive.lab.interfaces.specimen.ISpecimenSupport"
       for="avrc.aeh.interfaces.IClinicalObject"
       />
-      
+
 </configure>

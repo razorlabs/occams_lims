@@ -1,4 +1,7 @@
-from avrc.data.store.interfaces import IManager
+import zope.interface
+
+class IManager(zope.interface.Interface):
+    """ Temporary backwards compatiblity"""
 
 class IBaseConventionalManager(IManager):
     """
@@ -28,13 +31,13 @@ class IBaseConventionalManager(IManager):
         Generic specimen filter. Takes kw arguments, generally matching
         the ISpecimen interface
         """
-        
+
     def filter_records(**kw):
         """
         Generic specimen filter. Takes kw arguments, generally matching
         the ISpecimen interface
         """
-        
+
 class IAliquotManager(IBaseConventionalManager):
     """  interface for managing specimen """
 

@@ -1,6 +1,5 @@
 from AccessControl import getSecurityManager
 from Products.CMFCore.utils import getToolByName
-from avrc.data.store.interfaces import IDataStore
 from beast.browser.crud import NestedFormView
 from five import grok
 from hive.lab import MessageFactory as _, \
@@ -187,7 +186,7 @@ class ResearchLabView(dexterity.DisplayForm):
             for prop in ['tubes', 'date_collected']:
                 specimendict[prop] = getattr(specimen, prop)
             specimenlist.append(specimendict)
-            
+
         return specimenlist
 
 # ------------------------------------------------------------------------------
@@ -248,7 +247,7 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         self.crudform = self.getCrudForm()
         self.labelqueue = self.getLabelQueue()
         self.filter = self.filterAliquot()
-        
+
     def getCrudForm(self):
         """
         Create a form instance.
@@ -276,7 +275,7 @@ class ResearchLabAliquotPrepared(dexterity.DisplayForm):
         view = view.__of__(context)
         view.form_instance = form
         return view
-        
+
     def getLabelQueue(self):
         """
         Create a form instance.
@@ -397,7 +396,7 @@ class ResearchLabAliquotCheckoutView(dexterity.DisplayForm):
         view = view.__of__(context)
         view.form_instance = form
         return view
-        
+
 class ResearchLabAliquotCheckinView(dexterity.DisplayForm):
     """
     Primary view for a clinical lab object.
@@ -425,7 +424,7 @@ class ResearchLabAliquotCheckinView(dexterity.DisplayForm):
         view = view.__of__(context)
         view.form_instance = form
         return view
-        
+
     def filterAliquot(self):
         """ Create a form instance.
             Returns:
@@ -515,7 +514,7 @@ class AliquotList(dexterity.DisplayForm):
         view = view.__of__(context)
         view.form_instance = form
         return view
-# 
+#
     def filterAliquot(self):
         """ Create a form instance.
             Returns:
@@ -551,7 +550,7 @@ class AliquotList(dexterity.DisplayForm):
         if len(brains):
             url = brains[0].getURL()
         return url
-        
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class AliquotCheckList(dexterity.DisplayForm):
@@ -592,12 +591,12 @@ class AliquotReceipt(dexterity.DisplayForm):
         self.dsmanager = IAliquotManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY)))
         self.getaliquot = self.getAliquot()
         self.currentUser = getSecurityManager().getUser().getId()
-        
+
     def getAliquot(self):
         """
         Get me some aliquot
         """
-        
+
         kw = {}
         kw['state'] = u'pending-checkout'
         kw['modify-name'] = self.currentUser

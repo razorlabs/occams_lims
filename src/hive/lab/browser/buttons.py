@@ -1,6 +1,5 @@
 from AccessControl import getSecurityManager
-from avrc.data.store.batch import SqlBatch
-from avrc.data.store.interfaces import IDataStore
+from occams.datastore.batch import SqlBatch
 from beast.browser.crud import BatchNavigation
 from hive.lab import MessageFactory as _, \
                      SCOPED_SESSION_KEY
@@ -74,7 +73,7 @@ class ButtonCore(crud.EditForm):
     @property
     def currentUser(self):
         return getSecurityManager().getUser().getId()
-        
+
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone
@@ -278,7 +277,7 @@ class SpecimenPendingButtons(SpecimenButtonCore):
     @property
     def prefix(self):
         return 'specimen-pending.'
-        
+
     @button.buttonAndHandler(_('Print Selected'), name='printed')
     def handlePrint(self, action):
         self.saveChanges(action)
@@ -288,35 +287,35 @@ class SpecimenPendingButtons(SpecimenButtonCore):
     @button.buttonAndHandler(_('Save All Changes'), name='updated')
     def handleUpdate(self, action):
         self.saveChanges(action)
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'complete', 'completed')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Batch Selected'), name='batched')
     def handleBatchDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'batched', 'batched')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Postpone Selected'), name='postponed')
     def handlePostponeDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'postponed', 'postponed')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='rejected')
     def handleCancelDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'rejected', 'canceled')
-        
+
         return self.request.response.redirect(self.action)
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -336,14 +335,14 @@ class SpecimenBatchedButtons(SpecimenButtonCore):
     @button.buttonAndHandler(_('Save All Changes'), name='updated')
     def handleUpdate(self, action):
         self.saveChanges(action)
-        
+
         return self.request.response.redirect(self.action)
-        
+
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'complete', 'completed')
-        
+
         return self.request.response.redirect(self.action)
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -363,28 +362,28 @@ class SpecimenPostponedButtons(SpecimenButtonCore):
     @button.buttonAndHandler(_('Save All Changes'), name='updated')
     def handleUpdate(self, action):
         self.saveChanges(action)
-        
+
         return self.request.response.redirect(self.action)
-        
+
     @button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'complete', 'completed')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Batch Selected'), name='batched')
     def handleBatchDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'batched', 'batched')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='cancel')
     def handleCancelDraw(self, action):
         self.saveChanges(action)
         self.changeState(action, 'rejected', 'canceled')
-        
+
         return self.request.response.redirect(self.action)
 
 # ------------------------------------------------------------------------------
@@ -396,11 +395,11 @@ class SpecimenRecoverButtons(SpecimenButtonCore):
     @property
     def prefix(self):
         return 'specimen-recover.'
-        
+
     @button.buttonAndHandler(_('Recover selected'), name='recover')
     def handleRecover(self, action):
         self.changeState(action, 'pending-draw', 'recover')
-        
+
         return self.request.response.redirect(self.action)
 
 # ------------------------------------------------------------------------------
@@ -413,7 +412,7 @@ class ReadySpecimenButtons(SpecimenButtonCore):
     @property
     def prefix(self):
         return 'specimen-ready.'
-        
+
     @button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
         pass
@@ -421,12 +420,12 @@ class ReadySpecimenButtons(SpecimenButtonCore):
     @button.buttonAndHandler(_('Ready selected'), name='ready')
     def handleCompleteDraw(self, action):
         self.changeState(action, 'pending-aliquot', 'ready')
-        
+
         return self.request.response.redirect(self.action)
 
 # ------------------------------------------------------------------------------
-# Creating aliquot is different enough that subclassing another button manager 
-# seems like a bad idea. 
+# Creating aliquot is different enough that subclassing another button manager
+# seems like a bad idea.
 # ------------------------------------------------------------------------------
 class AliquotCreator(crud.EditForm):
     """
@@ -435,7 +434,7 @@ class AliquotCreator(crud.EditForm):
     @property
     def prefix(self):
         return 'aliquot-creator.'
-        
+
     def __init__(self, context, request):
         """
         Provide a specimen manager for these buttons
@@ -449,7 +448,7 @@ class AliquotCreator(crud.EditForm):
     @property
     def currentUser(self):
         return getSecurityManager().getUser().getId()
-        
+
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone
@@ -464,7 +463,7 @@ class AliquotCreator(crud.EditForm):
 
     def changeState(self, action, state, acttitle):
         """
-        Change the state of a specimen based on the id pulled from a template 
+        Change the state of a specimen based on the id pulled from a template
         """
         selected = self.selected_items()
         if selected:
@@ -479,7 +478,7 @@ class AliquotCreator(crud.EditForm):
     @button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
         pass
-        
+
     @button.buttonAndHandler(_('Create Aliquot'), name='aliquot')
     def handleCreateAliquot(self, action):
         """
@@ -518,13 +517,13 @@ class AliquotCreator(crud.EditForm):
             if status is no_changes:
                 status = success
         self.status = status
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Specimen Complete'), name='complete')
     def handleCompleteSpecimen(self, action):
         self.changeState(action, 'aliquoted', 'completed')
-        
+
         return self.request.response.redirect(self.action)
 
 
@@ -534,7 +533,7 @@ class AliquotCreator(crud.EditForm):
 # --------------
 # These classes provide the various transitions and modifications of the pages
 # that support and modify aliquot
-# ------------------------------------------------------------------------------        
+# ------------------------------------------------------------------------------
 
 #class AliquotVerifier(AliquotButtonCore):
 
@@ -545,30 +544,30 @@ class AliquotPreparedButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-prepared.'
-        
+
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
         return self.request.response.redirect(self.action)
-        
+
     @button.buttonAndHandler(_('Print Selected'), name='print')
     def handlePrintAliquot(self, action):
         self.saveChanges(action)
         self.queueLabels(action)
         return self.request.response.redirect(self.action)
-        
+
     @button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-in', 'Checked In')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
     def handleUnusedAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'unused', 'Unused')
-        
+
         return self.request.response.redirect(self.action)
 #class AliquotRecoverer(AliquotButtonCore):
 # ------------------------------------------------------------------------------
@@ -580,17 +579,17 @@ class AliquotRecoverButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-recover.'
-        
+
     @button.buttonAndHandler(_('Recover Aliquot'), name='recover')
     def handleRecoverAliquot(self, action):
         self.changeState(action, 'pending', 'Recovered')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Hold'), name='hold')
     def handleHoldAliquot(self, action):
         self.changeState(action, 'hold', 'Held')
-        
+
         return self.request.response.redirect(self.action)
 
 #class AliquotEditManager(AliquotButtonCore):
@@ -603,33 +602,33 @@ class AliquotEditButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-edit.'
-        
+
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check Back In'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-in', 'Checked In')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check Out'), name='checkout')
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'pending-checkout', 'Checked Out')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Hold'), name='hold')
     def handleRecoverAliquot(self, action):
         self.changeState(action, 'hold', 'Held')
-        
+
         return self.request.response.redirect(self.action)
-        
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class AliquotCheckinButtons(AliquotButtonCore):
@@ -639,7 +638,7 @@ class AliquotCheckinButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-checkin.'
-        
+
     def saveChanges(self, action):
         """
         Apply changes to all items on the page
@@ -675,16 +674,16 @@ class AliquotCheckinButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check In'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-in', 'Checked In')
-        
+
         return self.request.response.redirect(self.action)
-        
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 #class AliquotCheckoutManager(AliquotButtonCore):
@@ -698,32 +697,32 @@ class AliquotCheckoutButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Print Receipt'), name='print')
     def handleQueue(self, action):
         return self.request.response.redirect('%s/%s' % (self.context.context.absolute_url(), 'receipt'))
-        
+
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
         return self.request.response.redirect(self.action)
-                
+
     @button.buttonAndHandler(_('Complete Check Out'), name='checkedout')
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-out', 'Checked Out')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Return To Queue'), name='queued')
     def handleRehold(self, action):
         self.changeState(action, 'queued', 'Held')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check Back In'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.changeState(action, 'checked-in', 'Checked In')
-        
+
         return self.request.response.redirect(self.action)
 # ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------        
+# ------------------------------------------------------------------------------
 #class AllAliquotManager(AliquotButtonCore):
 class AliquotQueueButtons(AliquotButtonCore):
     label = _(u"")
@@ -732,25 +731,25 @@ class AliquotQueueButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-queue.'
-   
+
     @button.buttonAndHandler(_('Add to Queue'), name='queue')
     def handleQueue(self, action):
         self.changeState(action, 'queued', 'Queued')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
     def handleInaccurate(self, action):
         self.changeState(action, 'incorrect', 'incorrect')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Hold'), name='hold')
     def handleRecoverAliquot(self, action):
         self.changeState(action, 'hold', 'Held')
-        
+
         return self.request.response.redirect(self.action)
-        
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 #class QueueManager(AliquotButtonCore):
@@ -762,7 +761,7 @@ class AliquotHoldButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-hold.'
-        
+
     @button.buttonAndHandler(_('Print List'), name='print')
     def handleQueue(self, action):
         return self.request.response.redirect('%s/%s' % (self.context.context.absolute_url(), 'checklist'))
@@ -770,13 +769,13 @@ class AliquotHoldButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Check Out'), name='checkout')
     def handleCheckout(self, action):
         self.changeState(action, 'pending-checkout', 'Checked Out')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Release From Queue'), name='release')
     def handleRelease(self, action):
         self.changeState(action, 'checked-in', 'Released')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
@@ -788,7 +787,7 @@ class AliquotHoldButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Mark Missing'), name='missing')
     def handleMissing(self, action):
         self.changeState(action, 'missing', 'Missing')
-        
+
         return self.request.response.redirect(self.action)
 
 
@@ -803,13 +802,13 @@ class AliquotInventoryButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-inventory.'
-        
+
     @button.buttonAndHandler(_('Mark Inventoried'), name='inventory')
     def handleInventory(self, action):
         selected = self.selected_items()
         if selected:
             for id, obj in selected:
-                setattr(obj, 'inventory_date',date.today())
+                setattr(obj, 'inventory_date', date.today())
                 self.dsmanager.put(obj)
             self.status = _(u"Your Aliquot have been inventoried.")
         else:
@@ -831,7 +830,7 @@ class AliquotInventoryButtons(AliquotButtonCore):
 # --------------
 # These classes provide the various transitions and modifications of the labels
 # in the label queue
-# ------------------------------------------------------------------------------    
+# ------------------------------------------------------------------------------
 
 #class LabelManager(crud.EditForm):
 class LabelButtons(crud.EditForm):
@@ -842,7 +841,7 @@ class LabelButtons(crud.EditForm):
     @property
     def prefix(self):
         return 'label.'
-        
+
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone
@@ -892,6 +891,6 @@ class LabelButtons(crud.EditForm):
         #self.context.labeler
         for id, label in selected:
             self.context.labeler.purgeLabel(id)
-        
+
         return self.request.response.redirect(self.action)
 

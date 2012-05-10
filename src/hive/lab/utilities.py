@@ -1,5 +1,5 @@
 from Products.CMFCore.utils import getToolByName
-from avrc.data.store.interfaces import IDataStore
+
 from hive.lab import SCOPED_SESSION_KEY
 from hive.lab.interfaces.managers import ISpecimenManager
 from plone.memoize import ram
@@ -86,7 +86,7 @@ def get_patient_initials(zid):
 ## TODO: Move this to aeh
 def getPatientForFilter(context, pid):
     """
-    given some property of a patient, find the resulting 
+    given some property of a patient, find the resulting
     """
     catalog = getToolByName(context, 'portal_catalog')
     intids = component.getUtility(IIntIds)

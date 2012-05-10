@@ -1,4 +1,3 @@
-from avrc.data.store.interfaces import IDataStore
 from five import grok
 from hive.lab import SCOPED_SESSION_KEY
 from hive.lab.interfaces.managers import ISpecimenManager

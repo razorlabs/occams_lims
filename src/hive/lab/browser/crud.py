@@ -1,6 +1,5 @@
 from AccessControl import getSecurityManager
 from Products.statusmessages.interfaces import IStatusMessage
-from avrc.data.store.interfaces import IDataStore
 from beast.browser import widgets
 from datetime import date
 from five import grok
@@ -52,7 +51,7 @@ import zope.schema
 
 class SpecimenCoreForm(crud.CrudForm):
     """
-    Base Crud form for editing specimen. Some specimen will need to be 
+    Base Crud form for editing specimen. Some specimen will need to be
     """
     def __init__(self, context, request):
         super(SpecimenCoreForm, self).__init__(context, request)
@@ -78,7 +77,7 @@ class SpecimenCoreForm(crud.CrudForm):
         fields = field.Fields(ISpecimen).\
             select('tubes', 'date_collected', 'time_collected', 'notes')
         return fields
-        
+
     def link(self, item, field):
         if field == 'patient_title':
             visit = item.visit()
@@ -89,7 +88,7 @@ class SpecimenCoreForm(crud.CrudForm):
                 patient = intids.getObject(item.subject_zid)
                 url = '%s/specimen' % patient.absolute_url()
             return url
-                
+
     @property
     def editform_factory(self):
         raise NotImplementedError
@@ -112,11 +111,11 @@ class SpecimenCoreForm(crud.CrudForm):
     def getQuery(self):
         kw = self.getkwargs()
         return self.dsmanager.makefilter(**kw)
-    
+
     def getCount(self):
         kw = self.getkwargs()
         return self.dsmanager.count_records(**kw)
-        
+
     def get_items(self):
         specimenlist = []
         kw = self.getkwargs()
@@ -128,7 +127,7 @@ class SpecimenCoreForm(crud.CrudForm):
 # ------------------------------------------------------------------------------
 class AliquotCoreForm(crud.CrudForm):
     """
-    Base Crud form for editing specimen. Some specimen will need to be 
+    Base Crud form for editing specimen. Some specimen will need to be
     """
 
     def __init__(self, context, request):
@@ -144,7 +143,7 @@ class AliquotCoreForm(crud.CrudForm):
     @property
     def currentUser(self):
         return getSecurityManager().getUser().getId()
-        
+
     @property
     def view_schema(self):
         fields = field.Fields(IViewableAliquot, mode=DISPLAY_MODE).\
@@ -178,7 +177,7 @@ class AliquotCoreForm(crud.CrudForm):
                 patient = intids.getObject(specimen.subject_zid)
                 url = '%s/aliquot' % patient.absolute_url()
             return url
-            
+
     @property
     def editform_factory(self):
         raise NotImplementedError
@@ -214,7 +213,7 @@ class AliquotCoreForm(crud.CrudForm):
     def getCount(self):
         kw = self.getkwargs()
         return self.dsmanager.count_records(**kw)
-        
+
     def get_items(self):
         aliquotlist = []
         kw = self.getkwargs()
@@ -231,7 +230,7 @@ class FilterFormCore(form.Form):
     grok.context(zope.interface.Interface)
     grok.require('zope2.View')
     ignoreContext = True
-    
+
     def __init__(self, context, request):
         super(FilterFormCore, self).__init__(context, request)
         self.session = ISession(request)
@@ -354,7 +353,7 @@ class SpecimenSupportForm(SpecimenCoreForm):
         fields += field.Fields(ISpecimen).\
             select('tubes', 'date_collected', 'time_collected', 'notes')
         return fields
-        
+
     @property
     def edit_schema(self):
         return None
@@ -364,11 +363,11 @@ class SpecimenSupportForm(SpecimenCoreForm):
     def display_state(self):
         return [u'complete', u'pending-draw', u'batched', u'postponed', u'aliquoted']
 
-  
+
     @property
     def editform_factory(self):
         return buttons.SpecimenRecoverButtons
- 
+
     def getkwargs(self):
         sessionkeys = ISession(self.request)
         statefilter = False
@@ -378,7 +377,7 @@ class SpecimenSupportForm(SpecimenCoreForm):
         if statefilter:
             kw['state'] = self.display_state
         return kw
- 
+
 
 
 # ------------------------------------------------------------------------------
@@ -391,7 +390,7 @@ class ReadySpecimenForm(SpecimenCoreForm):
         fields = field.Fields(IViewableSpecimen, mode=DISPLAY_MODE).\
             select('patient_title', 'study_week', 'pretty_type', 'pretty_tube_type')
         fields += field.Fields(ISpecimen).\
-            select('tubes', 'date_collected', 'time_collected', 'notes')            
+            select('tubes', 'date_collected', 'time_collected', 'notes')
         return fields
 
     @property
@@ -486,7 +485,7 @@ class AliquotPreparedForm(AliquotCoreForm):
             kw['state'] = self.display_state
         return kw
 
-        
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 class AliquotCompletedForm(AliquotCoreForm):
@@ -527,7 +526,7 @@ class AliquotCompletedForm(AliquotCoreForm):
 # ------------------------------------------------------------------------------
 class AliquotEditForm(AliquotCoreForm):
     """
-    Base Crud form for editing specimen. Some specimen will need to be 
+    Base Crud form for editing specimen. Some specimen will need to be
     """
     @property
     def editform_factory(self):
@@ -551,7 +550,7 @@ class AliquotEditForm(AliquotCoreForm):
 # ------------------------------------------------------------------------------
 class AliquotInventoryForm(AliquotCoreForm):
     """
-    Base Crud form for editing specimen. Some specimen will need to be 
+    Base Crud form for editing specimen. Some specimen will need to be
     """
     @property
     def editform_factory(self):
@@ -582,8 +581,8 @@ class AliquotInventoryForm(AliquotCoreForm):
         statefilter = False
         if not sessionkeys.has_key('show_all') or not sessionkeys['show_all']:
             statefilter = True
-        kw={}
-        for key in ( 'type','freezer', 'rack', 'box'):
+        kw = {}
+        for key in ('type', 'freezer', 'rack', 'box'):
             if sessionkeys.has_key(key):
                 kw[key] = sessionkeys[key]
         if sessionkeys.has_key('patient'):
@@ -595,7 +594,7 @@ class AliquotInventoryForm(AliquotCoreForm):
         return kw
 
 # ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------   
+# ------------------------------------------------------------------------------
 class AliquotCheckoutForm(AliquotCoreForm):
     """
     """
@@ -622,13 +621,13 @@ class AliquotCheckoutForm(AliquotCoreForm):
     @property
     def display_state(self):
         return u"pending-checkout"
-        
+
     def getkwargs(self):
         kw = {'state':self.display_state, 'modify_name':self.currentUser}
         return kw
 
 # ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------   
+# ------------------------------------------------------------------------------
 class AliquotCheckinForm(AliquotCoreForm):
     """
     """
@@ -665,14 +664,14 @@ class AliquotCheckinForm(AliquotCoreForm):
         if statefilter:
             kw['state'] = self.display_state
         return kw
- 
+
 
 # ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------   
+# ------------------------------------------------------------------------------
 class AliquotListForm(AliquotCoreForm):
     """
     Filterable crud form based on session information
-    """        
+    """
 
     editform_factory = buttons.AliquotQueueButtons
 
@@ -690,7 +689,7 @@ class AliquotListForm(AliquotCoreForm):
         return fields
 
     edit_schema = None
-    
+
     @property
     def display_state(self):
         return u"checked-in"
@@ -757,7 +756,7 @@ class AliquotCheckoutUpdate(form.Form):
     @property
     def currentUser(self):
         return getSecurityManager().getUser().getId()
-        
+
     @property
     def fields(self):
         selectables = ['sent_date', 'sent_name', 'sent_notes']
@@ -789,7 +788,7 @@ class AliquotCheckoutUpdate(form.Form):
 
 
 # ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------   
+# ------------------------------------------------------------------------------
 
 
 class AliquotFilterForm(FilterFormCore):
@@ -813,7 +812,7 @@ class AliquotInventoryFilterForm(FilterFormCore):
 
     @property
     def fields(self):
-        omitables=['after_date','before_date', 'show_all']
+        omitables = ['after_date', 'before_date', 'show_all']
         return field.Fields(IInventoryFilterForm).omit(*omitables)
 
     def updateWidgets(self):
@@ -850,7 +849,7 @@ class SpecimenFilterForm(FilterFormCore):
     def fields(self):
         omitables = self.omitables
         return field.Fields(ISpecimenFilterForm).omit(*omitables)
-        
+
 # ------------------------------------------------------------------------------
 # Form for requesting aditional specimen for a particular visit.
 # ------------------------------------------------------------------------------
@@ -866,7 +865,7 @@ class SpecimenAddForm(z3cform.Form):
     @property
     def currentUser(self):
         return getSecurityManager().getUser().getId()
-        
+
     def specimenVocabulary(self):
         context = self.context.aq_inner
         termlist = []

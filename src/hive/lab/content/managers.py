@@ -22,7 +22,7 @@
 
 #     def __init__(self, datastore):
 #         self.datastore = datastore
-        
+
 #     def get(self, key):
 #         """ See `IBaseConventionalManager.get`
 #         """
@@ -134,7 +134,7 @@
 #         query = self.makefilter(**kw)
 #         result = query.count()
 #         return result
-        
+
 #     def filter_records(self, **kw):
 #         """
 #         Generic specimen filter. Takes kw arguments, generally matching
@@ -143,7 +143,7 @@
 #         query = self.makefilter(**kw)
 #         result = [r.objectify() for r in query.all()]
 #         return result
-    
+
 # ## -----------------------------------------------------------
 # # TODO: damote - Move this to a  setup script
 # ## -----------------------------------------------------------
@@ -158,7 +158,7 @@
 # #                         title=term_obj.title and unicode(term_obj.title) or None,
 # #                         token=unicode(term_obj.token),
 # #                         value=unicode(term_obj.value)
-# #                         )  
+# #                         )
 # #                 session.add(term)
 # #         session.flush()
 
@@ -170,7 +170,7 @@
 
 #     _Model = model.Specimen
 #     _Vocab = model.SpecimenAliquotTerm
-    
+
 #     def put(self, source, by=None):
 #         """ See `ISpecimenManager.put`
 #         """
@@ -182,9 +182,9 @@
 #               "destination": u"specimen_destination",
 #               "type": u"specimen_type"
 #               }
-              
+
 #         map = self.vocab_map(source, **kw)
-        
+
 #         if source.dsid is not None:
 #             entry = session.query(model.Specimen) \
 #                 .filter_by(id=source.dsid) \
@@ -199,7 +199,7 @@
 #             protocol = session.query(dsmodel.Protocol)\
 #                         .filter_by(zid=source.protocol_zid)\
 #                         .first()
-                            
+
 #             # specimen is not already in the data base, we need to create one
 #             entry = model.Specimen()
 #             entry.subject = subject
@@ -289,7 +289,7 @@
 #                 analysis_status=u"aliquot_analysis_status",
 #                 special_instruction=u"aliquot_special_instruction",
 #             )
-            
+
 #         previous_state_id = None
 #         map = self.vocab_map(source, **kw)
 #         if source.dsid is not None:
@@ -368,7 +368,7 @@
 #                     elif key == 'inventory_date':
 #                             filter = ((model.Aliquot.inventory_date <= value) | (model.Aliquot.inventory_date == None))
 #                     elif key == 'before_date':
-#                         filter = model.Aliquot.store_date <= value 
+#                         filter = model.Aliquot.store_date <= value
 #                     elif key == 'after_date':
 #                         filter = model.Aliquot.store_date >= value
 #                     elif key == 'protocol_zid':

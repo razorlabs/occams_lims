@@ -29,8 +29,9 @@ class ISpecimen(zope.interface.Interface):
 
     protocol_zid = zope.schema.Int(title=_(u'Protocol\'s Zope IntId'))
 
-    state = zope.schema.TextLine(
+    state = zope.schema.Choice(
         title=_(u'State'),
+        values=[]
         )
 
     date_collected = zope.schema.Date(
@@ -64,7 +65,7 @@ class ISpecimen(zope.interface.Interface):
         title=_(u'Notes'),
         required=False,
         )
-        
+
     def visit():
         pass
 
@@ -75,7 +76,7 @@ class IViewableSpecimen(form.Schema):
         title=_(u"State"),
         source=vocabularies.SpecimenAliquotVocabulary(u"specimen_state"),
         )
-        
+
     patient_title = zope.schema.TextLine(
         title=u"Patient OUR#",
         readonly=True
@@ -209,7 +210,7 @@ class IRequestedSpecimen(ISpecimenSupport):
     """
     form.fieldset('specimen', label=u"Specimen",
                   fields=['require_specimen'])
-                  
+
     form.omitted('require_specimen')
     form.no_omit(IAddForm, 'require_specimen')
     require_specimen = zope.schema.Bool(
@@ -218,7 +219,7 @@ class IRequestedSpecimen(ISpecimenSupport):
         default=True,
         required=False
     )
-    
+
     def getSpecimen():
         """
         Function that provides specimen associated with the object

@@ -1,4 +1,4 @@
-from avrc.data.store.storage import Item
+from occams.datastore.item import Item
 from hive.lab import utilities as utils
 from hive.lab.interfaces.aliquot import IAliquot, \
                                         IAliquotBlueprint
@@ -74,7 +74,7 @@ class SpecimenBlueprint(content.Container):
 
     def createAliquotMold(self, specimen):
         """
-        Loop through the aliquot in this folder, and 
+        Loop through the aliquot in this folder, and
         create aliquots.
         """
         moldlist = []
@@ -140,7 +140,7 @@ class AliquotBlueprint(content.Item):
 #     """ See `ISpecimen`
 #     """
 #     zope.interface.implements(ISpecimen)
-    
+
 #     dsid = FieldProperty(ISpecimen['dsid'])
 #     blueprint_zid = FieldProperty(ISpecimen['blueprint_zid'])
 #     subject_zid = FieldProperty(ISpecimen['subject_zid'])

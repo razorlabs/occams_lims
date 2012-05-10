@@ -4,15 +4,31 @@ from avrc.aeh.model import *
 
 from sqlalchemy import text
 from sqlalchemy.orm import relation as Relationship
-from sqlalchemy.schema import Column, \
-                              ForeignKey, \
-                              UniqueConstraint
-from sqlalchemy.types import Date, \
-                             Float, \
-                             Integer, \
-                             Time, \
-                             Unicode
-                           
+from sqlalchemy.orm import backref
+from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.schema import Column
+from sqlalchemy.schema import ForeignKey
+from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.types import Date
+from sqlalchemy.types import Enum
+from sqlalchemy.types import Float
+from sqlalchemy.types import Integer
+from sqlalchemy.types import Time
+from sqlalchemy.types import Unicode
+
+
+from occams.datastore.model import Model
+from occams.datastore.model.storage import ENTITY_STATE_NAMES
+from occams.datastore.model.metadata import AutoNamed
+from occams.datastore.model.metadata import Describeable
+from occams.datastore.model.metadata import Referenceable
+from occams.datastore.model.metadata import Modifiable
+from occams.datastore.model.auditing import Auditable
+
+from hive.lab.interfaces.specimen import ISpecimen
+from hive.lab.interfaces.aliquot import IAliquot
+
+
 __all__ = ('SpecimenAliquotTerm', 'Specimen', 'Aliquot', 'AliquotHistory',)
 
 NOW = text('CURRENT_TIMESTAMP')
@@ -22,47 +38,54 @@ SPECIMEN_STATE_NAMES = sorted([term.token for term in ISpecimen['state'].vocabul
 ALIQUOT_STATE_NAMES = sorted([term.token for term in IAliquot['state'].vocabulary])
 
 
-class Location(Model, AutoNamed, Describable, Referencable, Auditable, Modifiable):
+class Location(Model, AutoNamed, Describeable, Referenceable, Auditable, Modifiable):
     """
     We may wish to add information here about the destination, such as address, contact info, etc.
     Right now we just need a vocabulary
     """
+
     value = Column(Unicode, nullable=False, unique=True)
 
-class SpecialInstruction(Model, AutoNamed, Describable, Referencable, Auditable, Modifiable):
+
+class SpecialInstruction(Model, AutoNamed, Describeable, Referenceable, Auditable, Modifiable):
     """
     We may wish to add information here about the special instruction
     Right now we just need a vocabulary
     """
+
+
     value = Column(Unicode, nullable=False, unique=True)
 
-class SpecimenType(Model, AutoNamed, Describable, Referencable, Auditable, Modifiable):
+
+class SpecimenType(Model, AutoNamed, Describeable, Referenceable, Auditable, Modifiable):
     """
     """
+
     blueprint_zid = Column(Integer, nullable=True, unique=True)
 
     ## Tube type always matches the specimen type
-    tube_type = Column(Unicode) 
+    tube_type = Column(Unicode)
 
-class AliquotType(Model, AutoNamed, Describable, Referencable, Auditable, Modifiable):
+
+class AliquotType(Model, AutoNamed, Describeable, Referenceable, Auditable, Modifiable):
     """
     """
+
     blueprint_zid = Column(Integer, nullable=True, unique=True)
 
-    specimen_type_id = Column(Integer, nullable=False,)
+    specimen_type_id = Column(Integer, ForeignKey(SpecimenType.id), nullable=False,)
 
     specimen_type = Relationship(
             SpecimenType,
             backref=backref(
                 name='aliquot_type',
-                primaryjoin='SpecimenType.id == AliquotType.specimen_type_id',
                 collection_class=attribute_mapped_collection('name'),
                 cascade='all, delete, delete-orphan',
                 ),
-            primaryjoin=(specimen_type_id == AliquotType.id)
             )
 
-class Specimen(Model, AutoNamed, Referencable, Auditable, Modifiable):
+
+class Specimen(Model, AutoNamed, Referenceable, Auditable, Modifiable):
     """ Speccialized table for specimen data. Note that only one specimen can be
         drawn from a patient/protocol/type.
 
@@ -89,43 +112,37 @@ class Specimen(Model, AutoNamed, Referencable, Auditable, Modifiable):
             modify_date: (datetime) internal metadata of when entry was modified
     """
 
-    specimen_type_id = Column(Integer, nullable=False,)
+    specimen_type_id = Column(Integer, ForeignKey(SpecimenType.id), nullable=False,)
 
     specimen_type = Relationship(
             SpecimenType,
             backref=backref(
                 name='specimen',
-                primaryjoin='SpecimenType.id == Specimen.specimen_type_id',
                 collection_class=attribute_mapped_collection('name'),
                 cascade='all, delete, delete-orphan',
                 ),
-            primaryjoin=(specimen_type_id == SpecimenType.id)
             )
 
-    patient_id = Column(Integer, nullable=False,)
+    patient_id = Column(Integer, ForeignKey(Patient.id), nullable=False,)
 
     patient = Relationship(
             Patient,
             backref=backref(
                 name='specimen',
-                primaryjoin='Patient.id == Specimen.patient_id',
                 collection_class=attribute_mapped_collection('name'),
                 cascade='all, delete, delete-orphan',
                 ),
-            primaryjoin=(patient_id == Patient.id)
             )
 
-    cycle_id = Column(Integer, nullable=False,)
+    cycle_id = Column(Integer, ForeignKey(Cycle.id), nullable=False,)
 
     cycle = Relationship(
             Cycle,
             backref=backref(
                 name='specimen',
-                primaryjoin='Cycle.id == Specimen.cycle_id',
                 collection_class=attribute_mapped_collection('name'),
                 cascade='all, delete, delete-orphan',
                 ),
-            primaryjoin=(cycle_id == Cycle.id)
             )
 
     visit = Relationship(
@@ -147,17 +164,15 @@ class Specimen(Model, AutoNamed, Referencable, Auditable, Modifiable):
 
     collect_time = Column(Time)
 
-    location_id = Column(Integer)
+    location_id = Column(Integer, ForeignKey(Location.id))
 
     location = Relationship(
             Location,
             backref=backref(
                 name='specimen',
-                primaryjoin='Location.id == Specimen.location_id',
                 collection_class=attribute_mapped_collection('name'),
                 cascade='all, delete, delete-orphan',
                 ),
-            primaryjoin=(location_id == Location.id)
             )
 
     tubes = Column(Integer)
@@ -168,10 +183,10 @@ class Specimen(Model, AutoNamed, Referencable, Auditable, Modifiable):
 
     __table_args = (
         UniqueConstraint('patient_id', 'cycle_id', 'specimen_type'),
-        dict()
         )
 
-class Aliquot(Model, AutoNamed, Referencable, Auditable, Modifiable):
+
+class Aliquot(Model, AutoNamed, Referenceable, Auditable, Modifiable):
     """ Specialized table for aliquot parts generated from a specimen.
 
         Attributes:
@@ -179,30 +194,26 @@ class Aliquot(Model, AutoNamed, Referencable, Auditable, Modifiable):
             specimen_id: (int) the specimen this aliquot was generated from
     """
 
-    specimen_id = Column(Integer, nullable=False,)
+    specimen_id = Column(Integer, ForeignKey(Specimen.id), nullable=False,)
 
     specimen = Relationship(
             Specimen,
             backref=backref(
                 name='aliquot',
-                primaryjoin='Specimen.id == Aliquot.specimen_id',
                 collection_class=attribute_mapped_collection('name'),
                 cascade='all, delete, delete-orphan',
                 ),
-            primaryjoin=(specimen_id == Specimen.id)
             )
 
-    aliquot_type_id = Column(Integer, nullable=False,)
+    aliquot_type_id = Column(Integer, ForeignKey(AliquotType.id), nullable=False,)
 
     aliquot_type = Relationship(
             AliquotType,
             backref=backref(
                 name='aliquot_type',
-                primaryjoin='AliquotType.id == Aliquot.aliquot_type_id',
                 collection_class=attribute_mapped_collection('name'),
                 cascade='all, delete, delete-orphan',
                 ),
-            primaryjoin=(aliquot_type_id == AliquotType.id)
             )
 
     state = Column(
@@ -225,17 +236,15 @@ class Aliquot(Model, AutoNamed, Referencable, Auditable, Modifiable):
 
     box = Column(Unicode)
 
-    location_id = Column(Integer)
+    location_id = Column(Integer, ForeignKey(Location.id))
 
     location = Relationship(
             Location,
             backref=backref(
                 name='aliquot',
-                primaryjoin='Location.id == Specimen.location_id',
                 collection_class=attribute_mapped_collection('name'),
                 cascade='all, delete, delete-orphan',
                 ),
-            primaryjoin=(location_id == Location.id)
             )
 
     thawed_num = Column(Integer)
@@ -250,17 +259,14 @@ class Aliquot(Model, AutoNamed, Referencable, Auditable, Modifiable):
 
     notes = Column(Unicode)
 
-    special_instruction_id = Column(Integer, nullable=False,)
+    special_instruction_id = Column(Integer, ForeignKey(SpecialInstruction.id), nullable=False,)
 
     special_instruction = Relationship(
             SpecialInstruction,
             backref=backref(
                 name='aliquot',
-                primaryjoin='SpecialInstruction.id == Aliquot.special_instruction_id',
                 collection_class=attribute_mapped_collection('name'),
                 cascade='all, delete, delete-orphan',
                 ),
-            primaryjoin=(special_instruction_id == SpecialInstruction.id)
             )
-
 
