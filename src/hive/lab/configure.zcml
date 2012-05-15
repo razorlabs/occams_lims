@@ -30,13 +30,13 @@
       provides="Products.GenericSetup.interfaces.EXTENSION"
       />
 
-  <genericsetup:importStep
+<!--   <genericsetup:importStep
       name="hive_lab_install"
       title="Additional product setup."
       description="Installs additional dependencies."
       handler="hive.lab.setuphandlers.importVarious"
       />
-
+ -->
   <!-- Upgrade support for existing installations -->
   <include package=".upgrades" />
 
@@ -83,7 +83,7 @@
 
   <plone:behavior
       title="Specimen View"
-      description="Make this item Show Filtered Aliquot"
+      description="Make this item Show Filtered Specimen"
       provides="hive.lab.interfaces.specimen.ISpecimenSupport"
       for="avrc.aeh.interfaces.IClinicalObject"
       />

@@ -1,6 +1,5 @@
 """ Lab Models
 """
-from avrc.aeh.model import *
 
 from sqlalchemy import text
 from sqlalchemy.orm import relation as Relationship
@@ -27,6 +26,8 @@ from occams.datastore.model.auditing import Auditable
 
 from hive.lab.interfaces.specimen import ISpecimen
 from hive.lab.interfaces.aliquot import IAliquot
+
+from avrc.aeh.model import *
 
 
 __all__ = ('SpecimenAliquotTerm', 'Specimen', 'Aliquot', 'AliquotHistory',)
@@ -270,3 +271,7 @@ class Aliquot(Model, AutoNamed, Referenceable, Auditable, Modifiable):
                 ),
             )
 
+if __name__ == '__main__': # pragma: no cover
+    import sqlalchemy
+    # A convenient way for checking the model even correctly loads the tables
+    Model.metadata.create_all(bind=sqlalchemy.create_engine('sqlite://', echo=True))
