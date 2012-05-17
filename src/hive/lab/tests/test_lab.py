@@ -6,7 +6,9 @@ class TestSetup(unittest.TestCase):
     
     layer = OCCAMS_LAB_INTEGRATION_TESTING
 
-    def test_appointments_installed(self):
+    def test_installed(self):
         portal = self.layer['portal']
         quickinstaller = getToolByName(portal, 'portal_quickinstaller')
         self.assertTrue(quickinstaller.isProductInstalled('hive.lab'))
+        self.assertTrue(quickinstaller.isProductInstalled('avrc.aeh'))
+        self.assertTrue(quickinstaller.isProductInstalled('plone.app.dexterity'))

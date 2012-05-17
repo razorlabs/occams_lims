@@ -14,18 +14,21 @@ from sqlalchemy.types import Float
 from sqlalchemy.types import Integer
 from sqlalchemy.types import Time
 from sqlalchemy.types import Unicode
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.schema import ForeignKeyConstraint
+from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.schema import Index
 
-
+import zope.interface
+from hive.lab import interfaces
 from occams.datastore.model import Model
-from occams.datastore.model.storage import ENTITY_STATE_NAMES
 from occams.datastore.model.metadata import AutoNamed
 from occams.datastore.model.metadata import Describeable
 from occams.datastore.model.metadata import Referenceable
 from occams.datastore.model.metadata import Modifiable
 from occams.datastore.model.auditing import Auditable
-
-from hive.lab.interfaces.specimen import ISpecimen
-from hive.lab.interfaces.aliquot import IAliquot
+# from hive.lab.interfaces import ISpecimen
+# from hive.lab.interfaces import IAliquot
 
 from avrc.aeh.model import *
 
@@ -34,57 +37,130 @@ __all__ = ('SpecimenAliquotTerm', 'Specimen', 'Aliquot', 'AliquotHistory',)
 
 NOW = text('CURRENT_TIMESTAMP')
 
-SPECIMEN_STATE_NAMES = sorted([term.token for term in ISpecimen['state'].vocabulary])
 
-ALIQUOT_STATE_NAMES = sorted([term.token for term in IAliquot['state'].vocabulary])
-
-
-class Location(Model, AutoNamed, Describeable, Referenceable, Auditable, Modifiable):
+class SpecimenState(Model, AutoNamed, Describeable, Referenceable, Modifiable):
     """
     We may wish to add information here about the destination, such as address, contact info, etc.
     Right now we just need a vocabulary
     """
+    zope.interface.implements(interfaces.IOccamsVocabulary)
 
-    value = Column(Unicode, nullable=False, unique=True)
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            UniqueConstraint('name'),
+            )
 
+class AliquotState(Model, AutoNamed, Describeable, Referenceable, Modifiable):
+    """
+    We may wish to add information here about the destination, such as address, contact info, etc.
+    Right now we just need a vocabulary
+    """
+    zope.interface.implements(interfaces.IOccamsVocabulary)
+ 
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            UniqueConstraint('name'),
+            )
 
-class SpecialInstruction(Model, AutoNamed, Describeable, Referenceable, Auditable, Modifiable):
+class Location(Model, AutoNamed, Describeable, Referenceable, Modifiable):
+    """
+    We may wish to add information here about the destination, such as address, contact info, etc.
+    Right now we just need a vocabulary
+    """
+    zope.interface.implements(interfaces.IOccamsVocabulary)
+
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            UniqueConstraint('name'),
+            )
+
+class SpecialInstruction(Model, AutoNamed, Describeable, Referenceable, Modifiable):
     """
     We may wish to add information here about the special instruction
     Right now we just need a vocabulary
     """
+    zope.interface.implements(interfaces.IOccamsVocabulary)
 
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            UniqueConstraint('name'),
+            )
 
-    value = Column(Unicode, nullable=False, unique=True)
-
-
-class SpecimenType(Model, AutoNamed, Describeable, Referenceable, Auditable, Modifiable):
+class SpecimenType(Model, AutoNamed, Referenceable, Describeable, Modifiable):
     """
     """
-
-    blueprint_zid = Column(Integer, nullable=True, unique=True)
+    zope.interface.implements(interfaces.ISpecimenType)
 
     ## Tube type always matches the specimen type
     tube_type = Column(Unicode)
 
+    default_tubes = Column(Integer)
 
-class AliquotType(Model, AutoNamed, Describeable, Referenceable, Auditable, Modifiable):
+    location_id = Column(Integer)
+
+    location = Relationship(
+            Location,
+            primaryjoin=(location_id==Location.id)
+            )
+
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            ForeignKeyConstraint(
+                columns=['location_id'],
+                refcolumns=['location.id'],
+                name='fk_%s_location_id' % cls.__tablename__,
+                ondelete='SET NULL',
+                ),
+            UniqueConstraint('name'),
+            )
+
+class AliquotType(Model, AutoNamed,Referenceable, Describeable, Modifiable):
     """
     """
+    zope.interface.implements(interfaces.IAliquotType)
 
-    blueprint_zid = Column(Integer, nullable=True, unique=True)
-
-    specimen_type_id = Column(Integer, ForeignKey(SpecimenType.id), nullable=False,)
+    specimen_type_id = Column(Integer, nullable=False)
 
     specimen_type = Relationship(
             SpecimenType,
             backref=backref(
-                name='aliquot_type',
+                name='aliquot_types',
+                primaryjoin='SpecimenType.id == AliquotType.specimen_type_id',
                 collection_class=attribute_mapped_collection('name'),
                 cascade='all, delete, delete-orphan',
                 ),
+            primaryjoin=(specimen_type_id == SpecimenType.id)
             )
 
+    location_id = Column(Integer)
+
+    location = Relationship(
+            Location,
+            primaryjoin=(location_id==Location.id)
+            )
+
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            ForeignKeyConstraint(
+                columns=['specimen_type_id'],
+                refcolumns=['specimentype.id'],
+                name='fk_%s_specimentype_id' % cls.__tablename__,
+                ondelete='CASCADE',
+                ),
+            ForeignKeyConstraint(
+                columns=['location_id'],
+                refcolumns=['location.id'],
+                name='fk_%s_location_id' % cls.__tablename__,
+                ondelete='SET NULL',
+                ),
+            UniqueConstraint('specimen_type_id', 'name'),
+            )
 
 class Specimen(Model, AutoNamed, Referenceable, Auditable, Modifiable):
     """ Speccialized table for specimen data. Note that only one specimen can be
@@ -107,43 +183,43 @@ class Specimen(Model, AutoNamed, Referenceable, Auditable, Modifiable):
             notes: (str) optinal notes that can be entered by users (optional)
             aliquot: (list) convenience relation to the aliquot parts generated
                 from this speciemen
-            is_active: (bool) internal marker to indicate this entry is
-                being used.
-            create_date: (datetime) internal metadata of when entry was created
-            modify_date: (datetime) internal metadata of when entry was modified
     """
+    zope.interface.implements(interfaces.ISpecimen)
 
-    specimen_type_id = Column(Integer, ForeignKey(SpecimenType.id), nullable=False,)
+    specimen_type_id = Column(Integer, nullable=False)
 
     specimen_type = Relationship(
             SpecimenType,
             backref=backref(
                 name='specimen',
-                collection_class=attribute_mapped_collection('name'),
+                primaryjoin='SpecimenType.id == Specimen.specimen_type_id',
                 cascade='all, delete, delete-orphan',
                 ),
+            primaryjoin=(specimen_type_id == SpecimenType.id)
             )
 
-    patient_id = Column(Integer, ForeignKey(Patient.id), nullable=False,)
+    patient_id = Column(Integer, nullable=False)
 
     patient = Relationship(
             Patient,
             backref=backref(
                 name='specimen',
-                collection_class=attribute_mapped_collection('name'),
+                primaryjoin='Patient.id==Specimen.patient_id',
                 cascade='all, delete, delete-orphan',
                 ),
+            primaryjoin=(patient_id==Patient.id)
             )
 
-    cycle_id = Column(Integer, ForeignKey(Cycle.id), nullable=False,)
+    cycle_id = Column(Integer)
 
     cycle = Relationship(
             Cycle,
             backref=backref(
                 name='specimen',
-                collection_class=attribute_mapped_collection('name'),
+                primaryjoin='Cycle.id==Specimen.cycle_id',
                 cascade='all, delete, delete-orphan',
                 ),
+            primaryjoin=(cycle_id==Cycle.id)
             )
 
     visit = Relationship(
@@ -155,25 +231,29 @@ class Specimen(Model, AutoNamed, Referenceable, Auditable, Modifiable):
         foreign_keys=[visit_cycle_table.c.cycle_id, visit_cycle_table.c.visit_id, Visit.patient_id, ]
         )
 
-    state = Column(
-        Enum(*ENTITY_STATE_NAMES, name='specimen_state'),
-        nullable=False,
-        server_default=ISpecimen['state'].default
-        )
+    state_id = Column(
+            Integer,
+            nullable=False
+            )
+
+    state = Relationship(
+            SpecimenState,
+            primaryjoin=(state_id==SpecimenState.id)
+            )
 
     collect_date = Column(Date)
 
     collect_time = Column(Time)
 
-    location_id = Column(Integer, ForeignKey(Location.id))
+    location_id = Column(Integer)
 
     location = Relationship(
             Location,
             backref=backref(
                 name='specimen',
-                collection_class=attribute_mapped_collection('name'),
-                cascade='all, delete, delete-orphan',
+                primaryjoin='Location.id==Specimen.location_id',
                 ),
+            primaryjoin=(location_id==Location.id)
             )
 
     tubes = Column(Integer)
@@ -182,10 +262,41 @@ class Specimen(Model, AutoNamed, Referenceable, Auditable, Modifiable):
 
     study_cycle_label = Column(Unicode(255))
 
-    __table_args = (
-        UniqueConstraint('patient_id', 'cycle_id', 'specimen_type'),
-        )
-
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            ForeignKeyConstraint(
+                columns=['specimen_type_id'],
+                refcolumns=['specimentype.id'],
+                name='fk_%s_specimentype_id' % cls.__tablename__,
+                ondelete='CASCADE',
+                ),
+            ForeignKeyConstraint(
+                columns=['patient_id'],
+                refcolumns=['patient.id'],
+                name='fk_%s_patient_id' % cls.__tablename__,
+                ondelete='CASCADE',
+                ),
+            ForeignKeyConstraint(
+                columns=['cycle_id'],
+                refcolumns=['cycle.id'],
+                name='fk_%s_cycle_id' % cls.__tablename__,
+                ondelete='SET NULL',
+                ),
+            ForeignKeyConstraint(
+                columns=['location_id'],
+                refcolumns=['location.id'],
+                name='fk_%s_location_id' % cls.__tablename__,
+                ondelete='SET NULL',
+                ),
+            ForeignKeyConstraint(
+                columns=['state_id'],
+                refcolumns=['specimenstate.id'],
+                name='fk_%s_specimenstate_id' % cls.__tablename__,
+                ondelete='SET NULL',
+                ),
+            # UniqueConstraint('patient_id', 'cycle_id', 'specimen_type_id'),
+            )
 
 class Aliquot(Model, AutoNamed, Referenceable, Auditable, Modifiable):
     """ Specialized table for aliquot parts generated from a specimen.
@@ -194,34 +305,41 @@ class Aliquot(Model, AutoNamed, Referenceable, Auditable, Modifiable):
             id: (int) machine generated primary key
             specimen_id: (int) the specimen this aliquot was generated from
     """
+    zope.interface.implements(interfaces.IAliquot)
 
-    specimen_id = Column(Integer, ForeignKey(Specimen.id), nullable=False,)
+    specimen_id = Column(Integer, nullable=False)
 
     specimen = Relationship(
             Specimen,
             backref=backref(
                 name='aliquot',
-                collection_class=attribute_mapped_collection('name'),
+                primaryjoin='Specimen.id == Aliquot.specimen_id',
                 cascade='all, delete, delete-orphan',
                 ),
+            primaryjoin=(specimen_id == Specimen.id)
             )
 
-    aliquot_type_id = Column(Integer, ForeignKey(AliquotType.id), nullable=False,)
+    aliquot_type_id = Column(Integer, nullable=False)
 
     aliquot_type = Relationship(
             AliquotType,
             backref=backref(
-                name='aliquot_type',
-                collection_class=attribute_mapped_collection('name'),
+                name='aliquot',
+                primaryjoin='AliquotType.id == Aliquot.aliquot_type_id',
                 cascade='all, delete, delete-orphan',
                 ),
+            primaryjoin=(aliquot_type_id == AliquotType.id)
             )
 
-    state = Column(
-        Enum(*ENTITY_STATE_NAMES, name='specimen_state'),
-        nullable=False,
-        server_default=ISpecimen['state'].default
-        )
+    state_id = Column(
+            Integer,
+            nullable=False
+            )
+
+    state = Relationship(
+            AliquotState,
+            primaryjoin=(state_id==AliquotState.id)
+            )
 
     labbook = Column(Unicode)
 
@@ -237,15 +355,15 @@ class Aliquot(Model, AutoNamed, Referenceable, Auditable, Modifiable):
 
     box = Column(Unicode)
 
-    location_id = Column(Integer, ForeignKey(Location.id))
+    location_id = Column(Integer)
 
     location = Relationship(
             Location,
             backref=backref(
                 name='aliquot',
-                collection_class=attribute_mapped_collection('name'),
-                cascade='all, delete, delete-orphan',
+                primaryjoin='Aliquot.location_id == Location.id',
                 ),
+            primaryjoin=(location_id==Location.id)
             )
 
     thawed_num = Column(Integer)
@@ -260,14 +378,49 @@ class Aliquot(Model, AutoNamed, Referenceable, Auditable, Modifiable):
 
     notes = Column(Unicode)
 
-    special_instruction_id = Column(Integer, ForeignKey(SpecialInstruction.id), nullable=False,)
+    special_instruction_id = Column(Integer)
 
     special_instruction = Relationship(
             SpecialInstruction,
-            backref=backref(
-                name='aliquot',
-                collection_class=attribute_mapped_collection('name'),
-                cascade='all, delete, delete-orphan',
+            primaryjoin=(special_instruction_id == SpecialInstruction.id)
+            )
+
+
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            ForeignKeyConstraint(
+                columns=['specimen_id'],
+                refcolumns=['specimen.id'],
+                name='fk_%s_specimen_id' % cls.__tablename__,
+                ondelete='CASCADE',
+                ),
+
+            ForeignKeyConstraint(
+                columns=['aliquot_type_id'],
+                refcolumns=['aliquottype.id'],
+                name='fk_%s_aliquottype_id' % cls.__tablename__,
+                ondelete='CASCADE',
+                ),
+
+            ForeignKeyConstraint(
+                columns=['location_id'],
+                refcolumns=['location.id'],
+                name='fk_%s_location_id' % cls.__tablename__,
+                ondelete='SET NULL',
+                ),
+
+            ForeignKeyConstraint(
+                columns=['special_instruction_id'],
+                refcolumns=['specialinstruction.id'],
+                name='fk_%s_specialinstruction_id' % cls.__tablename__,
+                ondelete='SET NULL',
+                ),
+            ForeignKeyConstraint(
+                columns=['state_id'],
+                refcolumns=['aliquotstate.id'],
+                name='fk_%s_aliquotstate_id' % cls.__tablename__,
+                ondelete='SET NULL',
                 ),
             )
 

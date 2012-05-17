@@ -1,12 +1,112 @@
 from five import grok
 from hive.lab import SCOPED_SESSION_KEY
-from hive.lab.interfaces.managers import ISpecimenManager
+# from hive.lab.interfaces.managers import ISpecimenManager
 from z3c.saconfig import named_scoped_session
 from zope import component
 from zope.intid.interfaces import IIntIds
 from zope.schema.interfaces import IContextSourceBinder
-from zope.schema.vocabulary import SimpleTerm, \
-                                   SimpleVocabulary
+from zope.schema.interfaces import IVocabularyFactory
+from zope.schema.vocabulary import SimpleVocabulary
+from zope.schema.vocabulary import SimpleTerm
+from hive.lab import model
+
+class OccamsVocabulary(object):
+    grok.implements(IVocabularyFactory)
+
+    @property
+    def _modelKlass(self):
+        raise NotImplementedError
+
+    def getTerms(self, context):
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        query = (
+            session.query(self._modelKlass)
+            .order_by(self._modelKlass.title.asc())
+            )
+        terms=[]
+        for term in iter(query):
+            terms.append(
+                SimpleTerm(
+                    title=term.title,
+                    token=term.name,
+                    value=term)
+                )
+        return terms
+
+    def __call__(self, context):
+        return SimpleVocabulary(terms=self.getTerms(context))
+
+class SpecimenStateVocabulary(OccamsVocabulary):
+    grok.implements(IVocabularyFactory)
+
+    _modelKlass=model.SpecimenState
+
+grok.global_utility(SpecimenStateVocabulary, name=u"hive.lab.specimenstatevocabulary")
+
+class AliquotStateVocabulary(OccamsVocabulary):
+    grok.implements(IVocabularyFactory)
+
+    _modelKlass=model.AliquotState
+
+grok.global_utility(AliquotStateVocabulary, name=u"hive.lab.aliquotstatevocabulary")
+
+class LocationVocabulary(OccamsVocabulary):
+    grok.implements(IVocabularyFactory)
+
+    _modelKlass=model.Location
+
+grok.global_utility(LocationVocabulary, name=u"hive.lab.locationvocabulary")
+
+class SpecialInstructionVocabulary(OccamsVocabulary):
+    grok.implements(IVocabularyFactory)
+
+    _modelKlass=model.SpecialInstruction
+
+grok.global_utility(SpecialInstructionVocabulary, name=u"hive.lab.specialinstructionvocabulary")
+
+
+    # def __call__(self, context):
+    #     terms= (
+    #     ("Pending Draw","pending-draw"),
+    #     ("Draw Cancelled", "cancel-draw"),
+    #     ("Pending Aliquot", "pending-aliquot"),
+    #     ("Aliquoted", "aliquoted"),
+    #     ("Rejected", "rejected"),
+    #     ("Prepared for Aliquot", "prepared-aliquot"),
+    #     ("Complete", "complete"),
+    #     ("Batched", "batched"),
+    #     ("Draw Postponed", "postponed")
+    #     )
+    #     return SimpleVocabulary.fromItems(terms)
+
+
+
+
+
+
+# class AliquotStateVocabulary(object):
+#     grok.implements(IVocabularyFactory)
+
+#     def __call__(self, context):
+#         terms= (
+#             ("Pending Check In","pending"),
+#             ("Checked In","checked-in"),
+#             ("Checked Out","checked-out"),
+#             ("On Hold","hold"),
+#             ("Aliquot Not used","unused"),
+#             ("Prepared for Check In","prepared"),
+#             ("(-4) State Uncertain","uncertain--4"),
+#             ("(+) Sent To Richman Lab","richman-plus"),
+#             ("(*) Labels Generated","label-star"),
+#             ("(1) Deleted","deleted-1"),
+#             ("Inaccurate Data","incorrect"),
+#             ("Check Out","pending-checkout"),
+#             ("Hold in Queue","queued"),
+#             ("Missing","missing"),
+#             ("Destroyed","destroyed"),
+#         )
+#         return SimpleVocabulary.fromItems(terms)
+# grok.global_utility(AliquotStateVocabulary, name=u"hive.lab.aliquotstatevocabulary")
 
 
 class SpecimenVocabulary(object):
@@ -43,7 +143,6 @@ class SpecimenVocabulary(object):
 
         return SimpleVocabulary(terms=self.getTerms(context))
 
-
 class SpecimenVisitVocabulary(object):
     """
     Context source binder to provide a vocabulary of users in a given group.
@@ -78,6 +177,6 @@ class SpecimenAliquotVocabulary(object):
         self.vocabulary_name = unicode(vocabulary_name)
 
     def __call__(self, context):
-        vocab = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY))).get_vocabulary(self.vocabulary_name)
-        return vocab
+        # vocab = ISpecimenManager(IDataStore(named_scoped_session(SCOPED_SESSION_KEY))).get_vocabulary(self.vocabulary_name)
+        return []
 
