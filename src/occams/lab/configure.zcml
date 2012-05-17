@@ -1,0 +1,90 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:grok="http://namespaces.zope.org/grok"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="occams.lab">
+
+  <include package="plone.behavior" file="meta.zcml"/>
+  <include file="permissions.zcml" />
+
+  <!-- Include configuration for dependencies listed in setup.py -->
+  <includeDependencies package="." />
+
+  <!-- Grok the package to initialize schema interfaces and content classes -->
+  <!-- Note that because we include this command, sub-packages no longer
+     need configure.zcml files. (We also don't need to specify them in
+     <include> tags.)
+  -->
+
+  <grok:grok package="."  />
+
+  <genericsetup:registerProfile
+      name="default"
+      directory="profiles/default"
+      title="OCCAMS: Lab Services"
+      description="Installs components necessary for providing OCCAMS Lab services."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
+
+<!--   <genericsetup:importStep
+      name="occams.lab_install"
+      title="Additional product setup."
+      description="Installs additional dependencies."
+      handler="occams.lab.setuphandlers.importVarious"
+      />
+ -->
+  <!-- Upgrade support for existing installations -->
+
+  <browser:resourceDirectory name="occams.lab" directory="static" />
+
+  <!-- Managers are going away, this just breaks -->
+<!--   <adapter factory=".content.managers.SpecimenManager" />
+  <adapter factory=".content.managers.AliquotManager" /> -->
+
+<!--   <plone:behavior
+      title="Available Specimen"
+      description="Make Specimen Available for an object."
+      provides="occams.lab.interfaces.specimen.IAvailableSpecimen"
+      for="avrc.aeh.interfaces.IStudy"
+      />
+
+  <plone:behavior
+      title="Required Specimen"
+      description="Make Specimen Required for an object."
+      provides="occams.lab.interfaces.specimen.IRequiredSpecimen"
+      for="avrc.aeh.interfaces.ICycle"
+      />
+
+  <plone:behavior
+      title="Requested Specimen"
+      description="Make Specimen Required for an object."
+      provides="occams.lab.interfaces.specimen.IRequestedSpecimen"
+      for="avrc.aeh.interfaces.IVisit"
+      />
+ -->
+<!--   <plone:behavior
+      title="Label Sheet"
+      description="Make this lab produce labels"
+      provides="occams.lab.interfaces.labels.ILabelSheet"
+      for="occams.lab.interfaces.lab.ILab"
+      /> -->
+
+<!--   <plone:behavior
+      title="Aliquot View"
+      description="Make this item Show Filtered Aliquot"
+      provides="occams.lab.interfaces.aliquot.IAliquotSupport"
+      for="avrc.aeh.interfaces.IClinicalObject"
+      />
+
+  <plone:behavior
+      title="Specimen View"
+      description="Make this item Show Filtered Specimen"
+      provides="occams.lab.interfaces.specimen.ISpecimenSupport"
+      for="avrc.aeh.interfaces.IClinicalObject"
+      /> -->
+
+</configure>

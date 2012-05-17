@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<object name="avrc.aeh.patient"
+   meta_type="Dexterity FTI"
+   i18n:domain="avrc.aeh" xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+    <property name="behaviors" purge="false">
+<!--         <element value="occams.lab.interfaces.specimen.ISpecimenSupport"/>
+        <element value="occams.lab.interfaces.aliquot.IAliquotSupport"/> -->
+    </property>
+    <alias from="specimen" to="@@specimen" />
+    <alias from="aliquot" to="@@aliquot" />
+    
+    <action title="Specimen" action_id="specimen" category="object" condition_expr=""
+    url_expr="string:${object_url}/specimen" visible="True">
+        <permission value="occams: View Specimen" />
+    </action>
+    <action title="Aliquot" action_id="aliquot" category="object" condition_expr=""
+    url_expr="string:${object_url}/aliquot" visible="True">
+        <permission value="occams: View Aliquot" />
+    </action>    
+</object>
