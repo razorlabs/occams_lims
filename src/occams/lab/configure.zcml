@@ -20,7 +20,9 @@
      <include> tags.)
   -->
 
-  <grok:grok package="."  />
+  <grok:grok package="."  exclude="upgrades" />
+  <include package=".browser" />
+  <include package=".upgrades" />
 
   <genericsetup:registerProfile
       name="default"
@@ -30,13 +32,13 @@
       provides="Products.GenericSetup.interfaces.EXTENSION"
       />
 
-<!--   <genericsetup:importStep
+  <genericsetup:importStep
       name="occams.lab_install"
       title="Additional product setup."
       description="Installs additional dependencies."
       handler="occams.lab.setuphandlers.importVarious"
       />
- -->
+
   <!-- Upgrade support for existing installations -->
 
   <browser:resourceDirectory name="occams.lab" directory="static" />

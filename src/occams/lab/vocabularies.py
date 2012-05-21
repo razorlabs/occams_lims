@@ -29,7 +29,7 @@ class OccamsVocabulary(object):
                 SimpleTerm(
                     title=term.title,
                     token=term.name,
-                    value=term)
+                    value=term.id)
                 )
         return terms
 
@@ -63,6 +63,21 @@ class SpecialInstructionVocabulary(OccamsVocabulary):
     _modelKlass=model.SpecialInstruction
 
 grok.global_utility(SpecialInstructionVocabulary, name=u"occams.lab.specialinstructionvocabulary")
+
+
+class SpecimenTypeVocabulary(OccamsVocabulary):
+    grok.implements(IVocabularyFactory)
+
+    _modelKlass=model.SpecimenType
+
+grok.global_utility(SpecimenTypeVocabulary, name=u"occams.lab.specimentypevocabulary")
+
+class AliquotTypeVocabulary(OccamsVocabulary):
+    grok.implements(IVocabularyFactory)
+
+    _modelKlass=model.AliquotType
+
+grok.global_utility(AliquotTypeVocabulary, name=u"occams.lab.aliquottypevocabulary")
 
 
     # def __call__(self, context):

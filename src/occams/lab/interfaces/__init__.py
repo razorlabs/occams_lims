@@ -98,7 +98,7 @@ class ISpecimen(IReferenceable, IModifiable):
         required=False,
         )
 
-    collect_date = zope.schema.Time(
+    collect_time = zope.schema.Time(
         title=_(u'Collect Time'),
         required=False,
         )
@@ -111,6 +111,110 @@ class ISpecimen(IReferenceable, IModifiable):
         )
 
     tubes = zope.schema.Int(
+        title=_(u"Tubes"),
+        description=_(u"Number of Tubes drawn"),
+        required=False
+        )
+
+    notes = zope.schema.Text(
+        title=_(u"Notes"),
+        description=_("Notes about this specimen"),
+        required=False
+        )
+
+    study_cycle_label = zope.schema.TextLine(
+        title=_(u"Study Cycle Label"),
+        description=_(u"The label text for the specimen tube"),
+        required=False
+        )
+
+class IViewableSpecimen(form.Schema):
+    """
+    """
+    id = zope.schema.Int(
+        title=_(u"Specimen Id"),
+        description=_(u""),
+        readonly= True
+        )
+
+    # patient_id = zope.schema.Int(
+    #     title=_(u"Patient Id"),
+    #     description=_(u"The source patient"),
+    #     readonly=True
+    #     )
+
+    patient_our = zope.schema.TextLine(
+        title=_(u"Patient OUR#"),
+        description=_(u"The source patient our #"),
+        readonly=True
+        )
+
+    # patient_initials = zope.schema.TextLine(
+    #     title=_(u"Patient Initials"),
+    #     description=_(u"The source patient initials"),
+    #     readonly=True
+    #     )
+
+    # cycle_id = zope.schema.Int(
+    #     title=_(u"Cycle Id"),
+    #     description=_(u"The cycle for which this specimen was collected"),
+    #     readonly=True
+    #     )
+
+    cycle_title = zope.schema.TextLine(
+        title=_(u"Study/Cycle"),
+        description=_(u"The cycle for which this specimen was collected"),
+        readonly=True
+        )
+
+    # visit_id = zope.schema.Int(
+    #     title=_(u"Visit Id"),
+    #     description=_(u"The visit for which this specimen was collected"),
+    #     readonly=True,
+    #     )
+
+    visit_date = zope.schema.Date(
+        title=_(u"Visit Date"),
+        description=_(u"The visit for which this specimen was collected"),
+        readonly=True,
+        )
+
+    specimen_type = zope.schema.Choice(
+        title=_(u"Type"),
+        description=_(u"The Type specimen"),
+        readonly=True,
+        vocabulary="occams.lab.specimentypevocabulary",
+        )
+
+    state = zope.schema.Choice(
+        title=_(u'State'),
+        vocabulary="occams.lab.specimenstatevocabulary",
+        default='pending-draw',
+        )
+
+    collect_date = zope.schema.Date(
+        title=_(u'Collect Date'),
+        required=False,
+        )
+
+    collect_time = zope.schema.Time(
+        title=_(u'Collect Time'),
+        required=False,
+        )
+
+    location =  zope.schema.Choice(
+        title=_(u"Location"),
+        description=_(u"The location of the specimen"),
+        vocabulary="occams.lab.locationvocabulary",
+        required=False
+        )
+
+    tube_type = zope.schema.TextLine(
+        title=_(u"Tube Type"),
+        description=_(u""),
+        readonly=True
+        )
+    tubes = zope.schema.TextLine(
         title=_(u"Tubes"),
         description=_(u"Number of Tubes drawn"),
         required=False
@@ -242,6 +346,169 @@ class IAliquot(IReferenceable, IModifiable):
         vocabulary="occams.lab.specialinstructionvocabulary",
         required=False
         )
+
+
+class IViewableAliquot(form.Schema):
+    """
+    """
+    id = zope.schema.Int(
+        title=_(u"Specimen Id"),
+        description=_(u""),
+        readonly= True
+        )
+
+    # patient_id = zope.schema.Int(
+    #     title=_(u"Patient Id"),
+    #     description=_(u"The source patient"),
+    #     readonly=True
+    #     )
+
+    patient_our = zope.schema.TextLine(
+        title=_(u"Patient OUR#"),
+        description=_(u"The source patient our #"),
+        readonly=True
+        )
+
+    # patient_initials = zope.schema.TextLine(
+    #     title=_(u"Patient Initials"),
+    #     description=_(u"The source patient initials"),
+    #     readonly=True
+    #     )
+
+    # cycle_id = zope.schema.Int(
+    #     title=_(u"Cycle Id"),
+    #     description=_(u"The cycle for which this specimen was collected"),
+    #     readonly=True
+    #     )
+
+    cycle_title = zope.schema.TextLine(
+        title=_(u"Study/Cycle"),
+        description=_(u"The cycle for which this specimen was collected"),
+        readonly=True
+        )
+
+    # visit_id = zope.schema.Int(
+    #     title=_(u"Visit Id"),
+    #     description=_(u"The visit for which this specimen was collected"),
+    #     readonly=True,
+    #     )
+
+    visit_date = zope.schema.Date(
+        title=_(u"Visit Date"),
+        description=_(u"The visit for which this specimen was collected"),
+        readonly=True,
+        )
+
+    specimen_id = zope.schema.Int(
+        title=_(u"Specimen"),
+        description=_(u"The specimen from which this aliquot came."),
+        readonly=True,
+        )
+
+    aliquot_type = zope.schema.Choice(
+        title=_(u"Type"),
+        description=_(u"The type of aliquot"),
+        readonly=True,
+        vocabulary="occams.lab.aliquottypevocabulary"
+        )
+
+    state = zope.schema.Choice(
+        title=_(u'State'),
+        vocabulary="occams.lab.aliquotstatevocabulary",
+        default='pending'
+        )
+
+    labbook = zope.schema.TextLine(
+        title=_(u"Lab Book"),
+        description=_(u"The Lab Book number"),
+        required=False
+        )
+
+    volume =  zope.schema.Float(
+        title=_(u"Volume"),
+        description=_(u"Volume of a liquid aliquot"),
+        required=False
+        )
+
+    cell_amount =  zope.schema.Float(
+        title=_(u"Cell Count"),
+        description=_(u"Cell count of an aliquot"),
+        required=False
+        )
+
+    store_date = zope.schema.Date(
+        title=_(u"Storage Date"),
+        description=_(u"Date aliquot was stored"),
+        required=False
+        )
+
+    freezer = zope.schema.TextLine(
+        title=_(u"Freezer"),
+        description=_(u"The Freezer Location"),
+        required=False
+        )
+    rack = zope.schema.TextLine(
+        title=_(u"Rack"),
+        description=_(u"The Rack Location"),
+        required=False
+        )
+
+    box = zope.schema.TextLine(
+        title=_(u"Box"),
+        description=_(u"The Box Location"),
+        required=False
+        )
+
+    location =  zope.schema.Choice(
+        title=_(u"Location"),
+        description=_(u"The location of the specimen"),
+        vocabulary="occams.lab.locationvocabulary",
+        required=False
+        )
+
+    thawed_num = zope.schema.Int(
+        title=_(u"Thawed"),
+        description=_(u"Number of times thawed"),
+        default=0
+        )
+
+    inventory_date =  zope.schema.Date(
+        title=_(u'Inventory Date'),
+        description=_(u"Date last inventoried"),
+        required=False,
+        )
+
+    sent_date =  zope.schema.Date(
+        title=_(u'Sent Date'),
+        description=_(u"Date sent for analysis."),
+        required=False,
+        )
+
+    sent_name = zope.schema.TextLine(
+        title=_(u"Sent Name"),
+        description=_(u"The name of the aliquot's receiver."),
+        required=False,
+        )
+
+    sent_notes = zope.schema.Text(
+        title=_(u"Sent Notes"),
+        description=_("Notes about this aliquot's destination"),
+        required=False
+        )
+
+    notes =zope.schema.Text(
+        title=_(u"Notes"),
+        description=_("Notes about this aliquot"),
+        required=False
+        )
+
+    special_instruction = zope.schema.Choice(
+        title=_(u"Special Instructions"),
+        description=_(u"Special Instructions for the aliquot"),
+        vocabulary="occams.lab.specialinstructionvocabulary",
+        required=False
+        )
+
 
 class IContainsSpecimen(zope.interface.Interface):
     """

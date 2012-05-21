@@ -62,3 +62,34 @@ class OccamsVocabularyTestCase(unittest.TestCase):
 
     def testSpecialInstructionListVocabItems(self):
         self._assertVocab(model.SpecialInstruction, vocabularies.SpecialInstructionVocabulary)
+
+    def testSpecimenTypeImplementation(self):
+        self._assertImplements("occams.lab.specimentypevocabulary")
+
+    def testSpecimenTypeListVocabItems(self):
+        self._assertVocab(model.SpecimenType, vocabularies.SpecimenTypeVocabulary)
+
+    def testAliquotTypeImplementation(self):
+        self._assertImplements("occams.lab.aliquottypevocabulary")
+
+    def testAliquotTypeListVocabItems(self):
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        specimentype = model.SpecimenType(
+            name='specimentype',
+            title=u"",
+            )
+        session.add(specimentype)
+        session.flush()
+        entry = model.AliquotType(
+            name="token",
+            title=u"Title",
+            specimen_type=specimentype)
+
+        session.add(entry)
+        session.flush()
+        vocabularyFactory = vocabularies.AliquotTypeVocabulary()
+        vocabulary = vocabularyFactory(fakeContext)
+        self.assertEquals(1, len(vocabulary))
+        self.assertTrue('token' in [term.token for term in vocabulary])
+        self.assertTrue(entry in [term.value for term in vocabulary])
+        self.assertTrue(u'Title' in [term.title for term in vocabulary])

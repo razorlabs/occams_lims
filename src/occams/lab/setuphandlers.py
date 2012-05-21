@@ -1,20 +1,21 @@
 
-# from z3c.saconfig import named_scoped_session
-# from avrc.aeh import FIA_SCOPED_SESSION_KEY
-# import occams.lab.upgrades.migrate
+from z3c.saconfig import named_scoped_session
+from occams.lab import SCOPED_SESSION_KEY
+from occams.datastore.upgrading import install
+from occams.lab import model
+import occams.lab.upgrades.migrate as repository
+
+def importVarious(context):
+    """ 
+    GenericSetup conventional handle for importing miscellaneous steps.
+    """
+    if context.readDataFile('occams-lab.txt') is None:
+        return
+    portal = context.getSite()
+    setupSQLDatabase(portal)
 
 
-# def importVarious(context):
-#     """ 
-#     GenericSetup conventional handle for importing miscellaneous steps.
-#     """
-#     if context.readDataFile('occams.lab.txt') is None:
-#         return
-#     portal = context.getSite()
-#     setupSQLDatabase(portal)
-
-
-# def setupSQLDatabase(portal):
-#     session = named_scoped_session(FIA_SCOPED_SESSION_KEY)
-#     occams.lab.upgrades.migrate.install(session.bind)
+def setupSQLDatabase(portal):
+    session = named_scoped_session(SCOPED_SESSION_KEY)
+    install(model.Model.metadata, session.bind, repository)
 

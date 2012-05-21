@@ -424,7 +424,7 @@ class Aliquot(Model, AutoNamed, Referenceable, Auditable, Modifiable):
                 ),
             )
 
-if __name__ == '__main__': # pragma: no cover
-    import sqlalchemy
-    # A convenient way for checking the model even correctly loads the tables
-    Model.metadata.create_all(bind=sqlalchemy.create_engine('sqlite://', echo=True))
+# if __name__ == '__main__': # pragma: no cover
+#     import sqlalchemy
+#     # A convenient way for checking the model even correctly loads the tables
+#     Model.metadata.create_all(bind=sqlalchemy.create_engine('sqlite://', echo=True))
