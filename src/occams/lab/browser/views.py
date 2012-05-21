@@ -1,60 +1,87 @@
-# from AccessControl import getSecurityManager
-# from Products.CMFCore.utils import getToolByName
-# from beast.browser.crud import NestedFormView
-# from five import grok
-# from occams.lab import MessageFactory as _, \
-#                      SCOPED_SESSION_KEY
-# from occams.lab.browser import crud
+from AccessControl import getSecurityManager
+from Products.CMFCore.utils import getToolByName
+from beast.browser.crud import NestedFormView
+from five import grok
+from occams.lab import MessageFactory as _, \
+                     SCOPED_SESSION_KEY
+from occams.lab.browser import crud
 # from occams.lab.interfaces.aliquot import IAliquotSupport, \
 #                                         IViewableAliquot, \
 #                                         IChecklistSupport
-# from occams.lab.interfaces.lab import IClinicalLab, \
-#                                     IResearchLab
+from occams.lab.interfaces import IClinicalLab, \
+                                    IResearchLab
 # from occams.lab.interfaces.managers import IAliquotManager, \
 #                                          ISpecimenManager
 # from occams.lab.interfaces.specimen import ISpecimenSupport, \
 #                                          IViewableSpecimen
-# from plone.directives import dexterity
-# from z3c.saconfig import named_scoped_session
-# import z3c.form
-# # ------------------------------------------------------------------------------
-# # Clinical Lab Views |
-# # --------------
-# # These classes provide the various transitions and modifications of the pages
-# # that support and modify specimen
-# # ------------------------------------------------------------------------------
+from plone.directives import dexterity
+from z3c.saconfig import named_scoped_session
+import z3c.form
+# ------------------------------------------------------------------------------
+# Clinical Lab Views |
+# --------------
+# These classes provide the various transitions and modifications of the pages
+# that support and modify specimen
+# ------------------------------------------------------------------------------
 
-# # class ClinicalLabView(z3c.form.form.Form):
-# #     """
-# #     Primary view for a clinical lab object.
-# #     """
-# #     grok.context(IClinicalLab)
-# #     grok.require('occams.lab.ManageSpecimen')
-# #     grok.name('clinical-view')
 
-# #     def __init__(self, context, request):
-# #         super(ClinicalLabView, self).__init__(context, request)
 
-# #     def update(self):
-# #         self.crudform = self.getCrudForm()
-# #         super(ClinicalLabView, self).update()
 
-# #     def getCrudForm(self):
-# #         """
-# #         Create a form instance.
-# #         @return: z3c.form wrapped for Plone 3 view
-# #         """
-# #         context = self.context.aq_inner
-# #         form = crud.SpecimenPendingForm(context, self.request)
-# #         if hasattr(form, 'getCount') and form.getCount() < 1:
-# #             return None
-# #         view = NestedFormView(context, self.request)
-# #         view = view.__of__(context)
-# #         view.form_instance = form
-# #         return view
+    # def __init__(self, context, request):
+    #     super(ClinicalLabView, self).__init__(context, request)
 
-# # ------------------------------------------------------------------------------
-# # ------------------------------------------------------------------------------
+    # def update(self):
+    #     self.crudform = self.getCrudForm()
+    #     super(ClinicalLabView, self).update()
+
+    # def getCrudForm(self):
+    #     """
+    #     Create a form instance.
+    #     @return: z3c.form wrapped for Plone 3 view
+    #     """
+    #     context = self.context.aq_inner
+    #     form = crud.SpecimenPendingForm(context, self.request)
+    #     if hasattr(form, 'getCount') and form.getCount() < 1:
+    #         return None
+    #     view = NestedFormView(context, self.request)
+    #     view = view.__of__(context)
+    #     view.form_instance = form
+    #     return view
+
+
+
+
+# class ClinicalLabView(z3c.form.form.Form):
+#     """
+#     Primary view for a clinical lab object.
+#     """
+#     grok.context(IClinicalLab)
+#     grok.require('occams.lab.ManageSpecimen')
+#     grok.name('clinical-view')
+
+#     def __init__(self, context, request):
+#         super(ClinicalLabView, self).__init__(context, request)
+
+#     def update(self):
+#         self.crudform = self.getCrudForm()
+#         super(ClinicalLabView, self).update()
+
+#     def getCrudForm(self):
+#         """
+#         Create a form instance.
+#         @return: z3c.form wrapped for Plone 3 view
+#         """
+#         context = self.context.aq_inner
+#         form = crud.SpecimenPendingForm(context, self.request)
+#         if hasattr(form, 'getCount') and form.getCount() < 1:
+#             return None
+#         view = NestedFormView(context, self.request)
+#         view = view.__of__(context)
+#         view.form_instance = form
+#         return view
+
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # class ClinicalLabBatched(dexterity.DisplayForm):
 #     """
 #     Primary view for a clinical lab object.
@@ -65,6 +92,7 @@
 
 #     def __init__(self, context, request):
 #         super(ClinicalLabBatched, self).__init__(context, request)
+#         import pdb; pdb.set_trace( )
 #         self.crudform = self.getCrudForm()
 
 #     def getCrudForm(self):
@@ -137,12 +165,12 @@
 #         view.form_instance = form
 #         return view
 
-# # ------------------------------------------------------------------------------
-# # Research Lab Views |
-# # --------------
-# # These classes provide the various transitions and modifications of the pages
-# # that support and modify specimen
-# # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Research Lab Views |
+# --------------
+# These classes provide the various transitions and modifications of the pages
+# that support and modify specimen
+# ------------------------------------------------------------------------------
 
 # class ResearchLabView(dexterity.DisplayForm):
 #     """

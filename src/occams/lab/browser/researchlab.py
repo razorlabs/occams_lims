@@ -182,14 +182,14 @@ class SpecimenPostponedButtons(SpecimenCoreButtons):
         self.changeState(action, 'pending-draw', 'pending draw')
         return self.request.response.redirect(self.action)
 
-class SpecimenCoreForm(crud.CrudForm):
+class AliquotCoreForm(crud.CrudForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
 
     def update(self):
         self.update_schema = self.edit_schema
-        super(SpecimenCoreForm, self).update()
+        super(AliquotCoreForm, self).update()
         
     @property
     def currentUser(self):
@@ -201,16 +201,20 @@ class SpecimenCoreForm(crud.CrudForm):
 
     @property
     def edit_schema(self):
-        fields = field.Fields(interfaces.IViewableSpecimen).\
+        fields = field.Fields(interfaces.IViewableAliquot).\
                     select('patient_our',
                              # 'patient_initials',
                              'cycle_title',
-                             'visit_date', 
-                             'specimen_type',
-                             'tube_type',
-                             'tubes', 
-                             'collect_date', 
-                             'collect_time',
+                             # 'visit_date', 
+                             'aliquot_type',
+                             'volume',
+                             'cell_amount', 
+                             'store_date',
+                             'labbook',
+                             'freezer',
+                             'rack',
+                             'box',
+                             'special_instruction',
                              'notes'
                              )
         return fields
@@ -219,25 +223,33 @@ class SpecimenCoreForm(crud.CrudForm):
         if field == 'patient_our':
             intids = zope.component.getUtility(IIntIds)
             patient = intids.getObject(item['patient_zid'])
-            url = '%s/specimen' % patient.absolute_url()
+            url = '%s/aliquot' % patient.absolute_url()
             return url
-        elif field == 'visit_date' and item['visit_zid']:
-            intids = zope.component.getUtility(IIntIds)
-            visit = intids.getObject(item['visit_zid'])
-            url = '%s/specimen' % visit.absolute_url()
-            return url
+        # elif field == 'visit_date' and item['visit_zid']:
+        #     intids = zope.component.getUtility(IIntIds)
+        #     visit = intids.getObject(item['visit_zid'])
+        #     url = '%s/aliquot' % visit.absolute_url()
+        #     return url
 
-        elif field == 'specimen_type':
-            url = '%s/%s' % (self.context.absolute_url(), item['specimen_type_name'])
+        elif field == 'aliquot_type':
+            url = '%s/%s' % (self.context.absolute_url(), item['aliquot_type_name'])
             return url
 
 
     def updateWidgets(self):
         if self.update_schema is not None:
-            if 'collect_time' in self.update_schema.keys():
-                self.update_schema['collect_time'].widgetFactory = widgets.TimeFieldWidget
-            if 'tubes' in self.update_schema.keys():
-                self.update_schema['tubes'].widgetFactory = widgets.StorageFieldWidget
+            if 'volume' in self.update_schema.keys():
+                self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
+            if 'cell_amount' in self.update_schema.keys():
+                self.update_schema['cell_amount'].widgetFactory = widgets.AmountFieldWidget
+            if 'labbook' in self.update_schema.keys():
+                self.update_schema['labbook'].widgetFactory = widgets.AmountFieldWidget                
+            if 'freezer' in self.update_schema.keys():
+                self.update_schema['freezer'].widgetFactory = widgets.StorageFieldWidget
+            if 'rack' in self.update_schema.keys():
+                self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
+            if 'box' in self.update_schema.keys():
+                self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
 
     def get_items(self):
         """
@@ -246,92 +258,48 @@ class SpecimenCoreForm(crud.CrudForm):
         session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
             session.query(
-                model.Specimen.id.label('id'),
+                model.Aliquot.id.label('id'),
                 model.Patient.our.label('patient_our'),
                 model.Patient.zid.label('patient_zid'),
                 model.Cycle.title.label('cycle_title'),
-                model.Visit.visit_date.label('visit_date'),
-                model.Visit.zid.label('visit_zid'),
-                model.SpecimenType.id.label('specimen_type'),
-                model.SpecimenType.name.label('specimen_type_name'),
-                model.SpecimenType.tube_type.label('tube_type'),
-                model.Specimen.tubes.label('tubes'),
-                model.Specimen.collect_date.label('collect_date'),
-                model.Specimen.collect_time.label('collect_time'),
+                # model.Specimen.visit.visit_date.label('visit_date'),
+                # model.Specimen.visit.zid.label('visit_zid'),
+                model.AliquotType.id.label('aliquot_type'),
+                model.AliquotType.name.label('aliquot_type_name'),
+                model.Aliquot.labbook.label('labbook'),
+                model.Aliquot.volume.label('volume'),
+                model.Aliquot.cell_amount.label('cell_amount'),
+                model.Aliquot.freezer.label('freezer'),
+                model.Aliquot.rack.label('rack'),
+                model.Aliquot.box.label('box'),
                 model.Location.id.label('location'),
-                model.Specimen.notes.label('notes'),
-                model.Specimen.study_cycle_label.label('study_cycle_label')
+                model.Aliquot.notes.label('notes'),
+                model.SpecialInstruction.id.label('special_instuction')
                 )
-                .select_from(model.Specimen)
+                .select_from(model.Aliquot)
+                .join(model.Specimen, (model.Specimen.id == model.Aliquot.specimen_id))
                 .join(model.Patient, (model.Patient.id == model.Specimen.patient_id))
                 .join(model.Cycle, (model.Cycle.id == model.Specimen.cycle_id))
-                .join(model.Visit)
-                .join(model.SpecimenType, (model.SpecimenType.id == model.Specimen.specimen_type_id))
-                .join(model.SpecimenState, (model.SpecimenState.id == model.Specimen.state_id))
-                .join(model.Location, (model.Location.id == model.Specimen.location_id))
-                .filter(model.SpecimenState.name.in_(self.display_state))
-                .order_by( model.Visit.visit_date.desc(), model.Patient.our, model.SpecimenType.name)
+                .join(model.AliquotType, (model.AliquotType.id == model.Aliquot.aliquot_type_id))
+                .join(model.AliquotState, (model.AliquotState.id == model.Aliquot.state_id))
+                .join(model.Location, (model.Location.id == model.Aliquot.location_id))
+                .filter(model.AliquotState.name.in_(self.display_state))
+                .order_by( model.Specimen.collect_date.desc(), model.Patient.our, model.AliquotType.name)
             )
         return SqlDictBatch(query)
+        return [(1, {}),]
 
-class ClinicalLabViewForm(SpecimenCoreForm):
+class ResearchLabViewForm(AliquotCoreForm):
     """
     Primary view for a clinical lab object.
     """
 
-    @property
-    def editform_factory(self):
-        return SpecimenPendingButtons
+    # @property
+    # def editform_factory(self):
+    #     return SpecimenPendingButtons
 
     @property
     def display_state(self):
-        return (u"pending-draw",)
+        return (u"checked-in",)
 
-ClinicalLabView = layout.wrap_form(ClinicalLabViewForm)
-
-
-class ClinicalLabBatchedForm(SpecimenCoreForm):
-    """
-    Primary view for a clinical lab object.
-    """
-
-    @property
-    def editform_factory(self):
-        return SpecimenBatchedButtons
-
-    @property
-    def display_state(self):
-        return (u"batched",)
-
-ClinicalLabBatched = layout.wrap_form(ClinicalLabBatchedForm)
-
-
-class ClinicalLabPostponedForm(SpecimenCoreForm):
-    """
-    Primary view for a clinical lab object.
-    """
-    @property
-    def editform_factory(self):
-        return SpecimenPostponedButtons
-
-    @property
-    def display_state(self):
-        return (u"postponed",)
-
-ClinicalLabPostponed = layout.wrap_form(ClinicalLabPostponedForm)
-
-
-class ClinicalLabDoneForm(SpecimenCoreForm):
-    """
-    Primary view for a clinical lab object.
-    """
-    @property
-    def editform_factory(self):
-        return SpecimenPendingButtons
-
-    @property
-    def display_state(self):
-        return (u"complete","cancel-draw")
-
-ClinicalLabDone = layout.wrap_form(ClinicalLabDoneForm)
-
+ResearchLabView = layout.wrap_form(ResearchLabViewForm)

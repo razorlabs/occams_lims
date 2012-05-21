@@ -7,7 +7,7 @@ from occams.lab import MessageFactory as _, \
                       utilities as utils, \
                      SCOPED_SESSION_KEY
 from occams.lab.browser import buttons
-from occams.lab.interfaces import ISpecimen
+from occams.lab import interfaces
 #IAliquot
 #, \
 #                                         IAliquotGenerator, \
@@ -75,20 +75,20 @@ class SpecimenCoreForm(crud.CrudForm):
 
     @property
     def edit_schema(self):
-        fields = field.Fields(ISpecimen) #.\
+        fields = field.Fields(interfaces.IViewableSpecimen) #.\
             # select('tubes', 'date_collected', 'time_collected', 'notes')
         return fields
 
-    def link(self, item, field):
-        if field == 'patient_title':
-            visit = item.visit()
-            if visit is not None:
-                url = '%s/specimen' % visit.absolute_url()
-            else:
-                intids = zope.component.getUtility(IIntIds)
-                patient = intids.getObject(item.subject_zid)
-                url = '%s/specimen' % patient.absolute_url()
-            return url
+    # def link(self, item, field):
+    #     if field == 'patient_title':
+    #         visit = item.visit()
+    #         if visit is not None:
+    #             url = '%s/specimen' % visit.absolute_url()
+    #         else:
+    #             intids = zope.component.getUtility(IIntIds)
+    #             patient = intids.getObject(item.subject_zid)
+    #             url = '%s/specimen' % patient.absolute_url()
+    #         return url
 
     @property
     def editform_factory(self):
@@ -109,21 +109,21 @@ class SpecimenCoreForm(crud.CrudForm):
         kw = {'state':self.display_state}
         return kw
 
-    def getQuery(self):
-        kw = self.getkwargs()
-        return self.dsmanager.makefilter(**kw)
+    # def getQuery(self):
+    #     kw = self.getkwargs()
+    #     return self.dsmanager.makefilter(**kw)
 
-    def getCount(self):
-        kw = self.getkwargs()
-        return self.dsmanager.count_records(**kw)
+    # def getCount(self):
+    #     kw = self.getkwargs()
+    #     return self.dsmanager.count_records(**kw)
 
     def get_items(self):
-        specimenlist = []
-        kw = self.getkwargs()
-        for specimenobj in self.dsmanager.filter_records(**kw):
-            specimenlist.append((specimenobj.dsid, specimenobj))
-        return specimenlist
-
+        # specimenlist = []
+        # kw = self.getkwargs()
+        # for specimenobj in self.dsmanager.filter_records(**kw):
+        #     specimenlist.append((specimenobj.dsid, specimenobj))
+        # return specimenlist
+        return [(1, None)]
 # # ------------------------------------------------------------------------------
 # # ------------------------------------------------------------------------------
 # class AliquotCoreForm(crud.CrudForm):

@@ -57,85 +57,85 @@ class ButtonCore(crud.EditForm):
     """
     dsmanager = None
     sampletype = None
-    editsubform_factory = OrderedSubForm
+    # editsubform_factory = OrderedSubForm
 
     @property
     def prefix(self):
         return 'crud-edit.'
 
 
-    def __init__(self, context, request):
-        """
-        Provide a specimen manager for these buttons
-        """
-        super(crud.EditForm, self).__init__(context, request)
+    # def __init__(self, context, request):
+    #     """
+    #     Provide a specimen manager for these buttons
+    #     """
+    #     super(crud.EditForm, self).__init__(context, request)
 
-    @property
-    def currentUser(self):
-        return getSecurityManager().getUser().getId()
+    # @property
+    # def currentUser(self):
+    #     return getSecurityManager().getUser().getId()
 
-    def render_batch_navigation(self):
-        """
-        Render the batch navigation to include the default styles for Plone
-        """
-        navigation = BatchNavigation(self.batch, self.request)
+    # def render_batch_navigation(self):
+    #     """
+    #     Render the batch navigation to include the default styles for Plone
+    #     """
+    #     navigation = BatchNavigation(self.batch, self.request)
 
-        def make_link(page):
-            return "%s?%spage=%s" % (self.request.getURL(), self.prefix, page)
+    #     def make_link(page):
+    #         return "%s?%spage=%s" % (self.request.getURL(), self.prefix, page)
 
-        navigation.make_link = make_link
-        return navigation()
+    #     navigation.make_link = make_link
+    #     return navigation()
 
-    @property
-    def batch(self):
-        query = self.context.getQuery()
-        batch_size = self.context.batch_size or sys.maxint
-        page = self._page()
-        return SqlBatch(
-            query, start=page * batch_size, size=batch_size)
-    #batch = zope.cachedescriptors.property.CachedProperty(batch)
+    # @property
+    # def batch(self):
+    #     query = self.context.getQuery()
+    #     batch_size = self.context.batch_size or sys.maxint
+    #     page = self._page()
+    #     return SqlBatch(
+    #         query, start=page * batch_size, size=batch_size)
+    # #batch = zope.cachedescriptors.property.CachedProperty(batch)
 
-    def changeState(self, action, state, acttitle):
-        """
-        Using the passed state, change the selected items to that state
-        """
-        selected = self.selected_items()
-        if selected:
-            for id, obj in selected:
-                setattr(obj, 'state', unicode(state))
-                self.dsmanager.put(obj)
-            self.status = _(u"Your %s have been changed to the status of %s." % (self.sampletype, acttitle))
-        else:
-            self.status = _(u"Please select %s" % (self.sampletype))
+    # def changeState(self, action, state, acttitle):
+    #     """
+    #     Using the passed state, change the selected items to that state
+    #     """
+    #     selected = self.selected_items()
+    #     if selected:
+    #         for id, obj in selected:
+    #             setattr(obj, 'state', unicode(state))
+    #             self.dsmanager.put(obj)
+    #         self.status = _(u"Your %s have been changed to the status of %s." % (self.sampletype, acttitle))
+    #     else:
+    #         self.status = _(u"Please select %s" % (self.sampletype))
 
-    def saveChanges(self, action):
-        """
-        Apply changes to all items on the page
-        """
-        success = SUCCESS_MESSAGE
-        partly_success = _(u"Some of your changes could not be applied.")
-        status = no_changes = NO_CHANGES
-        for subform in self.subforms:
-            data, errors = subform.extractData()
-            if errors:
-                if status is no_changes:
-                    status = subform.formErrorsMessage
-                elif status is success:
-                    status = partly_success
-                continue
-            self.context.before_update(subform.content, data)
-            obj = subform.content
-            updated = False
-            for prop, value in data.items():
+    # def saveChanges(self, action):
+    #     """
+    #     Apply changes to all items on the page
+    #     """
+    #     success = SUCCESS_MESSAGE
+    #     partly_success = _(u"Some of your changes could not be applied.")
+    #     status = no_changes = NO_CHANGES
+    #     for subform in self.subforms:
+    #         data, errors = subform.extractData()
+    #         if errors:
+    #             if status is no_changes:
+    #                 status = subform.formErrorsMessage
+    #             elif status is success:
+    #                 status = partly_success
+    #             continue
+    #         self.context.before_update(subform.content, data)
+    #         obj = subform.content
+    #         updated = False
+    #         for prop, value in data.items():
 
-                if hasattr(obj, prop) and getattr(obj, prop) != value:
-                    setattr(obj, prop, value)
-                    updated = True
-                    if status is no_changes:
-                        status = success
-            if updated:
-                self.dsmanager.put(obj)
-        self.status = status
+    #             if hasattr(obj, prop) and getattr(obj, prop) != value:
+    #                 setattr(obj, prop, value)
+    #                 updated = True
+    #                 if status is no_changes:
+    #                     status = success
+    #         if updated:
+    #             self.dsmanager.put(obj)
+    #     self.status = status
 
 
 
@@ -156,24 +156,24 @@ class SpecimenButtonCore(ButtonCore):
         super(SpecimenButtonCore, self).__init__(context, request)
         self.sampletype = _(u"specimen")
 
-    def printLabels(self, action):
-        selected = self.selected_items()
-        label_list = []
-        labelsheet = None#ILabelPrinter(self.context.context)
-        for id, item in selected:
-            count = item.tubes
-            if count is None or count < 1:
-                count = 1
-            for i in range(count):
-                label_list.append(item)
-        content = labelsheet.printLabelSheet(label_list)
+    # def printLabels(self, action):
+    #     selected = self.selected_items()
+    #     label_list = []
+    #     labelsheet = None#ILabelPrinter(self.context.context)
+    #     for id, item in selected:
+    #         count = item.tubes
+    #         if count is None or count < 1:
+    #             count = 1
+    #         for i in range(count):
+    #             label_list.append(item)
+    #     content = labelsheet.printLabelSheet(label_list)
 
-        self.request.RESPONSE.setHeader("Content-type", "application/pdf")
-        self.request.RESPONSE.setHeader("Content-disposition",
-                                        "attachment;filename=labels.pdf")
-        self.request.RESPONSE.setHeader("Cache-Control", "no-cache")
-        self.request.RESPONSE.write(content)
-        self.status = _(u"Your print is on its way. Refresh the page to view only unprinted labels.")
+    #     self.request.RESPONSE.setHeader("Content-type", "application/pdf")
+    #     self.request.RESPONSE.setHeader("Content-disposition",
+    #                                     "attachment;filename=labels.pdf")
+    #     self.request.RESPONSE.setHeader("Cache-Control", "no-cache")
+    #     self.request.RESPONSE.write(content)
+    #     self.status = _(u"Your print is on its way. Refresh the page to view only unprinted labels.")
 
     @button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):

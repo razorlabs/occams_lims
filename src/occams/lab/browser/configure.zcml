@@ -1,0 +1,46 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="occams.lab">
+
+  <browser:defaultView
+     for="occams.lab.interfaces.IClinicalLab"
+     name="view"
+     />
+  <browser:page
+      for="occams.lab.interfaces.IClinicalLab"
+      name="view"
+      class=".clinicallab.ClinicalLabView"
+      permission="zope2.View"
+      />
+  <browser:page
+      for="occams.lab.interfaces.IClinicalLab"
+      name="batched"
+      class=".clinicallab.ClinicalLabBatched"
+      permission="zope2.View"
+      />
+  <browser:page
+      for="occams.lab.interfaces.IClinicalLab"
+      name="postponed"
+      class=".clinicallab.ClinicalLabPostponed"
+      permission="zope2.View"
+      />
+  <browser:page
+      for="occams.lab.interfaces.IClinicalLab"
+      name="complete"
+      class=".clinicallab.ClinicalLabDone"
+      permission="zope2.View"
+      />
+
+  <browser:defaultView
+     for="occams.lab.interfaces.IResearchLab"
+     name="view"
+     />
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="view"
+      class=".researchlab.ResearchLabView"
+      permission="zope2.View"
+      />
+</configure>
