@@ -1,7 +1,7 @@
 
-# from five import grok
-# from occams.lab import MessageFactory as _, \
-#                      SCOPED_SESSION_KEY
+from five import grok
+from occams.lab import MessageFactory as _, \
+                     SCOPED_SESSION_KEY
 # # from occams.lab.browser import crud
 # from occams.lab.browser import buttons
 # from occams.lab.interfaces import IClinicalLab
@@ -9,8 +9,9 @@
 
 # from z3c.form import button, field, form as z3cform
 # from beast.browser.crud import BatchNavigation
+from z3c.form.interfaces import DISPLAY_MODE
 
-# from z3c.saconfig import named_scoped_session
+from z3c.saconfig import named_scoped_session
 # from AccessControl import getSecurityManager
 # from occams.lab import interfaces
 # from occams.lab import model
@@ -23,11 +24,196 @@
 # from occams.form.traversal import closest
 # from sqlalchemy.orm import aliased
 # from zope.app.intid.interfaces import IIntIds
+from z3c.form import button, field, form as z3cform
+from beast.browser.crud import NestedFormView
+
+from sqlalchemy import or_
+from occams.lab import model
+from Products.Five.browser import BrowserView
+from datetime import date
+from datetime import timedelta
+from occams.lab import interfaces
+from occams.lab.browser.clinicallab import SpecimenCoreForm
+from occams.lab.browser.clinicallab import SpecimenCoreButtons
+
+class ReadySpecimenButtons(SpecimenCoreButtons):
+    label = _(u"")
+
+    @property
+    def prefix(self):
+        return 'specimen-ready.'
+        
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+
+    @button.buttonAndHandler(_('Ready selected'), name='ready')
+    def handleCompleteDraw(self, action):
+        pass
+        self.changeState(action, 'pending-aliquot', 'ready')        
+        return self.request.response.redirect(self.action)
+
+class ReadySpecimenForm(SpecimenCoreForm):
+
+    @property
+    def view_schema(self):
+        fields = field.Fields(interfaces.IViewableSpecimen, mode=DISPLAY_MODE).\
+            select('patient_our',
+             'cycle_title',
+             'specimen_type',
+             'tube_type')
+        fields += field.Fields(interfaces.ISpecimen).\
+            select('tubes',
+             'collect_date', 
+             'collect_time',
+             'notes')            
+        return fields
+
+    @property
+    def edit_schema(self):
+        return None
+
+    @property
+    def editform_factory(self):
+        return ReadySpecimenButtons
+
+    @property
+    def display_state(self):
+        return (u"complete", )
 
 
-# SUCCESS_MESSAGE = _(u"Successfully updated")
-# PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
-# NO_CHANGES = _(u"No changes made.")
+class ResearchLabView(BrowserView):
+    """
+    Primary view for a research lab object.
+    """
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+        self.crudform = self.getCrudForm()
+        super(ResearchLabView, self).__init__(context, request)
+
+
+    def getCrudForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = ReadySpecimenForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+    def getPreview(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        query = (
+            session.query(model.Specimen)
+                .join(model.Patient)
+                .join(model.Cycle)
+                .join(model.Visit)
+                .join(model.SpecimenType)
+                .join(model.SpecimenState)
+                .filter(model.SpecimenState.name.in_((u'pending-draw',)))
+                .order_by( model.Visit.visit_date.desc(), model.SpecimenType.name, model.Patient.our)
+            )
+        for entry in iter(query):
+            yield entry
+
+
+
+
+
+
+
+
+
+
+
+class SpecimenCoreForm(crud.CrudForm):
+    """
+    Base Crud form for editing specimen. Some specimen will need to be
+    """
+
+    def update(self):
+        self.update_schema = self.edit_schema
+        super(SpecimenCoreForm, self).update()
+        
+    @property
+    def currentUser(self):
+        return getSecurityManager().getUser().getId()
+
+    ignoreContext = True
+    addform_factory = crud.NullForm
+    batch_size = 20
+
+    @property
+    def edit_schema(self):
+        fields = field.Fields(interfaces.IViewableSpecimen).\
+                    select('patient_our',
+                             'patient_initials',
+                             'cycle_title',
+                             'visit_date', 
+                             'specimen_type',
+                             'tube_type',
+                             )
+        fields += field.Fields(interfaces.ISpecimen).\
+                    select('tubes', 
+                             'collect_date', 
+                             'collect_time',
+                             'notes'
+                             )
+        return fields
+
+    def link(self, item, field):
+        if field == 'patient_our':
+            intids = zope.component.getUtility(IIntIds)
+            patient = intids.getObject(item.patient.zid)
+            url = '%s/specimen' % patient.absolute_url()
+            return url
+        elif field == 'visit_date' and getattr(item.visit, 'zid', None):
+            intids = zope.component.getUtility(IIntIds)
+            visit = intids.getObject(item.visit.zid)
+            url = '%s/specimen' % visit.absolute_url()
+            return url
+
+
+    def updateWidgets(self):
+        if self.update_schema is not None:
+            if 'collect_time' in self.update_schema.keys():
+                self.update_schema['collect_time'].widgetFactory = widgets.TimeFieldWidget
+            if 'tubes' in self.update_schema.keys():
+                self.update_schema['tubes'].widgetFactory = widgets.StorageFieldWidget
+
+    def get_query(self):
+        #makes testing a LOT easier
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        query = (
+            session.query(model.Specimen)
+                .join(model.Patient)
+                .join(model.Cycle)
+                .join(model.Visit)
+                .join(model.SpecimenType)
+                .join(model.SpecimenState)
+                .filter(model.SpecimenState.name.in_(self.display_state))
+                .order_by( model.Visit.visit_date.desc(), model.Patient.our, model.SpecimenType.name)
+            )
+        return query
+
+    def get_items(self):
+        """
+        Use a special ``get_item`` method to return a query instead for batching
+        """
+        return SqlBatch(self.get_query())
+
+
+
 
 # class SpecimenCoreButtons(crud.EditForm):
 

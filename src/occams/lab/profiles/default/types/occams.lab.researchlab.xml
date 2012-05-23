@@ -37,10 +37,10 @@
   </property>
 
   <!-- Method aliases -->
-  <alias from="(Default)" to="@@research-view" />
+  <alias from="(Default)" to="@@view" />
   <alias from="edit" to="@@edit" />
   <alias from="sharing" to="@@sharing" />
-  <alias from="view" to="@@research-view" />
+  <alias from="view" to="@@view" />
   <alias from="ready" to="@@ready" />
 
   <alias from="prepared" to="@@prepared" />

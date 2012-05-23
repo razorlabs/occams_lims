@@ -82,15 +82,15 @@ class ViewableSpecimen(grok.Adapter):
     def patient_our(self):
         return self.context.patient.our
 
-    # @property
-    # def patient_initials(self):
-    #     return self.context.patient.initials
+    @property
+    def patient_initials(self):
+        return self.context.patient.initials
 
     @property
     def cycle_title(self):
         if self.context.study_cycle_label:
             return self.context.study_cycle_label
-        return "%s, wk %s" %(self.context.study.title, self.context.cycle.week)
+        return "%s - %s" %(self.context.cycle.study.short_title, self.context.cycle.week)
 
     @property
     def visit_date(self):

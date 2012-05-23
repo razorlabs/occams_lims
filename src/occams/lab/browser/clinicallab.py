@@ -18,10 +18,7 @@ import zope.schema
 from plone.z3cform.crud import crud
 from plone.z3cform import layout
 from beast.browser import widgets
-from occams.lab.browser.batch import SqlDictBatch
-from z3c.form.interfaces import IField
 from occams.form.traversal import closest
-from sqlalchemy.orm import aliased
 from zope.app.intid.interfaces import IIntIds
 from occams.datastore.batch import SqlBatch
 
@@ -30,7 +27,7 @@ PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
 NO_CHANGES = _(u"No changes made.")
 
 class SpecimenCoreButtons(crud.EditForm):
-
+    label = _(u"")
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone
@@ -98,7 +95,6 @@ class SpecimenCoreButtons(crud.EditForm):
         return self.request.response.redirect(self.action)
 
 class SpecimenPendingButtons(SpecimenCoreButtons):
-    label = _(u"")
     z3cform.extends(SpecimenCoreButtons)
 
     @property
@@ -197,13 +193,13 @@ class SpecimenCoreForm(crud.CrudForm):
 
     ignoreContext = True
     addform_factory = crud.NullForm
-    batch_size = 5
+    batch_size = 20
 
     @property
     def edit_schema(self):
         fields = field.Fields(interfaces.IViewableSpecimen).\
                     select('patient_our',
-                             # 'patient_initials',
+                             'patient_initials',
                              'cycle_title',
                              'visit_date', 
                              'specimen_type',
@@ -220,17 +216,13 @@ class SpecimenCoreForm(crud.CrudForm):
     def link(self, item, field):
         if field == 'patient_our':
             intids = zope.component.getUtility(IIntIds)
-            patient = intids.getObject(item['patient_zid'])
+            patient = intids.getObject(item.patient.zid)
             url = '%s/specimen' % patient.absolute_url()
             return url
-        elif field == 'visit_date' and item['visit_zid']:
+        elif field == 'visit_date' and getattr(item.visit, 'zid', None):
             intids = zope.component.getUtility(IIntIds)
-            visit = intids.getObject(item['visit_zid'])
+            visit = intids.getObject(item.visit.zid)
             url = '%s/specimen' % visit.absolute_url()
-            return url
-
-        elif field == 'specimen_type':
-            url = '%s/%s' % (self.context.absolute_url(), item['specimen_type_name'])
             return url
 
 
@@ -266,6 +258,8 @@ class ClinicalLabViewForm(SpecimenCoreForm):
     """
     Primary view for a clinical lab object.
     """
+    label = u"Specimen Pending Draw"
+    description = _(u"Specimen pending processing.")
 
     @property
     def editform_factory(self):

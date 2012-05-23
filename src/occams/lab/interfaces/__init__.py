@@ -137,11 +137,11 @@ class IViewableSpecimen(form.Schema):
         readonly=True
         )
 
-    # patient_initials = zope.schema.TextLine(
-    #     title=_(u"Patient Initials"),
-    #     description=_(u"The source patient initials"),
-    #     readonly=True
-    #     )
+    patient_initials = zope.schema.TextLine(
+        title=_(u"Patient Initials"),
+        description=_(u"The source patient initials"),
+        readonly=True
+        )
 
     cycle_title = zope.schema.TextLine(
         title=_(u"Study/Cycle"),

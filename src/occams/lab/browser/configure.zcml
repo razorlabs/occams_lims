@@ -4,16 +4,19 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="occams.lab">
 
-<!--   <browser:defaultView
-     for="occams.lab.interfaces.IClinicalLab"
-     name="view"
-     />
+
   <browser:page
       for="occams.lab.interfaces.IClinicalLab"
       name="view"
       class=".clinicallab.ClinicalLabView"
       permission="zope2.View"
       />
+
+   <browser:defaultView
+     for="occams.lab.interfaces.IClinicalLab"
+     name="view"
+     />
+
   <browser:page
       for="occams.lab.interfaces.IClinicalLab"
       name="batched"
@@ -33,14 +36,17 @@
       permission="zope2.View"
       />
 
-  <browser:defaultView
-     for="occams.lab.interfaces.IResearchLab"
-     name="view"
-     />
   <browser:page
       for="occams.lab.interfaces.IResearchLab"
       name="view"
       class=".researchlab.ResearchLabView"
+      template="aliquotlab_templates/researchlabview.pt"
       permission="zope2.View"
-      /> -->
+      />
+      
+  <browser:defaultView
+     for="occams.lab.interfaces.IResearchLab"
+     name="view"
+     />
+
 </configure>
