@@ -107,6 +107,8 @@ class SpecimenType(Model, AutoNamed, Referenceable, Describeable, Modifiable):
             primaryjoin=(location_id==Location.id)
             )
 
+    # aliquot_types backreffed in AliquotType
+    
     @declared_attr
     def __table_args__(cls):
         return (

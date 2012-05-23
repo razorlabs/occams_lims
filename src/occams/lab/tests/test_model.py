@@ -8,6 +8,7 @@ from sqlalchemy.exc import FlushError
 from occams.lab import model
 from datetime import date
 
+
 class SpecimenStateModelTestCase(unittest.TestCase):
     """
     Verifies entity model
@@ -25,6 +26,16 @@ class SpecimenStateModelTestCase(unittest.TestCase):
         session.flush()
         count = session.query(model.SpecimenState).count()
         self.assertEquals(1, count)
+
+    def testNameUnique(self):
+        session = self.layer['session']
+        s1 = model.SpecimenState(name="pending", title=u"Pending")
+        session.add(s1)
+        session.flush()
+        s2 =  model.SpecimenState(name="pending", title=u"Some State")
+        with self.assertRaises(IntegrityError):
+            session.add(s2)
+            session.flush()
 
 class AliquotStateModelTestCase(unittest.TestCase):
     """
@@ -44,6 +55,16 @@ class AliquotStateModelTestCase(unittest.TestCase):
         count = session.query(model.AliquotState).count()
         self.assertEquals(1, count)
 
+    def testNameUnique(self):
+        session = self.layer['session']
+        s1 = model.AliquotState(name="pending", title=u"Pending")
+        session.add(s1)
+        session.flush()
+        s2 =  model.AliquotState(name="pending", title=u"Some State")
+        with self.assertRaises(IntegrityError):
+            session.add(s2)
+            session.flush()
+
 class LocationModelTestCase(unittest.TestCase):
     """
     Verifies entity model
@@ -62,6 +83,16 @@ class LocationModelTestCase(unittest.TestCase):
         count = session.query(model.Location).count()
         self.assertEquals(1, count)
 
+    def testNameUnique(self):
+        session = self.layer['session']
+        s1 = model.Location(name="location", title=u"Location")
+        session.add(s1)
+        session.flush()
+        s2 =  model.Location(name="location", title=u"Some Other Location")
+        with self.assertRaises(IntegrityError):
+            session.add(s2)
+            session.flush()
+
 class SpecialInstructionTestCase(unittest.TestCase):
     """
     Verifies entity model
@@ -78,6 +109,16 @@ class SpecialInstructionTestCase(unittest.TestCase):
         session.flush()
         count = session.query(model.SpecialInstruction).count()
         self.assertEquals(1, count)
+
+    def testNameUnique(self):
+        session = self.layer['session']
+        s1 = model.SpecialInstruction(name="special", title=u"Special Instruction")
+        session.add(s1)
+        session.flush()
+        s2 =  model.SpecialInstruction(name="special", title=u"Not So Special Instruction")
+        with self.assertRaises(IntegrityError):
+            session.add(s2)
+            session.flush()
 
 class SpecimenTypeTestCase(unittest.TestCase):
     """
@@ -100,6 +141,36 @@ class SpecimenTypeTestCase(unittest.TestCase):
         session.flush()
         count = session.query(model.SpecimenType).count()
         self.assertEquals(1, count)
+
+    def testLocation(self):
+        self.fail()
+
+    def testLocationNullOnDelete(self):
+        self.fail()
+
+    def testNameUnique(self):
+        session = self.layer['session']
+        s1 = model.SpecimenType(
+            name="Specimen Type 1",
+             title=u"Some Specimen Type",
+             tube_type=u"A Tube that will hold it",
+             )
+        session.add(s1)
+        session.flush()
+        s2 = model.SpecimenType(
+            name="Specimen Type 1",
+             title=u"A different specimen type",
+             tube_type=u"A Tube that will hold it",
+             )
+        session.add(s2)
+        with self.assertRaises(IntegrityError):
+            session.add(s2)
+            session.flush()
+
+    def testAliquotTypes(self):
+        ## The Types are?? maybe dictionaryish? think on this
+        #also, if you're confused, its in the AliquotType definition
+        self.fail()
 
 
 class AliquotTypeTestCase(unittest.TestCase):
@@ -133,6 +204,7 @@ class AliquotTypeTestCase(unittest.TestCase):
         session.flush()
         count = session.query(model.AliquotType).count()
         self.assertEquals(1, count)
+
 
 
 class SpecimenTestCase(unittest.TestCase):
@@ -238,64 +310,5 @@ class AliquotTestCase(unittest.TestCase):
         session.flush()
         count = session.query(model.Aliquot).count()
         self.assertEquals(1, count)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

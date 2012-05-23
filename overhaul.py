@@ -37,13 +37,13 @@ def main():
     configureGlobalSession(sys.argv[1], sys.argv[2])
     addUser("bitcore@ucsd.edu")
     updateUsers()
-    # moveInSpecialInstruction()
-    # moveInLocation()
-    # moveInSpecimenState()
-    # moveInAliquotState()
-    # moveInSpecimenType()
-    # moveInAliquotType()
-    # moveInSpecimen()
+    moveInSpecialInstruction()
+    moveInLocation()
+    moveInSpecimenState()
+    moveInAliquotState()
+    moveInSpecimenType()
+    moveInAliquotType()
+    moveInSpecimen()
     moveInAliquot()
 
     # retire('aliquot', model.Aliquot)
@@ -81,7 +81,7 @@ def moveInVocabulary(name, modelKlass):
         )
 
     for term in iter(query):
-        if Session.query(modelKlass).filter(modelKlass.title==term.title).count()<=0:
+        if Session.query(modelKlass).filter(modelKlass.name==term.value).count()<=0:
             vocab_term = modelKlass(
                 id = term.id,
                 name= term.value,

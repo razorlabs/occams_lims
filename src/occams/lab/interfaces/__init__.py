@@ -8,7 +8,6 @@ from occams.datastore.interfaces import IDescribeable
 from occams.datastore.interfaces import IModifiable
 from plone.directives import form
 
-from avrc.aeh.interfaces import IClinicalModel
 from avrc.aeh.interfaces import IPatientModel
 from avrc.aeh.interfaces import ICycleModel
 from avrc.aeh.interfaces import IVisitModel
@@ -18,7 +17,7 @@ class IOccamsVocabulary(IDescribeable, IReferenceable, IModifiable):
     """
     """
 
-class ISpecimenType(IDescribeable, IReferenceable, IClinicalModel, IModifiable):
+class ISpecimenType(IDescribeable, IReferenceable, IModifiable):
     """
     """
     tube_type = zope.schema.TextLine(
@@ -39,7 +38,7 @@ class ISpecimenType(IDescribeable, IReferenceable, IClinicalModel, IModifiable):
         required=False
         )
 
-class IAliquotType(IDescribeable, IReferenceable, IClinicalModel, IModifiable):
+class IAliquotType(IDescribeable, IReferenceable, IModifiable):
     """
     """
     specimen_type = zope.schema.Object(
@@ -131,17 +130,6 @@ class ISpecimen(IReferenceable, IModifiable):
 class IViewableSpecimen(form.Schema):
     """
     """
-    id = zope.schema.Int(
-        title=_(u"Specimen Id"),
-        description=_(u""),
-        readonly= True
-        )
-
-    # patient_id = zope.schema.Int(
-    #     title=_(u"Patient Id"),
-    #     description=_(u"The source patient"),
-    #     readonly=True
-    #     )
 
     patient_our = zope.schema.TextLine(
         title=_(u"Patient OUR#"),
@@ -155,27 +143,27 @@ class IViewableSpecimen(form.Schema):
     #     readonly=True
     #     )
 
-    # cycle_id = zope.schema.Int(
-    #     title=_(u"Cycle Id"),
-    #     description=_(u"The cycle for which this specimen was collected"),
-    #     readonly=True
-    #     )
-
     cycle_title = zope.schema.TextLine(
         title=_(u"Study/Cycle"),
         description=_(u"The cycle for which this specimen was collected"),
         readonly=True
         )
 
-    # visit_id = zope.schema.Int(
-    #     title=_(u"Visit Id"),
-    #     description=_(u"The visit for which this specimen was collected"),
-    #     readonly=True,
-    #     )
+    visit_zid = zope.schema.Int(
+        title=_(u"Visit Id"),
+        description=_(u"The visit for which this specimen was collected"),
+        readonly=True,
+        )
 
     visit_date = zope.schema.Date(
         title=_(u"Visit Date"),
         description=_(u"The visit for which this specimen was collected"),
+        readonly=True,
+        )
+
+    specimen_type_name = zope.schema.TextLine(
+        title=_(u"Type name"),
+        description=_(u"The Type specimen name"),
         readonly=True,
         )
 
@@ -214,6 +202,7 @@ class IViewableSpecimen(form.Schema):
         description=_(u""),
         readonly=True
         )
+    
     tubes = zope.schema.TextLine(
         title=_(u"Tubes"),
         description=_(u"Number of Tubes drawn"),

@@ -4,7 +4,7 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="occams.lab">
 
-  <browser:defaultView
+<!--   <browser:defaultView
      for="occams.lab.interfaces.IClinicalLab"
      name="view"
      />
@@ -42,5 +42,5 @@
       name="view"
       class=".researchlab.ResearchLabView"
       permission="zope2.View"
-      />
+      /> -->
 </configure>

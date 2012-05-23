@@ -23,7 +23,7 @@ from z3c.form.interfaces import IField
 from occams.form.traversal import closest
 from sqlalchemy.orm import aliased
 from zope.app.intid.interfaces import IIntIds
-
+from occams.datastore.batch import SqlBatch
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -208,7 +208,9 @@ class SpecimenCoreForm(crud.CrudForm):
                              'visit_date', 
                              'specimen_type',
                              'tube_type',
-                             'tubes', 
+                             )
+        fields += field.Fields(interfaces.ISpecimen).\
+                    select('tubes', 
                              'collect_date', 
                              'collect_time',
                              'notes'
@@ -239,40 +241,26 @@ class SpecimenCoreForm(crud.CrudForm):
             if 'tubes' in self.update_schema.keys():
                 self.update_schema['tubes'].widgetFactory = widgets.StorageFieldWidget
 
+    def get_query(self):
+        #makes testing a LOT easier
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        query = (
+            session.query(model.Specimen)
+                .join(model.Patient)
+                .join(model.Cycle)
+                .join(model.Visit)
+                .join(model.SpecimenType)
+                .join(model.SpecimenState)
+                .filter(model.SpecimenState.name.in_(self.display_state))
+                .order_by( model.Visit.visit_date.desc(), model.Patient.our, model.SpecimenType.name)
+            )
+        return query
+
     def get_items(self):
         """
         Use a special ``get_item`` method to return a query instead for batching
         """
-        session = named_scoped_session(SCOPED_SESSION_KEY)
-        query = (
-            session.query(
-                model.Specimen.id.label('id'),
-                model.Patient.our.label('patient_our'),
-                model.Patient.zid.label('patient_zid'),
-                model.Cycle.title.label('cycle_title'),
-                model.Visit.visit_date.label('visit_date'),
-                model.Visit.zid.label('visit_zid'),
-                model.SpecimenType.id.label('specimen_type'),
-                model.SpecimenType.name.label('specimen_type_name'),
-                model.SpecimenType.tube_type.label('tube_type'),
-                model.Specimen.tubes.label('tubes'),
-                model.Specimen.collect_date.label('collect_date'),
-                model.Specimen.collect_time.label('collect_time'),
-                model.Location.id.label('location'),
-                model.Specimen.notes.label('notes'),
-                model.Specimen.study_cycle_label.label('study_cycle_label')
-                )
-                .select_from(model.Specimen)
-                .join(model.Patient, (model.Patient.id == model.Specimen.patient_id))
-                .join(model.Cycle, (model.Cycle.id == model.Specimen.cycle_id))
-                .join(model.Visit)
-                .join(model.SpecimenType, (model.SpecimenType.id == model.Specimen.specimen_type_id))
-                .join(model.SpecimenState, (model.SpecimenState.id == model.Specimen.state_id))
-                .join(model.Location, (model.Location.id == model.Specimen.location_id))
-                .filter(model.SpecimenState.name.in_(self.display_state))
-                .order_by( model.Visit.visit_date.desc(), model.Patient.our, model.SpecimenType.name)
-            )
-        return SqlDictBatch(query)
+        return SqlBatch(self.get_query())
 
 class ClinicalLabViewForm(SpecimenCoreForm):
     """
