@@ -26,8 +26,8 @@
  <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
      <element value="plone.app.dexterity.behaviors.metadata.IBasic"/>
-<!--      <element value="occams.lab.interfaces.labels.ILabelSheet"/>
- -->
+     <element value="occams.lab.interfaces.ILabelSheet"/>
+ 
  </property>
 
   <!-- View information -->
@@ -53,11 +53,6 @@
   <!-- Actions -->
   <action title="View" action_id="view" category="object" condition_expr=""
     url_expr="string:${object_url}/" visible="True">
-    <permission value="occams: Aliquot Specimen" />
-  </action>
-  
-  <action title="View" action_id="research-view" category="object" condition_expr=""
-    url_expr="string:${object_url}/@@research-view" visible="False">
     <permission value="occams: Aliquot Specimen" />
   </action>
   

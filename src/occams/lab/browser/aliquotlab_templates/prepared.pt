@@ -1,0 +1,62 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="hive.lab"
+      xml:lang="en"
+      lang="en">
+  <metal:content-core fill-slot="content-core">
+    <metal:content-core define-macro="content-core">
+<!--         <tal:data define="form view/filter">
+                <p>Use this form to view a subset of the aliquot that have been prepared. Use the "<b>Remove Filter</b>" button to make sure you are not accidentally filtering the list of aliquot when you are finished.</p>
+                <tal:crud replace="structure form" />
+        </tal:data> -->
+        <br class="visualClear" />  
+        <tal:data define="form view/getCrudForm">
+            <tal:hasdata tal:condition="form">
+                <p>All aliquot that are currently being processed. Be sure to Print labels before finalizing the check in process.</p>
+                <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
+                <br class="visualClear" />
+                <ul>
+                    <li><b>Save All Changes:</b> Saves all changes to aliquot.</li>
+                    <li><b>Print Selected:</b> Saves all aliquot changes and generates labels for selected aliquot.</li>
+                    <li><b><a href="./checkedin">Check In Aliquot</a>:</b>  Marks selected aliquot as processed and ready for storage. If you complete a aliquot by accident, you can  <a href="./checkedin">recover it</a>.</li>
+                    <li><b>Mark Aliquot Unused:</b> Marks selected aliquot entries as unused (likely because too many labels were created).If you mark an aliquot unused by accident, you can  <a href="./checkedin">recover it</a>.
+                    </li>
+                </ul>
+                </tal:hasdata>
+            <tal:nodata tal:condition="not:form">
+                <p>There are no aliquot currently prepared for processing.</p>
+                <br />
+                <b>Other Views</b>
+                <ul><li><a href="./">Specimen</a></li>
+                <li><a href="./ready">Aliquot Templates</a></li>
+                <li><a href="./checkedin">Completed today</a></li>
+                </ul>
+                <p>If you feel that this is in error, contact the <a href="" tal:attributes="href string:mailto:${context/email_from_address}">site administrator</a>.</p> 
+            </tal:nodata>
+        </tal:data>
+        <hr class="visualClear" />
+        <!--
+        <tal:data define="form view/labelqueue">
+            <tal:hasdata tal:condition="form">
+                <tal:crud replace="structure form" />
+                <a href="#" name="" style="display:none"></a>
+                <br class="visualClear" />
+                <ul>
+                    <li><b>Print Selected:</b> Prints selected aliquot labels to pdf, and clears the list.</li>
+                    <li><b>Refresh List:</b> Refreshes the list to the most current label queue.</li>
+                    <li><b>Clear Selected:</b>Clears selected labels from the label Queue.
+                    </li>
+                </ul>
+            </tal:hasdata>
+            <tal:nodata tal:condition="not:form">
+                <p>No labels currently in the queue.</p>
+            </tal:nodata>
+        </tal:data>
+    -->
+    </metal:content-core>
+  </metal:content-core>
+</html>

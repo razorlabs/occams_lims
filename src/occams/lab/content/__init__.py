@@ -96,58 +96,51 @@ class ViewableSpecimen(grok.Adapter):
     def visit_date(self):
         return self.context.visit.visit_date
 
-    @property
-    def specimen_type(self):
-        return self.context.specimen_type.id
 
     @property
     def specimen_type_name(self):
         return self.context.specimen_type.name
 
-    @property
-    def state(self):
-        return self.context.state.name
-
-    @property
-    def location(self):
-        return self.context.location.id
+    # @property
+    # def state(self):
+    #     return self.context.state.name
 
     @property
     def tube_type(self):
         return self.context.specimen_type.tube_type
 
+
+class IAliquotGenerator(grok.Adapter):
+    grok.context(interfaces.IAliquot)
+    grok.provides(interfaces.IAliquotGenerator)
+
+    @property
+    def count(self):
+        return None
+
+class ViewableAliquot(grok.Adapter):
+    grok.context(interfaces.IAliquot)
+    grok.provides(interfaces.IViewableAliquot)
+
+    @property
+    def patient_our(self):
+        return self.context.specimen.patient.our
+
+    @property
+    def patient_legacy_number(self):
+        return self.context.specimen.patient.legacy_number
+
+    @property
+    def cycle_title(self):
+        if self.context.specimen.study_cycle_label:
+            return self.context.specimen.study_cycle_label
+        return "%s - %s" %(self.context.specimen.cycle.study.short_title, self.context.specimen.cycle.week)
+
+
+    @property
+    def aliquot_type_name(self):
+        return self.context.aliquot_type.title
+
     # @property
     # def state(self):
-    #     return self.context.state
-        
-    # @property
-    # def patient_title(self):
-    #     return utils.get_patient_title(self.context.subject_zid)
-
-    # @property
-    # def patient_initials(self):
-    #     return utils.get_patient_initials(self.context.subject_zid)
-
-    # @property
-    # def patient_legacy_number(self):
-    #     return utils.get_patient_legacy_number(self.context.subject_zid)
-
-    # @property
-    # def study_title(self):
-    #     return utils.get_study_title(self.context.protocol_zid)
-
-    # @property
-    # def protocol_title(self):
-    #     return utils.get_protocol_title(self.context.protocol_zid)
-
-    # @property
-    # def study_week(self):
-    #     return "%s - %s" % (self.study_title, self.protocol_title)
-
-    # @property
-    # def pretty_type(self):
-    #     return self.context.type
-
-    # @property
-    # def pretty_tube_type(self):
-    #     return self.context.tube_type
+    #     return self.context.state.name

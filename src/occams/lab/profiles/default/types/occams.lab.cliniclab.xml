@@ -24,8 +24,8 @@
  <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
      <element value="plone.app.dexterity.behaviors.metadata.IBasic"/>
-<!--      <element value="occams.lab.interfaces.labels.ILabelSheet"/>
- -->
+     <element value="occams.lab.interfaces.ILabelSheet"/>
+ 
  </property>
 
   <!-- View information -->

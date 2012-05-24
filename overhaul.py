@@ -36,23 +36,39 @@ def main():
     usage = """overhaul.py OLDCONNECT NEWCONNECT"""
     configureGlobalSession(sys.argv[1], sys.argv[2])
     addUser("bitcore@ucsd.edu")
-    updateUsers()
-    moveInSpecialInstruction()
-    moveInLocation()
-    moveInSpecimenState()
-    moveInAliquotState()
-    moveInSpecimenType()
-    moveInAliquotType()
-    moveInSpecimen()
-    moveInAliquot()
+    # updateUsers()
+    # moveInSpecialInstruction()
+    # moveInLocation()
+    # moveInSpecimenState()
+    # moveInAliquotState()
+    # moveInSpecimenType()
+    # moveInAliquotType()
+    # moveInSpecimen()
+    # moveInAliquot()
+    resetId(model.SpecialInstruction, sys.argv[2])
+    resetId(model.Location, sys.argv[2])
+    resetId(model.SpecimenState, sys.argv[2])
+    resetId(model.AliquotState, sys.argv[2])
+    resetId(model.SpecimenType, sys.argv[2])
+    resetId(model.AliquotType, sys.argv[2])
+    resetId(model.Specimen, sys.argv[2])
+    resetId(model.Aliquot, sys.argv[2])
 
-    # retire('aliquot', model.Aliquot)
-    # retire('specimen', model.Specimen)
 
     Session.commit()
     # moveIn
 
     print "Yay!"
+
+def resetId(modelType, connectstring):
+    """
+    """
+    global Session
+    new_engine = create_engine(connectstring)
+    maximum = Session.query(modelType.id).order_by(modelType.id.desc()).first()
+    if maximum:
+        Session.execute("SELECT setval('%s_id_seq', %s);" % (modelType.__tablename__, maximum.id), bind=new_engine)
+
 
 def updateUsers():
     spec=old_model.entity("specimen")

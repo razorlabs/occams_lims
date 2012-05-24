@@ -1,40 +1,123 @@
 
-from five import grok
 from occams.lab import MessageFactory as _, \
                      SCOPED_SESSION_KEY
-# # from occams.lab.browser import crud
-# from occams.lab.browser import buttons
-# from occams.lab.interfaces import IClinicalLab
-# from plone.directives import dexterity
-
-# from z3c.form import button, field, form as z3cform
-# from beast.browser.crud import BatchNavigation
 from z3c.form.interfaces import DISPLAY_MODE
 
 from z3c.saconfig import named_scoped_session
-# from AccessControl import getSecurityManager
-# from occams.lab import interfaces
-# from occams.lab import model
-# import zope.schema
-# from plone.z3cform.crud import crud
-# from plone.z3cform import layout
-# from beast.browser import widgets
-# from occams.lab.browser.batch import SqlDictBatch
-# from z3c.form.interfaces import IField
-# from occams.form.traversal import closest
-# from sqlalchemy.orm import aliased
-# from zope.app.intid.interfaces import IIntIds
 from z3c.form import button, field, form as z3cform
 from beast.browser.crud import NestedFormView
 
-from sqlalchemy import or_
 from occams.lab import model
 from Products.Five.browser import BrowserView
 from datetime import date
-from datetime import timedelta
 from occams.lab import interfaces
 from occams.lab.browser.clinicallab import SpecimenCoreForm
 from occams.lab.browser.clinicallab import SpecimenCoreButtons
+from plone.z3cform.crud import crud
+from zope.app.intid.interfaces import IIntIds
+import zope.component
+from beast.browser import widgets
+
+from occams.lab.browser import base
+
+SUCCESS_MESSAGE = _(u"Successfully updated")
+PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
+NO_CHANGES = _(u"No changes made.")
+
+class AliquotButtonCore(base.CoreButtons):
+    label = _(u"")
+
+    @property
+    def _stateModel(self):
+        return model.AliquotState
+
+    @property 
+    def sampletype(self):
+        return u'specimen'
+        
+    @property 
+    def _model(self):
+        return model.Aliquot
+
+    sampletype=u"aliquot"
+
+    # def queueLabels(self, action):
+    #     """
+    #     Place these aliquot in the print queue
+    #     """
+    #     selected = self.selected_items()
+    #     if selected:
+    #         labelsheet = ILabelPrinter(self.context.context)
+    #         for id, obj in selected:
+    #             labelsheet.queueLabel(obj)
+    #         self.status = _(u"Your %s have been queued." % self.sampletype)
+    #     else:
+    #         self.status = _(u"Please select %s to queue." % self.sampletype)
+
+class AliquotCoreForm(base.CoreForm):
+    """
+    Base Crud form for editing specimen. Some specimen will need to be 
+    """ 
+    @property
+    def edit_schema(self):
+        fields = field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
+            select('patient_our',
+                     'patient_legacy_number',
+                     'cycle_title',
+                     )
+        fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
+            select('aliquot_type')
+        fields += field.Fields(interfaces.IAliquot).\
+            select('labbook',
+                     'volume',
+                     'cell_amount', 
+                     'store_date', 
+                     'freezer', 
+                     'rack', 
+                     'box',
+                     'special_instruction',
+                     'notes')
+        return fields
+
+    def link(self, item, field):
+        if field == 'patient_our':
+            intids = zope.component.getUtility(IIntIds)
+            patient = intids.getObject(item.specimen.patient.zid)
+            url = '%s/specimen' % patient.absolute_url()
+            return url
+        elif field == 'cycle_title' and getattr(item.specimen.visit, 'zid', None):
+            intids = zope.component.getUtility(IIntIds)
+            visit = intids.getObject(item.specimen.visit.zid)
+            url = '%s/aliquot' % visit.absolute_url()
+            return url
+
+    def updateWidgets(self):
+        super(AliquotCoreForm, self).updateWidgets()
+        if self.update_schema is not None:
+            if 'labbook' in self.update_schema.keys():
+                self.update_schema['labbook'].widgetFactory = widgets.AmountFieldWidget
+            if 'volume' in self.update_schema.keys():
+                self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
+            if 'cell_amount' in self.update_schema.keys():
+                self.update_schema['cell_amount'].widgetFactory = widgets.AmountFieldWidget
+            if 'freezer' in self.update_schema.keys():
+                self.update_schema['freezer'].widgetFactory = widgets.StorageFieldWidget
+            if 'rack' in self.update_schema.keys():
+                self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
+            if 'box' in self.update_schema.keys():
+                self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
+            if 'thawed_num' in self.update_schema.keys():
+                self.update_schema['thawed_num'].widgetFactory = widgets.StorageFieldWidget
+
+    def get_query(self):
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        aliquotQ = (
+            session.query(model.Aliquot)
+            .join(model.AliquotState)
+            .filter(model.AliquotState.name.in_(self.display_state))
+            .order_by(model.Aliquot.id.asc())
+            )
+        return aliquotQ
 
 class ReadySpecimenButtons(SpecimenCoreButtons):
     label = _(u"")
@@ -42,10 +125,6 @@ class ReadySpecimenButtons(SpecimenCoreButtons):
     @property
     def prefix(self):
         return 'specimen-ready.'
-        
-    @button.buttonAndHandler(_('Select All'), name='selectall')
-    def handleSelectAll(self, action):
-        pass
 
     @button.buttonAndHandler(_('Ready selected'), name='ready')
     def handleCompleteDraw(self, action):
@@ -57,13 +136,14 @@ class ReadySpecimenForm(SpecimenCoreForm):
 
     @property
     def view_schema(self):
-        fields = field.Fields(interfaces.IViewableSpecimen, mode=DISPLAY_MODE).\
+        fields = field.Fields(interfaces.IViewableSpecimen).\
             select('patient_our',
              'cycle_title',
-             'specimen_type',
              'tube_type')
         fields += field.Fields(interfaces.ISpecimen).\
-            select('tubes',
+            select(
+             'specimen_type',
+             'tubes',
              'collect_date', 
              'collect_time',
              'notes')            
@@ -80,7 +160,6 @@ class ReadySpecimenForm(SpecimenCoreForm):
     @property
     def display_state(self):
         return (u"complete", )
-
 
 class ResearchLabView(BrowserView):
     """
@@ -126,366 +205,245 @@ class ResearchLabView(BrowserView):
         for entry in iter(query):
             yield entry
 
+class AliquotCreator(crud.EditForm):
+    """
+    """
+    label = _(u"")
+    @property
+    def prefix(self):
+        return 'aliquot-creator.'
+        
+    def changeState(self, action, state, acttitle):
+        """
+        Change the state of a specimen based on the id pulled from a template 
+        """
+        selected = self.selected_items()
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        state = session.query(model.SpecimenState).filter_by(name='aliquoted').one()
+        if selected:
+            for id, aliquottemplate in selected:
+                aliquottemplate.specimen.state =state
+            session.flush()
+            self.status = _(u"Your specimen have been %s." % (acttitle))
+        else:
+            self.status = _(u"Please select aliquot templates." % (acttitle))
 
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+        
+    @button.buttonAndHandler(_('Create Aliquot'), name='aliquot')
+    def handleCreateAliquot(self, action):
+        """
+        """
+        selected = self.selected_items()
+        if not selected:
+            self.status = _(u"Please select items to Aliquot.")
+            return
+        success = _(u"Successfully Aliquoted")
+        partly_success = _(u"Some of your changes could not be applied.")
+        status = no_changes = _(u"No Aliquot Entered.")
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        for subform in self.subforms:
+            data, errors = subform.extractData()
+            if not data['select'] or not data['count']:
+                continue
+            if errors:
+                if status is no_changes:
+                    status = subform.formErrorsMessage
+                elif status is success:
+                    status = partly_success
+                continue
+            count = data.pop('count')
+            changes = subform.applyChanges(data)
+            kwargs = subform.content
+            kwargs['state'] = session.query(model.AliquotState).filter_by(name = 'pending').one()
+            kwargs['inventory_date'] = kwargs['store_date']
+            # clean up the dictionary
+            for field in ['patient_legacy_number', 'cycle_title', 'patient_our','select']:
+                del kwargs[field]
+            while count:
+                newAliquot = model.Aliquot(**kwargs)
+                session.add(newAliquot)
+                count = count -1
+            session.flush()
+            if status is no_changes:
+                status = success
+        return self.request.response.redirect(self.action)
 
+    @button.buttonAndHandler(_('Mark Specimen Complete'), name='complete')
+    def handleCompleteSpecimen(self, action):
+        self.changeState(action, 'aliquoted', 'completed')
+        
+        return self.request.response.redirect(self.action)
 
-
-
-
-
-
-
-
-class SpecimenCoreForm(crud.CrudForm):
+class AliquotReadyForm(AliquotCoreForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-
-    def update(self):
-        self.update_schema = self.edit_schema
-        super(SpecimenCoreForm, self).update()
-        
-    @property
-    def currentUser(self):
-        return getSecurityManager().getUser().getId()
-
-    ignoreContext = True
-    addform_factory = crud.NullForm
-    batch_size = 20
+    editform_factory = AliquotCreator
 
     @property
     def edit_schema(self):
-        fields = field.Fields(interfaces.IViewableSpecimen).\
-                    select('patient_our',
-                             'patient_initials',
-                             'cycle_title',
-                             'visit_date', 
-                             'specimen_type',
-                             'tube_type',
-                             )
-        fields += field.Fields(interfaces.ISpecimen).\
-                    select('tubes', 
-                             'collect_date', 
-                             'collect_time',
-                             'notes'
-                             )
+        fields = field.Fields(interfaces.IAliquotGenerator).\
+        select('count')
+        fields += field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
+            select('patient_our',
+                     'patient_legacy_number', 
+                     'cycle_title', 
+                     )
+        fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
+            select('aliquot_type')
+        fields += field.Fields(interfaces.IAliquot).\
+            select('labbook',
+                      'volume',
+                     'cell_amount', 
+                     'store_date', 
+                     'freezer', 
+                     'rack', 
+                     'box',
+                     'special_instruction',
+                     'notes')
         return fields
+
+    @property
+    def display_state(self):
+        return (u'pending-aliquot', )
+
+    def updateWidgets(self):
+        self.update_schema['count'].widgetFactory = widgets.StorageFieldWidget
+        super(AliquotReadyForm, self).updateWidgets()
 
     def link(self, item, field):
         if field == 'patient_our':
             intids = zope.component.getUtility(IIntIds)
-            patient = intids.getObject(item.patient.zid)
+            patient = intids.getObject(item['specimen'].patient.zid)
             url = '%s/specimen' % patient.absolute_url()
             return url
-        elif field == 'visit_date' and getattr(item.visit, 'zid', None):
+        elif field == 'cycle_title' and getattr(item['specimen'].visit, 'zid', None):
             intids = zope.component.getUtility(IIntIds)
-            visit = intids.getObject(item.visit.zid)
-            url = '%s/specimen' % visit.absolute_url()
+            visit = intids.getObject(item['specimen'].visit.zid)
+            url = '%s/aliquot' % visit.absolute_url()
             return url
 
-
-    def updateWidgets(self):
-        if self.update_schema is not None:
-            if 'collect_time' in self.update_schema.keys():
-                self.update_schema['collect_time'].widgetFactory = widgets.TimeFieldWidget
-            if 'tubes' in self.update_schema.keys():
-                self.update_schema['tubes'].widgetFactory = widgets.StorageFieldWidget
-
     def get_query(self):
-        #makes testing a LOT easier
         session = named_scoped_session(SCOPED_SESSION_KEY)
-        query = (
+        specimenQ = (
             session.query(model.Specimen)
-                .join(model.Patient)
-                .join(model.Cycle)
-                .join(model.Visit)
-                .join(model.SpecimenType)
-                .join(model.SpecimenState)
-                .filter(model.SpecimenState.name.in_(self.display_state))
-                .order_by( model.Visit.visit_date.desc(), model.Patient.our, model.SpecimenType.name)
+            .join(model.SpecimenState)
+            .filter(model.SpecimenState.name.in_(self.display_state))
             )
-        return query
+        return specimenQ
+
 
     def get_items(self):
         """
         Use a special ``get_item`` method to return a query instead for batching
         """
-        return SqlBatch(self.get_query())
+        if getattr(self, '_aliquotList', None):
+            return self._aliquotList
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        specimenQ = self.get_query()
+        self._aliquotList = []
+        i = 0
+        for specimen in iter(specimenQ):
+            types = session.query(model.AliquotType).filter(model.AliquotType.specimen_type == specimen.specimen_type)
+            viewableSpecimen = interfaces.IViewableSpecimen(specimen)
+            for aliquotType in types:
+                newAliquot = {
+                'patient_our':viewableSpecimen.patient_our,
+                'patient_legacy_number':specimen.patient.legacy_number, 
+                'cycle_title': viewableSpecimen.cycle_title,
+                'specimen':specimen,
+                'aliquot_type':aliquotType,
+                'store_date':date.today(),
+                'location': aliquotType.location
+                }
+                self._aliquotList.append((i, newAliquot))
+                i = i + 1
+        # session.rollback()
+        return self._aliquotList
 
+class AliquotReadyView(BrowserView):
+    """
+    Primary view for a research lab object.
+    """
+    def getCrudForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotReadyForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
 
+class AliquotPreparedButtons(AliquotButtonCore):
+    label = _(u"")
+    z3cform.extends(AliquotButtonCore)
 
-
-# class SpecimenCoreButtons(crud.EditForm):
-
-#     def render_batch_navigation(self):
-#         """
-#         Render the batch navigation to include the default styles for Plone
-#         """
-#         navigation = BatchNavigation(self.batch, self.request)
-#         def make_link(page):
-#             return "%s?%spage=%s" % (self.request.getURL(), self.prefix, page)
-#         navigation.make_link = make_link
-#         return navigation()
-
-
-#     def saveChanges(self, action):
-#         """
-#         Apply changes to all items on the page
-#         """
-#         success = SUCCESS_MESSAGE
-#         partly_success = _(u"Some of your changes could not be applied.")
-#         status = no_changes = NO_CHANGES
-#         session = named_scoped_session(SCOPED_SESSION_KEY)
-#         for subform in self.subforms:
-#             data, errors = subform.extractData()
-#             if errors:
-#                 if status is no_changes:
-#                     status = subform.formErrorsMessage
-#                 elif status is success:
-#                     status = partly_success
-#                 continue
-#             obj = session.query(model.Specimen).filter(model.Specimen.id==subform.content_id).one()
-#             updated = False
-#             for prop, value in data.items():
-#                 if hasattr(obj, prop) and getattr(obj, prop) != value:
-#                     setattr(obj, prop, value)
-#                     updated = True
-#                     if status is no_changes:
-#                         status = success
-#             if updated:
-#                 session.flush()
-#         self.status = status
-
-#     def changeState(self, action, state, acttitle):
-#         """
-#         Using the passed state, change the selected items to that state
-#         """
-#         selected = self.selected_items()
-#         session = named_scoped_session(SCOPED_SESSION_KEY)
-#         if selected:
-#             for id, data in selected:
-#                 obj = session.query(model.Specimen).filter(model.Specimen.id==id).one()
-#                 specimenstate = session.query(model.SpecimenState).filter(model.SpecimenState.name==state).one()
-#                 obj.state = specimenstate
-#                 session.flush()
-#             self.status = _(u"Your specimen have been changed to the status of %s." % ( acttitle))
-#         else:
-#             self.status = _(u"Please select %s" % (self.sampletype))
-
-#     @button.buttonAndHandler(_('Print Selected'), name='printed')
-#     def handlePrint(self, action):
-#         self.saveChanges(action)
-#         self.printLabels(action)
-#         return self.request.response.redirect(self.action)
-
-#     @button.buttonAndHandler(_('Save All Changes'), name='updated')
-#     def handleUpdate(self, action):
-#         self.saveChanges(action)
-#         return self.request.response.redirect(self.action)
-
-# class SpecimenPendingButtons(SpecimenCoreButtons):
-#     label = _(u"")
-#     z3cform.extends(SpecimenCoreButtons)
-
-#     @property
-#     def prefix(self):
-#         return 'specimen-pending.'
-
-#     @button.buttonAndHandler(_('Complete selected'), name='completed')
-#     def handleCompleteDraw(self, action):
-#         self.saveChanges(action)
-#         self.changeState(action, 'complete', 'completed')
-#         return self.request.response.redirect(self.action)
-
-#     @button.buttonAndHandler(_('Batch Selected'), name='batched')
-#     def handleBatchDraw(self, action):
-#         self.saveChanges(action)
-#         self.changeState(action, 'batched', 'batched')
-#         return self.request.response.redirect(self.action)
-
-#     @button.buttonAndHandler(_('Postpone Selected'), name='postponed')
-#     def handlePostponeDraw(self, action):
-#         self.saveChanges(action)
-#         self.changeState(action, 'postponed', 'postponed')
-
-#         return self.request.response.redirect(self.action)
-
-#     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='rejected')
-#     def handleCancelDraw(self, action):
-#         self.saveChanges(action)
-#         self.changeState(action, 'rejected', 'canceled')
-#         return self.request.response.redirect(self.action)
-
-# class SpecimenBatchedButtons(SpecimenCoreButtons):
-#     label = _(u"")
-#     z3cform.extends(SpecimenCoreButtons)
-
-#     @property
-#     def prefix(self):
-#         return 'specimen-pending.'
-
-#     @button.buttonAndHandler(_('Complete selected'), name='completed')
-#     def handleCompleteDraw(self, action):
-#         self.saveChanges(action)
-#         self.changeState(action, 'complete', 'completed')
-#         return self.request.response.redirect(self.action)
-
-#     @button.buttonAndHandler(_('Draw selected'), name='draw')
-#     def handleDraw(self, action):
-#         self.saveChanges(action)
-#         self.changeState(action, 'pending-draw', 'pending draw')
-#         return self.request.response.redirect(self.action)
-
-# class SpecimenPostponedButtons(SpecimenCoreButtons):
-#     label = _(u"")
-#     z3cform.extends(SpecimenCoreButtons)
-
-#     @property
-#     def prefix(self):
-#         return 'specimen-pending.'
-
-#     @button.buttonAndHandler(_('Complete selected'), name='completed')
-#     def handleCompleteDraw(self, action):
-#         self.saveChanges(action)
-#         self.changeState(action, 'complete', 'completed')
-#         return self.request.response.redirect(self.action)
-
-#     @button.buttonAndHandler(_('Batch Selected'), name='batched')
-#     def handleBatchDraw(self, action):
-#         self.saveChanges(action)
-#         self.changeState(action, 'batched', 'batched')
-#         return self.request.response.redirect(self.action)
-
-#     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='rejected')
-#     def handleCancelDraw(self, action):
-#         self.saveChanges(action)
-#         self.changeState(action, 'rejected', 'canceled')
-#         return self.request.response.redirect(self.action)
-
-#     @button.buttonAndHandler(_('Draw selected'), name='draw')
-#     def handleDraw(self, action):
-#         self.saveChanges(action)
-#         self.changeState(action, 'pending-draw', 'pending draw')
-#         return self.request.response.redirect(self.action)
-
-# class AliquotCoreForm(crud.CrudForm):
-#     """
-#     Base Crud form for editing specimen. Some specimen will need to be
-#     """
-
-#     def update(self):
-#         self.update_schema = self.edit_schema
-#         super(AliquotCoreForm, self).update()
+    @property
+    def prefix(self):
+        return 'aliquot-prepared.'
         
-#     @property
-#     def currentUser(self):
-#         return getSecurityManager().getUser().getId()
+    @button.buttonAndHandler(_('Save Changes'), name='save')
+    def handleSaveChanges(self, action):
+        self.saveChanges(action)
+        return self.request.response.redirect(self.action)
+        
+    @button.buttonAndHandler(_('Print Selected'), name='print')
+    def handlePrintAliquot(self, action):
+        self.saveChanges(action)
+        # self.queueLabels(action)
+        return self.request.response.redirect(self.action)
+        
+    @button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
+    def handleCheckinAliquot(self, action):
+        self.saveChanges(action)
+        self.changeState(action, 'checked-in', 'Checked In')
+        
+        return self.request.response.redirect(self.action)
 
-#     ignoreContext = True
-#     addform_factory = crud.NullForm
-#     batch_size = 5
+    @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
+    def handleUnusedAliquot(self, action):
+        selected = self.selected_items()
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        if selected:
+            for id, data in selected:
+                aliquot = session.query(model.Aliquot).filter_by(id=id).one()
+                session.delete(aliquot)
+        session.flush()
+        return self.request.response.redirect(self.action)
 
-#     @property
-#     def edit_schema(self):
-#         fields = field.Fields(interfaces.IViewableAliquot).\
-#                     select('patient_our',
-#                              # 'patient_initials',
-#                              'cycle_title',
-#                              # 'visit_date', 
-#                              'aliquot_type',
-#                              'volume',
-#                              'cell_amount', 
-#                              'store_date',
-#                              'labbook',
-#                              'freezer',
-#                              'rack',
-#                              'box',
-#                              'special_instruction',
-#                              'notes'
-#                              )
-#         return fields
+class AliquotPreparedForm(AliquotCoreForm):
+    """
+    Base Crud form for editing specimen. Some specimen will need to be
+    """
+    batch_size = 20
+    editform_factory = AliquotPreparedButtons
+    
+    @property
+    def display_state(self):
+        return (u'pending', )
 
-#     def link(self, item, field):
-#         if field == 'patient_our':
-#             intids = zope.component.getUtility(IIntIds)
-#             patient = intids.getObject(item['patient_zid'])
-#             url = '%s/aliquot' % patient.absolute_url()
-#             return url
-#         # elif field == 'visit_date' and item['visit_zid']:
-#         #     intids = zope.component.getUtility(IIntIds)
-#         #     visit = intids.getObject(item['visit_zid'])
-#         #     url = '%s/aliquot' % visit.absolute_url()
-#         #     return url
-
-#         elif field == 'aliquot_type':
-#             url = '%s/%s' % (self.context.absolute_url(), item['aliquot_type_name'])
-#             return url
-
-
-#     def updateWidgets(self):
-#         if self.update_schema is not None:
-#             if 'volume' in self.update_schema.keys():
-#                 self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
-#             if 'cell_amount' in self.update_schema.keys():
-#                 self.update_schema['cell_amount'].widgetFactory = widgets.AmountFieldWidget
-#             if 'labbook' in self.update_schema.keys():
-#                 self.update_schema['labbook'].widgetFactory = widgets.AmountFieldWidget                
-#             if 'freezer' in self.update_schema.keys():
-#                 self.update_schema['freezer'].widgetFactory = widgets.StorageFieldWidget
-#             if 'rack' in self.update_schema.keys():
-#                 self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
-#             if 'box' in self.update_schema.keys():
-#                 self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
-
-#     def get_items(self):
-#         """
-#         Use a special ``get_item`` method to return a query instead for batching
-#         """
-#         session = named_scoped_session(SCOPED_SESSION_KEY)
-#         query = (
-#             session.query(
-#                 model.Aliquot.id.label('id'),
-#                 model.Patient.our.label('patient_our'),
-#                 model.Patient.zid.label('patient_zid'),
-#                 model.Cycle.title.label('cycle_title'),
-#                 # model.Specimen.visit.visit_date.label('visit_date'),
-#                 # model.Specimen.visit.zid.label('visit_zid'),
-#                 model.AliquotType.id.label('aliquot_type'),
-#                 model.AliquotType.name.label('aliquot_type_name'),
-#                 model.Aliquot.labbook.label('labbook'),
-#                 model.Aliquot.volume.label('volume'),
-#                 model.Aliquot.cell_amount.label('cell_amount'),
-#                 model.Aliquot.freezer.label('freezer'),
-#                 model.Aliquot.rack.label('rack'),
-#                 model.Aliquot.box.label('box'),
-#                 model.Location.id.label('location'),
-#                 model.Aliquot.notes.label('notes'),
-#                 model.SpecialInstruction.id.label('special_instuction')
-#                 )
-#                 .select_from(model.Aliquot)
-#                 .join(model.Specimen, (model.Specimen.id == model.Aliquot.specimen_id))
-#                 .join(model.Patient, (model.Patient.id == model.Specimen.patient_id))
-#                 .join(model.Cycle, (model.Cycle.id == model.Specimen.cycle_id))
-#                 .join(model.AliquotType, (model.AliquotType.id == model.Aliquot.aliquot_type_id))
-#                 .join(model.AliquotState, (model.AliquotState.id == model.Aliquot.state_id))
-#                 .join(model.Location, (model.Location.id == model.Aliquot.location_id))
-#                 .filter(model.AliquotState.name.in_(self.display_state))
-#                 .order_by( model.Specimen.collect_date.desc(), model.Patient.our, model.AliquotType.name)
-#             )
-#         return SqlDictBatch(query)
-#         return [(1, {}),]
-
-# class ResearchLabViewForm(AliquotCoreForm):
-#     """
-#     Primary view for a clinical lab object.
-#     """
-
-#     # @property
-#     # def editform_factory(self):
-#     #     return SpecimenPendingButtons
-
-#     @property
-#     def display_state(self):
-#         return (u"checked-in",)
-
-# ResearchLabView = layout.wrap_form(ResearchLabViewForm)
+class AliquotPreparedView(BrowserView):
+    """
+    Primary view for a research lab object.
+    """
+    def getCrudForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotPreparedForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view

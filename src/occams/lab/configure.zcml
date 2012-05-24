@@ -47,6 +47,13 @@
 <!--   <adapter factory=".content.managers.SpecimenManager" />
   <adapter factory=".content.managers.AliquotManager" /> -->
 
+<plone:behavior
+      title="Label Sheet"
+      description="Make this lab produce labels"
+      provides="occams.lab.interfaces.ILabelSheet"
+      for="occams.lab.interfaces.ILab"
+      />
+
 <!--   <plone:behavior
       title="Available Specimen"
       description="Make Specimen Available for an object."
@@ -68,12 +75,7 @@
       for="avrc.aeh.interfaces.IVisit"
       />
  -->
-<!--   <plone:behavior
-      title="Label Sheet"
-      description="Make this lab produce labels"
-      provides="occams.lab.interfaces.labels.ILabelSheet"
-      for="occams.lab.interfaces.lab.ILab"
-      /> -->
+
 
 <!--   <plone:behavior
       title="Aliquot View"

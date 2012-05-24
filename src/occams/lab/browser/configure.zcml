@@ -4,11 +4,11 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="occams.lab">
 
-
   <browser:page
       for="occams.lab.interfaces.IClinicalLab"
       name="view"
       class=".clinicallab.ClinicalLabView"
+      template="clinicallab_templates/view.pt"
       permission="zope2.View"
       />
 
@@ -21,14 +21,17 @@
       for="occams.lab.interfaces.IClinicalLab"
       name="batched"
       class=".clinicallab.ClinicalLabBatched"
+      template="clinicallab_templates/batched.pt"
       permission="zope2.View"
       />
   <browser:page
       for="occams.lab.interfaces.IClinicalLab"
       name="postponed"
       class=".clinicallab.ClinicalLabPostponed"
+      template="clinicallab_templates/postponed.pt"
       permission="zope2.View"
       />
+
   <browser:page
       for="occams.lab.interfaces.IClinicalLab"
       name="complete"
@@ -40,13 +43,29 @@
       for="occams.lab.interfaces.IResearchLab"
       name="view"
       class=".researchlab.ResearchLabView"
-      template="aliquotlab_templates/researchlabview.pt"
+      template="aliquotlab_templates/view.pt"
       permission="zope2.View"
       />
-      
+
   <browser:defaultView
      for="occams.lab.interfaces.IResearchLab"
      name="view"
      />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="ready"
+      class=".researchlab.AliquotReadyView"
+      template="aliquotlab_templates/ready.pt"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="prepared"
+      class=".researchlab.AliquotPreparedView"
+      template="aliquotlab_templates/prepared.pt"
+      permission="zope2.View"
+      />
 
 </configure>

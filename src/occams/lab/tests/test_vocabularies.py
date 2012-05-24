@@ -36,7 +36,7 @@ class OccamsVocabularyTestCase(unittest.TestCase):
         vocabulary = vocabularyFactory(fakeContext)
         self.assertEquals(1, len(vocabulary))
         self.assertTrue('token' in [term.token for term in vocabulary])
-        self.assertTrue(1 in [term.value for term in vocabulary])
+        self.assertTrue(entry in [term.value for term in vocabulary])
         self.assertTrue(u'Title' in [term.title for term in vocabulary])
 
     def testSpecimenStateImplementation(self):
@@ -91,5 +91,5 @@ class OccamsVocabularyTestCase(unittest.TestCase):
         vocabulary = vocabularyFactory(fakeContext)
         self.assertEquals(1, len(vocabulary))
         self.assertTrue('token' in [term.token for term in vocabulary])
-        self.assertTrue(1 in [term.value for term in vocabulary])
+        self.assertTrue(entry in [term.value for term in vocabulary])
         self.assertTrue(u'Title' in [term.title for term in vocabulary])

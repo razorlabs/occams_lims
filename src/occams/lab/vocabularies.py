@@ -28,8 +28,8 @@ class OccamsVocabulary(object):
             terms.append(
                 SimpleTerm(
                     title=term.title,
-                    token=term.name,
-                    value=term.id)
+                    token=str(term.name),
+                    value=term)
                 )
         return terms
 
