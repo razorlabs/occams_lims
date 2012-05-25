@@ -39,8 +39,8 @@
             </tal:nodata>
         </tal:data>
         <hr class="visualClear" />
-        <!--
-        <tal:data define="form view/labelqueue">
+
+        <tal:data define="form view/getLabelForm">
             <tal:hasdata tal:condition="form">
                 <tal:crud replace="structure form" />
                 <a href="#" name="" style="display:none"></a>
@@ -56,7 +56,6 @@
                 <p>No labels currently in the queue.</p>
             </tal:nodata>
         </tal:data>
-    -->
     </metal:content-core>
   </metal:content-core>
 </html>

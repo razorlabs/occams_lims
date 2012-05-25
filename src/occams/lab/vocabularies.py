@@ -80,48 +80,13 @@ class AliquotTypeVocabulary(OccamsVocabulary):
 grok.global_utility(AliquotTypeVocabulary, name=u"occams.lab.aliquottypevocabulary")
 
 
-    # def __call__(self, context):
-    #     terms= (
-    #     ("Pending Draw","pending-draw"),
-    #     ("Draw Cancelled", "cancel-draw"),
-    #     ("Pending Aliquot", "pending-aliquot"),
-    #     ("Aliquoted", "aliquoted"),
-    #     ("Rejected", "rejected"),
-    #     ("Prepared for Aliquot", "prepared-aliquot"),
-    #     ("Complete", "complete"),
-    #     ("Batched", "batched"),
-    #     ("Draw Postponed", "postponed")
-    #     )
-    #     return SimpleVocabulary.fromItems(terms)
 
 
 
 
 
 
-# class AliquotStateVocabulary(object):
-#     grok.implements(IVocabularyFactory)
 
-#     def __call__(self, context):
-#         terms= (
-#             ("Pending Check In","pending"),
-#             ("Checked In","checked-in"),
-#             ("Checked Out","checked-out"),
-#             ("On Hold","hold"),
-#             ("Aliquot Not used","unused"),
-#             ("Prepared for Check In","prepared"),
-#             ("(-4) State Uncertain","uncertain--4"),
-#             ("(+) Sent To Richman Lab","richman-plus"),
-#             ("(*) Labels Generated","label-star"),
-#             ("(1) Deleted","deleted-1"),
-#             ("Inaccurate Data","incorrect"),
-#             ("Check Out","pending-checkout"),
-#             ("Hold in Queue","queued"),
-#             ("Missing","missing"),
-#             ("Destroyed","destroyed"),
-#         )
-#         return SimpleVocabulary.fromItems(terms)
-# grok.global_utility(AliquotStateVocabulary, name=u"occams.lab.aliquotstatevocabulary")
 
 
 class SpecimenVocabulary(object):

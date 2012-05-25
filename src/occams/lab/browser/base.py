@@ -130,3 +130,96 @@ class CoreForm(crud.CrudForm):
         Use a special ``get_item`` method to return a query instead for batching
         """
         return SqlBatch(self.get_query())
+
+
+
+class LabelButtons(crud.EditForm):
+    """
+    """
+
+    @property
+    def prefix(self):
+        return 'label.'
+        
+    def render_batch_navigation(self):
+        """
+        Render the batch navigation to include the default styles for Plone
+        """
+        navigation = BatchNavigation(self.batch, self.request)
+        def make_link(page):
+            return "%s?%spage=%s" % (self.request.getURL(), self.prefix, page)
+        navigation.make_link = make_link
+        return navigation()
+
+    @button.buttonAndHandler(_('Select All'), name='selectall')
+    def handleSelectAll(self, action):
+        pass
+
+    label = _(u"Label Printer")
+    @button.buttonAndHandler(_('Print Selected'), name='print_pdf')
+    def handlePDFPrint(self, action):
+        selected = self.selected_items()
+        if not selected:
+            self.status = _(u"Please select items to Print.")
+            return
+        queue = self.context.labeler.getLabelQueue()
+        label_list = []
+        for id, label in selected:
+            label_list.append(label)
+            queue.uncatalog_object(str(id))
+        content = self.context.labeler.printLabelSheet(label_list)
+
+        self.request.RESPONSE.setHeader("Content-type", "application/pdf")
+        self.request.RESPONSE.setHeader("Content-disposition",
+                                        "attachment;filename=labels.pdf")
+        self.request.RESPONSE.setHeader("Cache-Control", "no-cache")
+        self.request.RESPONSE.write(content)
+        self.status = _(u"You print is on its way. Refresh the page to view only unprinted labels.")
+        return
+
+    @button.buttonAndHandler(_('Refresh List'), name='refresh')
+    def handleRefresh(self, action):
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Clear Selected'), name='remove')
+    def handleRemove(self, action):
+        selected = self.selected_items()
+        if not selected:
+            self.status = _(u"Please select items to Clear.")
+            return
+        #self.context.labeler
+        for id, label in selected:
+            self.context.labeler.purgeLabel(id)
+        
+        return self.request.response.redirect(self.action)
+
+class LabelForm(crud.CrudForm):
+    """
+    """
+    def __init__(self, context, request):
+        super(LabelForm, self).__init__(context, request)
+        self.labeler = interfaces.ILabelPrinter(context)
+
+    editform_factory = LabelButtons
+    ignoreContext = True
+    addform_factory = crud.NullForm
+
+    @property
+    def batch_size(self):
+        return self.context.no_across * self.context.no_down
+
+    view_schema = field.Fields(interfaces.ILabel).\
+        select('id',
+         'patient_title',
+         'cycle_title',
+         'sample_date',
+         'sample_type')
+
+    def get_items(self):
+        
+        brainz = self.labeler.getLabelBrains()
+        labellist = []
+        for label in brainz:
+            labellist.append((label.getPath(), label))
+        return labellist
+

@@ -68,4 +68,36 @@
       permission="zope2.View"
       />
 
+  <browser:page
+      for="avrc.aeh.interfaces.IPatient"
+      name="specimen"
+      class=".specimen.SpecimenPatientView"
+      template="specimen_templates/specimen.pt"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="avrc.aeh.interfaces.IVisit"
+      name="specimen"
+      class=".specimen.SpecimenVisitView"
+      template="specimen_templates/specimen.pt"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="avrc.aeh.interfaces.IPatient"
+      name="aliquot"
+      class=".aliquot.AliquotPatientView"
+      template="aliquot_templates/aliquot.pt"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="avrc.aeh.interfaces.IVisit"
+      name="aliquot"
+      class=".aliquot.AliquotVisitView"
+      template="aliquot_templates/aliquot.pt"
+      permission="zope2.View"
+      />
+
 </configure>

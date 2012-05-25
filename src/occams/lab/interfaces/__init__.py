@@ -346,6 +346,21 @@ class IViewableAliquot(form.Schema):
         description=_(u"The cycle for which this specimen was collected"),
         readonly=True
         )
+    
+    vol_count = zope.schema.TextLine(
+        title=_(u'Volume / Cell Count'),
+        readonly=True,
+        )
+
+    frb = zope.schema.TextLine(
+        title=_(u'Freezer / Rack / Box'),
+        readonly=True,
+        )
+    thawed_num = zope.schema.Int(
+        title=_(u'Thawed'),
+        required=False
+        )
+
 
 class ILabelSheet(form.Schema):
     """
@@ -414,9 +429,71 @@ class ILabelSheet(form.Schema):
         title=_(u"Number Down"),
         required=True
         )
-    
 
 zope.interface.alsoProvides(ILabelSheet, form.IFormFieldProvider)
+
+class ILabel(zope.interface.Interface):
+    """
+    Class that supports transforming an object into a label.
+    """
+    id = zope.schema.TextLine(
+        title=u"Sample ID",
+        readonly=True
+        )
+
+    patient_title = zope.schema.TextLine(
+        title=u"Patient OUR#",
+        readonly=True
+        )
+
+    cycle_title = zope.schema.TextLine(
+        title=u"Study/Cycle",
+        readonly=True
+        )
+
+    sample_date = zope.schema.TextLine(
+        title=u"Date",
+        readonly=True
+        )
+        
+    sample_type = zope.schema.TextLine(
+        title=u"Sample Type",
+        readonly=True
+        )
+
+    barcodeline = zope.schema.Int(
+        title=u"Barcode Line",
+        readonly=True
+        )
+
+    label_lines = zope.schema.List(
+        title=u"Label Lines",
+        value_type=zope.schema.TextLine(),
+        readonly=True
+        )
+
+
+class ILabelPrinter(zope.interface.Interface):
+    """
+    parts needed for label printing to work
+    """
+    
+    def getLabelQueue():
+        """
+        """
+        pass
+    
+    def queueLabel(labelable):
+        """
+        Add a label to the cue
+        """
+        pass
+        
+    def printLabelSheet(label_list, startcol=None, startrow=None):
+        """
+        Create the label page, and output
+        """
+        pass
 
 
 class IContainsSpecimen(zope.interface.Interface):

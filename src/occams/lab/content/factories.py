@@ -70,7 +70,7 @@
 #                                      self.page_height * inch),
 #                         )
 #         newcanvas.setTitle(filetitle)
-#         newcanvas.setAuthor('UCSD BEAST')
+#         newcanvas.setAuthor('UCSD Bit Core')
 #         newcanvas.setSubject('Sample and Aliquot labels')
 #         newcanvas.setLineCap(1) # round
 #         newcanvas.setLineJoin(0) # mitre

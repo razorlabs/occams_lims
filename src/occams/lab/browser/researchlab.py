@@ -11,113 +11,19 @@ from occams.lab import model
 from Products.Five.browser import BrowserView
 from datetime import date
 from occams.lab import interfaces
-from occams.lab.browser.clinicallab import SpecimenCoreForm
-from occams.lab.browser.clinicallab import SpecimenCoreButtons
 from plone.z3cform.crud import crud
 from zope.app.intid.interfaces import IIntIds
 import zope.component
 from beast.browser import widgets
-
-from occams.lab.browser import base
+from occams.lab.browser.specimen import SpecimenCoreButtons
+from occams.lab.browser.specimen import SpecimenCoreForm
+from occams.lab.browser.aliquot import AliquotButtonCore
+from occams.lab.browser.aliquot import AliquotCoreForm
+from occams.lab.browser.base import LabelForm
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
 NO_CHANGES = _(u"No changes made.")
-
-class AliquotButtonCore(base.CoreButtons):
-    label = _(u"")
-
-    @property
-    def _stateModel(self):
-        return model.AliquotState
-
-    @property 
-    def sampletype(self):
-        return u'specimen'
-        
-    @property 
-    def _model(self):
-        return model.Aliquot
-
-    sampletype=u"aliquot"
-
-    # def queueLabels(self, action):
-    #     """
-    #     Place these aliquot in the print queue
-    #     """
-    #     selected = self.selected_items()
-    #     if selected:
-    #         labelsheet = ILabelPrinter(self.context.context)
-    #         for id, obj in selected:
-    #             labelsheet.queueLabel(obj)
-    #         self.status = _(u"Your %s have been queued." % self.sampletype)
-    #     else:
-    #         self.status = _(u"Please select %s to queue." % self.sampletype)
-
-class AliquotCoreForm(base.CoreForm):
-    """
-    Base Crud form for editing specimen. Some specimen will need to be 
-    """ 
-    @property
-    def edit_schema(self):
-        fields = field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
-            select('patient_our',
-                     'patient_legacy_number',
-                     'cycle_title',
-                     )
-        fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
-            select('aliquot_type')
-        fields += field.Fields(interfaces.IAliquot).\
-            select('labbook',
-                     'volume',
-                     'cell_amount', 
-                     'store_date', 
-                     'freezer', 
-                     'rack', 
-                     'box',
-                     'special_instruction',
-                     'notes')
-        return fields
-
-    def link(self, item, field):
-        if field == 'patient_our':
-            intids = zope.component.getUtility(IIntIds)
-            patient = intids.getObject(item.specimen.patient.zid)
-            url = '%s/specimen' % patient.absolute_url()
-            return url
-        elif field == 'cycle_title' and getattr(item.specimen.visit, 'zid', None):
-            intids = zope.component.getUtility(IIntIds)
-            visit = intids.getObject(item.specimen.visit.zid)
-            url = '%s/aliquot' % visit.absolute_url()
-            return url
-
-    def updateWidgets(self):
-        super(AliquotCoreForm, self).updateWidgets()
-        if self.update_schema is not None:
-            if 'labbook' in self.update_schema.keys():
-                self.update_schema['labbook'].widgetFactory = widgets.AmountFieldWidget
-            if 'volume' in self.update_schema.keys():
-                self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
-            if 'cell_amount' in self.update_schema.keys():
-                self.update_schema['cell_amount'].widgetFactory = widgets.AmountFieldWidget
-            if 'freezer' in self.update_schema.keys():
-                self.update_schema['freezer'].widgetFactory = widgets.StorageFieldWidget
-            if 'rack' in self.update_schema.keys():
-                self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
-            if 'box' in self.update_schema.keys():
-                self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
-            if 'thawed_num' in self.update_schema.keys():
-                self.update_schema['thawed_num'].widgetFactory = widgets.StorageFieldWidget
-
-    def get_query(self):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
-        aliquotQ = (
-            session.query(model.Aliquot)
-            .join(model.AliquotState)
-            .filter(model.AliquotState.name.in_(self.display_state))
-            .order_by(model.Aliquot.id.asc())
-            )
-        return aliquotQ
 
 class ReadySpecimenButtons(SpecimenCoreButtons):
     label = _(u"")
@@ -389,18 +295,18 @@ class AliquotPreparedButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-prepared.'
-        
+
+    @button.buttonAndHandler(_('Print Selected'), name='print')
+    def handlePrintAliquot(self, action):
+        self.saveChanges(action)
+        self.queueLabels(action)
+        return self.request.response.redirect(self.action)
+
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
         return self.request.response.redirect(self.action)
-        
-    @button.buttonAndHandler(_('Print Selected'), name='print')
-    def handlePrintAliquot(self, action):
-        self.saveChanges(action)
-        # self.queueLabels(action)
-        return self.request.response.redirect(self.action)
-        
+
     @button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
@@ -441,6 +347,20 @@ class AliquotPreparedView(BrowserView):
         """
         context = self.context.aq_inner
         form = AliquotPreparedForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+    def getLabelForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = LabelForm(context, self.request)
         if hasattr(form, 'getCount') and form.getCount() < 1:
             return None
         view = NestedFormView(context, self.request)

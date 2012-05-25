@@ -1,20 +1,11 @@
-# from occams.lab.content.adapters import *
-from occams.lab.content.factories import *
-from occams.lab.content.subscribers import *
-
 """
 Data entry functionality
 """
 from five import grok
 from zope.interface import implements
-import zope.component
 from occams.form import traversal
 from zope.interface.common.mapping import IFullMapping
 from sqlalchemy.orm import object_session
-from occams.form.traversal import closest
-from sqlalchemy.orm.exc import NoResultFound
-from plone.memoize import ram
-import zope.interface
 
 from occams.lab import interfaces
 
@@ -110,7 +101,7 @@ class ViewableSpecimen(grok.Adapter):
         return self.context.specimen_type.tube_type
 
 
-class IAliquotGenerator(grok.Adapter):
+class AliquotGenerator(grok.Adapter):
     grok.context(interfaces.IAliquot)
     grok.provides(interfaces.IAliquotGenerator)
 
@@ -136,11 +127,37 @@ class ViewableAliquot(grok.Adapter):
             return self.context.specimen.study_cycle_label
         return "%s - %s" %(self.context.specimen.cycle.study.short_title, self.context.specimen.cycle.week)
 
-
     @property
     def aliquot_type_name(self):
         return self.context.aliquot_type.title
 
-    # @property
-    # def state(self):
-    #     return self.context.state.name
+    ##  For the checkout display
+    @property
+    def vol_count(self):
+        if self.context.volume is not None and self.context.volume > 0:
+            ret = self.context.volume
+        elif self.context.cell_amount is not None and self.context.cell_amount > 0:
+            ret = self.context.cell_amount
+        else:
+            ret = u'--'
+        return ret
+
+    @property
+    def frb(self):
+        f = '?'
+        r = '?'
+        b = '?'
+        if self.context.freezer is not None:
+            f = self.context.freezer
+        if self.context.rack is not None:
+            r = self.context.rack
+        if self.context.box is not None:
+            b = self.context.box
+        return "%s/%s/%s" % (f, r, b)
+
+    @property
+    def thawed_num(self):
+        if self.context.thawed_num is None or self.context.thawed_num < 0:
+            return 0
+        else:
+            return self.context.thawed_num
