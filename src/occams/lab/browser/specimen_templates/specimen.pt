@@ -8,13 +8,12 @@
       lang="en">
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
-      <!--
-        <tal:data define="form view/filter">
+        <tal:data define="form view/getFilterForm">
                 <p>Use this form to view a subset of specimen. Use the "<b>Remove Filter</b>" button remove all filter options.</p>                <tal:crud replace="structure form" />
                 <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
         </tal:data>
-      -->
+
         <br class="visualClear" />
         <tal:data define="form view/getCrudForm">
             <tal:hasdata tal:condition="form">
@@ -27,10 +26,10 @@
                 <p>No Specimen meet the current criteria. This could be because of a filter currently in place, or because no specimen are available in the current context (for a visit, patient, etc).</p>
             </tal:nodata>
         </tal:data>
-        <!--
-        <tal:canrequest tal:condition="view/canRequestSpecimen">
+
+        <tal:canrequest tal:condition="exists:view/requestSpecimen">
         <hr class="visualClear" />
-            <tal:data define="form view/requestmore">
+            <tal:data define="form view/requestSpecimen">
                 <tal:hasdata tal:condition="form">
                     <p>Request More Specimen</p>
                     <tal:crud replace="structure form" />
@@ -39,7 +38,7 @@
             </tal:data>
 
         </tal:canrequest>
-      -->
+
     </metal:content-core>
   </metal:content-core>
 </html>

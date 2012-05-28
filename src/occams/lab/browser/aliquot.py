@@ -21,16 +21,22 @@ SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
 NO_CHANGES = _(u"No changes made.")
 
+class AliquotFilterForm(base.FilterFormCore):
+    """
+    """
+    @property
+    def fields(self):
+        if hasattr(self.context, 'omit_filter'):
+            omitables = self.context.omit_filter
+            return field.Fields(interfaces.IAliquotFilterForm).omit(*omitables)
+        return field.Fields(interfaces.IAliquotFilterForm)
+
 class AliquotButtonCore(base.CoreButtons):
     label = _(u"")
 
     @property
     def _stateModel(self):
         return model.AliquotState
-
-    @property 
-    def sampletype(self):
-        return u'specimen'
         
     @property 
     def _model(self):
@@ -108,15 +114,16 @@ class AliquotCoreForm(base.CoreForm):
 
     def get_query(self):
         session = named_scoped_session(SCOPED_SESSION_KEY)
-        aliquotQ = (
+        query = (
             session.query(model.Aliquot)
-            .join(model.AliquotState)
+            .join(model.Aliquot.state)
+            .join(model.Aliquot.aliquot_type)
+            .join(model.Aliquot.specimen)
             .order_by(model.Aliquot.id.asc())
             )
         if self.display_state:
-            aliquotQ = aliquotQ.filter(model.AliquotState.name.in_(self.display_state))
-
-        return aliquotQ
+            query = query.filter(model.AliquotState.name.in_(self.display_state))
+        return query
 
 
 class AliquotForm(AliquotCoreForm):
@@ -129,7 +136,6 @@ class AliquotForm(AliquotCoreForm):
     def update(self):
         self.view_schema = field.Fields(interfaces.IAliquot).select('state') + self.edit_schema
         super(base.CoreForm, self).update()
-        # self.update_schema = None
 
     @property
     def edit_schema(self):
@@ -141,26 +147,23 @@ class AliquotForm(AliquotCoreForm):
         fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
             select('aliquot_type')
 
-
         fields += field.Fields(interfaces.IAliquot).\
             select('labbook',
                      'store_date',
                      'inventory_date',
                      'location',
-                     'special_instruction',
                      )
-
         fields += field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
             select('vol_count', 
                      'frb',
                      'thawed_num',
                      )
+
         fields += field.Fields(interfaces.IAliquot).\
-            select('notes',
+            select( 'special_instruction',
+                      'notes',
                      )
         return fields
-
-
 
     @property
     def editform_factory(self):
@@ -180,7 +183,7 @@ class AliquotPatientForm(AliquotForm):
     def get_query(self):
         query = super(AliquotPatientForm, self).get_query()
         patient = IClinicalMarker(self.context).modelObj()
-        query = query.filter(model.Aliquot.specimen.patient == patient)
+        query = query.filter(model.Specimen.patient == patient)
         return query
 
 
@@ -188,6 +191,15 @@ class AliquotPatientView(BrowserView):
     """
     Primary view for a research lab object.
     """
+    def getFilterForm(self):
+        context = self.context.aq_inner
+        context.omit_filter=['patient',]
+        form = AliquotFilterForm(context, self.request)
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
     def getCrudForm(self):
         """
         Create a form instance.
@@ -212,13 +224,25 @@ class AliquotVisitForm(AliquotForm):
     def get_query(self):
         query = super(AliquotVisitForm, self).get_query()
         visit = IClinicalMarker(self.context).modelObj()
-        query = query.join(model.Aliquot.specimen).filter(model.Specimen.visit == visit).filter(model.Specimen.collect_date == visit.visit_date)
+        query = query.filter(model.Specimen.patient == visit.patient)
+        query = query.join(model.Specimen.cycle).filter(model.Cycle.id.in_([cycle.id for cycle in visit.cycles]))
+        # query = query.filter(model.Specimen.visit == visit).filter(model.Specimen.collect_date == visit.visit_date)
         return query
 
 class AliquotVisitView(BrowserView):
     """
     Primary view for a research lab object.
     """
+
+    def getFilterForm(self):
+        context = self.context.aq_inner
+        context.omit_filter=['patient', 'before_date', 'after_date']
+        form = AliquotFilterForm(context, self.request)
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
     def getCrudForm(self):
         """
         Create a form instance.

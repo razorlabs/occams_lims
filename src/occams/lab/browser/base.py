@@ -3,19 +3,18 @@ from occams.lab import MessageFactory as _, \
                      SCOPED_SESSION_KEY
 # from occams.lab.browser import crud
 
-from z3c.form import button, field, form as z3cform
+from z3c.form import button, field
 from beast.browser.crud import BatchNavigation
 
 from z3c.saconfig import named_scoped_session
-from AccessControl import getSecurityManager
+
 from occams.lab import interfaces
-from occams.lab import model
-import zope.schema
 from plone.z3cform.crud import crud
-from plone.z3cform import layout
-from beast.browser import widgets
-from zope.app.intid.interfaces import IIntIds
 from occams.datastore.batch import SqlBatch
+
+import datetime
+from z3c.form import form
+from collective.beaker.interfaces import ISession
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -23,6 +22,7 @@ NO_CHANGES = _(u"No changes made.")
 
 class CoreButtons(crud.EditForm):
     label = _(u"")
+
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone
@@ -97,10 +97,6 @@ class CoreForm(crud.CrudForm):
     def update(self):
         self.update_schema = self.edit_schema
         super(CoreForm, self).update()
-        
-    # @property
-    # def currentUser(self):
-    #     return getSecurityManager().getUser().getId()
 
     ignoreContext = True
     addform_factory = crud.NullForm
@@ -129,8 +125,9 @@ class CoreForm(crud.CrudForm):
         """
         Use a special ``get_item`` method to return a query instead for batching
         """
-        return SqlBatch(self.get_query())
-
+        if getattr(self, '_sqlBatch', None) is None:
+            self._sqlBatch = SqlBatch(self.get_query())
+        return self._sqlBatch
 
 
 class LabelButtons(crud.EditForm):
@@ -223,3 +220,55 @@ class LabelForm(crud.CrudForm):
             labellist.append((label.getPath(), label))
         return labellist
 
+
+class FilterFormCore(form.Form):
+    """
+    Take form data and apply it to the session so that filtering takes place.
+    """
+    ignoreContext = True
+
+    def update(self):
+        super(FilterFormCore, self).update()
+        session = ISession(self.request)
+        for key, value in session.items():
+            if value is None or key not in self.fields.keys():
+                continue
+            elif type(value) == datetime.date:
+                self.widgets[key].value = (unicode(value.year), unicode(value.month), unicode(value.day))
+ ## totally broken?!?!?
+            elif hasattr(self.widgets[key], 'terms'):
+                try: # to process this vocabulary object
+                    self.widgets[key].value = [value]
+                except:
+                    self.widgets[key].value = value
+            else:
+                self.widgets[key].value = value
+
+    @property
+    def fields(self):
+        if hasattr(self.context, 'omit_filter'):
+            omitables = self.context.omit_filter
+            return field.Fields(interfaces.IFilterForm).omit(*omitables)
+        return field.Fields(interfaces.IFilterForm).omit('state')
+
+    @button.buttonAndHandler(u'Filter')
+    def handleFilter(self, action):
+        session = ISession(self.request)
+        data, errors = self.extractData()
+        if errors:
+            self.status = _(u"Sorry.")
+            return
+        for key, value in data.items():
+            if value is not None:
+                session[key] = value
+            elif session.has_key(key):
+                del session[key]
+        session.save()
+
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(u'Remove Filter')
+    def handleClearFilter(self, action):
+        session = ISession(self.request)
+        session.clear()
+        return self.request.response.redirect(self.action)

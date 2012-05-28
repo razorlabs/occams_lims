@@ -18,6 +18,7 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import ForeignKeyConstraint
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.schema import Index
+from sqlalchemy.schema import Table
 
 import zope.interface
 from occams.lab import interfaces
@@ -33,9 +34,37 @@ from occams.datastore.model.auditing import Auditable
 from avrc.aeh.model import *
 
 
-__all__ = ('SpecimenAliquotTerm', 'Specimen', 'Aliquot', 'AliquotHistory',)
-
 NOW = text('CURRENT_TIMESTAMP')
+
+specimentype_study_table = Table('specimentype_study', Model.metadata,
+    Column(
+        'study_id',
+        Integer,
+        ForeignKey('study.id', name='fk_specimentype_study_study_id', ondelete='CASCADE',),
+        primary_key=True
+        ),
+    Column(
+        'specimentype_id',
+         Integer,
+         ForeignKey('specimentype.id', name='fk_specimentype_study_specimentype_id', ondelete='CASCADE',),
+         primary_key=True
+         ),
+    )
+
+specimentype_cycle_table = Table('specimentype_cycle', Model.metadata,
+    Column(
+        'cycle_id',
+        Integer,
+        ForeignKey('cycle.id', name='fk_specimentype_cycle_cycle_id', ondelete='CASCADE',),
+        primary_key=True
+        ),
+    Column(
+        'specimentype_id',
+         Integer,
+         ForeignKey('specimentype.id', name='fk_specimentype_cycle_specimentype_id', ondelete='CASCADE',),
+         primary_key=True
+         ),
+    )
 
 
 class SpecimenState(Model, AutoNamed, Describeable, Referenceable, Modifiable):
@@ -106,6 +135,25 @@ class SpecimenType(Model, AutoNamed, Referenceable, Describeable, Modifiable):
             Location,
             primaryjoin=(location_id==Location.id)
             )
+
+    studies = Relationship(
+        Study,
+        secondary=specimentype_study_table,
+        collection_class=set,
+        backref=backref(
+            name='specimen_types',
+            collection_class=set,
+            )
+        )
+    cycles = Relationship(
+        Cycle,
+        secondary=specimentype_cycle_table,
+        collection_class=set,
+        backref=backref(
+            name='specimen_types',
+            collection_class=set,
+            )
+        )
 
     # aliquot_types backreffed in AliquotType
     
@@ -426,7 +474,7 @@ class Aliquot(Model, AutoNamed, Referenceable, Auditable, Modifiable):
                 ),
             )
 
-# if __name__ == '__main__': # pragma: no cover
-#     import sqlalchemy
-#     # A convenient way for checking the model even correctly loads the tables
-#     Model.metadata.create_all(bind=sqlalchemy.create_engine('sqlite://', echo=True))
+if __name__ == '__main__': # pragma: no cover
+    import sqlalchemy
+    # A convenient way for checking the model even correctly loads the tables
+    Model.metadata.create_all(bind=sqlalchemy.create_engine('sqlite://', echo=True))

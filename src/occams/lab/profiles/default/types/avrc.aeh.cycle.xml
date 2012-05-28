@@ -4,6 +4,6 @@
    i18n:domain="avrc.aeh" xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
  <property name="behaviors" purge="false">
-<!--      <element value="occams.lab.interfaces.specimen.IRequiredSpecimen" />
- --> </property>
+      <element value="occams.lab.interfaces.specimen.IRequiredSpecimen" />
+ </property>
 </object>

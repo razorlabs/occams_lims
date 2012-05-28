@@ -53,30 +53,29 @@
       provides="occams.lab.interfaces.ILabelSheet"
       for="occams.lab.interfaces.ILab"
       />
-
-<!--   <plone:behavior
+<!--
+  <plone:behavior
       title="Available Specimen"
       description="Make Specimen Available for an object."
-      provides="occams.lab.interfaces.specimen.IAvailableSpecimen"
+      provides="occams.lab.interfaces.IAvailableSpecimen"
+      factory="occams.lab.behaviors.AvailableSpecimen"
       for="avrc.aeh.interfaces.IStudy"
       />
 
   <plone:behavior
       title="Required Specimen"
       description="Make Specimen Required for an object."
-      provides="occams.lab.interfaces.specimen.IRequiredSpecimen"
+      provides="occams.lab.interfaces.IRequiredSpecimen"
       for="avrc.aeh.interfaces.ICycle"
       />
 
   <plone:behavior
       title="Requested Specimen"
       description="Make Specimen Required for an object."
-      provides="occams.lab.interfaces.specimen.IRequestedSpecimen"
+      provides="occams.lab.interfaces.IRequestedSpecimen"
       for="avrc.aeh.interfaces.IVisit"
       />
- -->
-
-
+-->
 <!--   <plone:behavior
       title="Aliquot View"
       description="Make this item Show Filtered Aliquot"

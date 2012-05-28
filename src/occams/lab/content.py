@@ -109,25 +109,47 @@ class AliquotGenerator(grok.Adapter):
     def count(self):
         return None
 
+from plone.memoize import ram
+
+def _render_specimen_cachekey(method, self, context):
+    return context.specimen_id
+
+def _render_aliquot_type_cachekey(method, self):
+    return self.context.aliquot_type_id
+
 class ViewableAliquot(grok.Adapter):
     grok.context(interfaces.IAliquot)
     grok.provides(interfaces.IViewableAliquot)
 
     @property
     def patient_our(self):
-        return self.context.specimen.patient.our
+        return self.getPatientOur(self.context)
+
+    @ram.cache(_render_specimen_cachekey)
+    def getPatientOur(self, context):
+        return context.specimen.patient.our
 
     @property
     def patient_legacy_number(self):
-        return self.context.specimen.patient.legacy_number
+        return self.getPatientLegacyNumber(self.context)
+
+    @ram.cache(_render_specimen_cachekey)
+    def getPatientLegacyNumber(self, context):
+        return context.specimen.patient.legacy_number
+
 
     @property
     def cycle_title(self):
-        if self.context.specimen.study_cycle_label:
-            return self.context.specimen.study_cycle_label
-        return "%s - %s" %(self.context.specimen.cycle.study.short_title, self.context.specimen.cycle.week)
+        return self.getCycleTitle(self.context)
+
+    @ram.cache(_render_specimen_cachekey)
+    def getCycleTitle(self, context):
+        if context.specimen.study_cycle_label:
+            return context.specimen.study_cycle_label
+        return "%s - %s" %(context.specimen.cycle.study.short_title, context.specimen.cycle.week)
 
     @property
+    @ram.cache(_render_aliquot_type_cachekey)
     def aliquot_type_name(self):
         return self.context.aliquot_type.title
 

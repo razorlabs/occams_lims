@@ -1,8 +1,5 @@
 import zope.interface
 import zope.schema
-from occams.datastore.interfaces import ICategory
-from occams.datastore.interfaces import IUser
-from occams.form.interfaces import IDataBaseItemContext
 from occams.datastore.interfaces import IReferenceable
 from occams.datastore.interfaces import IDescribeable
 from occams.datastore.interfaces import IModifiable
@@ -346,7 +343,7 @@ class IViewableAliquot(form.Schema):
         description=_(u"The cycle for which this specimen was collected"),
         readonly=True
         )
-    
+
     vol_count = zope.schema.TextLine(
         title=_(u'Volume / Cell Count'),
         readonly=True,
@@ -361,6 +358,109 @@ class IViewableAliquot(form.Schema):
         required=False
         )
 
+class IFilterForm(form.Schema):
+    """
+    """
+    patient = zope.schema.TextLine(
+        title=_(u"Patient id"),
+        description=_(u"Patient OUR#, Legacy AEH ID, or Masterbook Number"),
+        required=False
+        )
+        
+    after_date = zope.schema.Date(
+        title=_(u"Sample Date"),
+        description=_(u"Samples on this date. If Limit Date is set as well, will show samples between those dates"),
+        required=False
+
+        )
+
+    before_date = zope.schema.Date(
+        title=_(u"Sample Limit Date"),
+        description=_(u"Samples before this date. Only applies if Sample Date is also set"),
+        required=False
+        )
+
+    show_all = zope.schema.Bool(
+        title=_(u"Show all Samples"),
+        description=_(u"Show all samples, including missing, never drawn, checked out, etc"),
+        required=False
+        )
+
+class ISpecimenFilterForm(IFilterForm):
+    """
+    """
+    specimen_type = zope.schema.Choice(
+        title=u"Type of Sample",
+        vocabulary='occams.lab.specimentypevocabulary',
+        required=False
+        )
+
+class IAliquotFilterForm(IFilterForm):
+    """
+    """
+    aliquot_type = zope.schema.Choice(
+        title=u"Type of Sample",
+        vocabulary='occams.lab.aliquottypevocabulary',
+        required=False
+        )
+
+class IAvailableSpecimen(form.Schema):
+    """
+    """
+    form.fieldset('specimen', label=u"Specimen",
+                  fields=['related_specimen'])
+
+    related_specimen = zope.schema.List(
+        title=_(u'label_related_specimen', default=u'Available Specimen'),
+        default=[],
+        value_type = zope.schema.Choice(title=u"Type of Sample",
+            vocabulary='occams.lab.aliquottypevocabulary',
+            required=False
+            ),
+        )
+zope.interface.alsoProvides(IAvailableSpecimen, form.IFormFieldProvider)
+
+class IRequiredSpecimen(form.Schema):
+    """
+    """
+    form.fieldset('specimen', label=u"Specimen",
+                  fields=['related_specimen'])
+
+    related_specimen = zope.schema.List(
+        title=_(u'label_related_specimen', default=u'Specimen'),
+        default=[],
+        value_type=zope.schema.Choice(
+            title=u"Specimen",
+            vocabulary='occams.lab.specimentypevocabulary',
+            required=False
+            )
+        )
+zope.interface.alsoProvides(IRequiredSpecimen, form.IFormFieldProvider)
+
+from z3c.form.interfaces import IAddForm
+
+class IRequestedSpecimen(form.Schema):
+    """
+    Marker class for items that require specimen
+    """
+    form.fieldset('specimen', label=u"Specimen",
+                  fields=['require_specimen'])
+
+    form.omitted('require_specimen')
+    form.no_omit(IAddForm, 'require_specimen')
+    require_specimen = zope.schema.Bool(
+        title=_(u"label_requested_specimen", default=u"Create Required Specimen?"),
+        description=_(u"By default, the system will create specimen for items that require them. You can disable this feature by unchecking this box."),
+        default=True,
+        required=False
+    )
+
+    def getSpecimen():
+        """
+        Function that provides specimen associated with the object
+        """
+
+zope.interface.alsoProvides(IRequestedSpecimen, form.IFormFieldProvider)
 
 class ILabelSheet(form.Schema):
     """
@@ -472,7 +572,6 @@ class ILabel(zope.interface.Interface):
         readonly=True
         )
 
-
 class ILabelPrinter(zope.interface.Interface):
     """
     parts needed for label printing to work
@@ -494,7 +593,6 @@ class ILabelPrinter(zope.interface.Interface):
         Create the label page, and output
         """
         pass
-
 
 class IContainsSpecimen(zope.interface.Interface):
     """

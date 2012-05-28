@@ -8,8 +8,8 @@
       lang="en">
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
-    <!--
-        <tal:data define="form view/filter">
+
+        <tal:data define="form view/getFilterForm">
             <tal:hasdata tal:condition="form">
                 <p>
                 Enter the criteria you would like to use as a filter. The filter will persist while you are logged in. Be sure to remove the filter to make sure you are seeing all available aliquot if that is your wish.
@@ -18,7 +18,6 @@
                 <a href="#" name="" style="display:none"></a>
             </tal:hasdata>
         </tal:data>
-      -->
         <br class="visualClear" />  
         <tal:data define="form view/getCrudForm">
             <tal:hasdata tal:condition="form">
