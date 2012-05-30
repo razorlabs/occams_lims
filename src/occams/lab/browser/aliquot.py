@@ -125,17 +125,7 @@ class AliquotCoreForm(base.CoreForm):
             .join(model.Aliquot.specimen)
             .order_by(model.Aliquot.id.asc())
             )
-        browsersession  = ISession(self.request)
-        if 'aliquot_type' in browsersession.keys():
-            query = query.filter(model.AliquotType.name == browsersession['aliquot_type'])
-        if 'after_date' in browsersession.keys():
-            if 'before_date' in browsersession.keys():
-                query = query.filter(model.Aliquot.store_date >= browsersession['after_date'])
-                query = query.filter(model.Aliquot.store_date <= browsersession['before_date'])
-            else:
-                query = query.filter(model.Aliquot.store_date == browsersession['after_date'])
-
-        if self.display_state and not browsersession.get('show_all', False):
+        if self.display_state:
             query = query.filter(model.AliquotState.name.in_(self.display_state))
         return query
 
@@ -187,6 +177,29 @@ class AliquotForm(AliquotCoreForm):
     @property
     def display_state(self):
         return ('checked-in',)
+
+    def get_query(self):
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        query = (
+            session.query(model.Aliquot)
+            .join(model.Aliquot.state)
+            .join(model.Aliquot.aliquot_type)
+            .join(model.Aliquot.specimen)
+            .order_by(model.Aliquot.id.asc())
+            )
+        browsersession  = ISession(self.request)
+        if 'aliquot_type' in browsersession.keys():
+            query = query.filter(model.AliquotType.name == browsersession['aliquot_type'])
+        if 'after_date' in browsersession.keys():
+            if 'before_date' in browsersession.keys():
+                query = query.filter(model.Aliquot.store_date >= browsersession['after_date'])
+                query = query.filter(model.Aliquot.store_date <= browsersession['before_date'])
+            else:
+                query = query.filter(model.Aliquot.store_date == browsersession['after_date'])
+
+        if self.display_state and not browsersession.get('show_all', False):
+            query = query.filter(model.AliquotState.name.in_(self.display_state))
+        return query
 
 class AliquotListButtons(AliquotButtonCore):
     label = _(u"")
@@ -289,6 +302,75 @@ class AliquotQueueForm(AliquotCoreForm):
         query = super(AliquotQueueForm, self).get_query()
         query = query.filter(model.Aliquot.modify_user_id == current_user.id)
         return query
+
+
+class AliquotTypeForm(AliquotForm):
+    """
+    Primary view for a clinical lab object.
+    """
+    label = u"Specimen Pending Draw"
+    description = _(u"Specimen pending processing.")
+
+    def get_query(self):
+        query = super(AliquotTypeForm, self).get_query()
+        query = query.filter(model.Aliquot.aliquot_type_id == self.context.item.id)
+        return query
+
+    @property
+    def editform_factory(self):
+        return AliquotListButtons
+
+class AliquotView(BrowserView):
+    """
+    Primary view for a research lab object.
+    """
+
+    def getFilterForm(self):
+        context = self.context.aq_inner
+        context.omit_filter=['aliquot_type']
+        form = AliquotFilterForm(context, self.request)
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+    def getCrudForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotTypeForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+
+    def getQueueForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotQueueForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+    def labUrl(self):
+        url = './'
+        catalog = getToolByName(self.context, 'portal_catalog')
+        brains = catalog.search({'portal_type':'hive.lab.researchlab'})
+        if len(brains):
+            url = brains[0].getURL()
+        return url
+
 
 class AliquotPatientForm(AliquotForm):
     """
@@ -449,6 +531,43 @@ class AliquotChecklist(BrowserView):
             ret['aliquot_type_title'] = viewableAliquot.aliquot_type_title
             ret['vol_count'] = viewableAliquot.vol_count
             ret['frb'] = viewableAliquot.frb
+
+            yield ret
+
+    def labUrl(self):
+        url = './'
+        catalog = getToolByName(self.context, 'portal_catalog')
+        brains = catalog.search({'portal_type':'hive.lab.researchlab'})
+        if len(brains):
+            url = brains[0].getURL()
+        return ur
+
+class AliquotReciept(BrowserView):
+    """
+    """
+    def getQueueItems(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotQueueForm(context, self.request)
+        form.batch_size = sys.maxint
+
+        for aliquot in iter(form.get_query()):
+            viewableAliquot=interfaces.IViewableAliquot(aliquot)
+            ret = {}
+            ret['id'] = aliquot.id
+            ret['patient_our'] = viewableAliquot.patient_our
+            ret['patient_legacy_number'] = viewableAliquot.patient_legacy_number
+            ret['cycle_title'] = viewableAliquot.cycle_title
+            ret['store_date'] = aliquot.store_date
+            ret['aliquot_type_title'] = viewableAliquot.aliquot_type_title
+            ret['vol_count'] = viewableAliquot.vol_count
+            ret['special_instruction_title'] = aliquot.special_instruction.title  
+            ret['notes'] = aliquot.notes
+            ret['sent_notes'] = aliquot.sent_notes
+
 
             yield ret
 

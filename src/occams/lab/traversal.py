@@ -16,7 +16,7 @@ from occams.lab import SCOPED_SESSION_KEY
 from occams.lab.content import SpecimenContext
 from occams.lab.content import AliquotContext
 
-@grok.adapter(interfaces.IClinicalLab, IHTTPRequest)
+@grok.adapter(interfaces.IResearchLab, IHTTPRequest)
 @grok.implementer(IBrowserPublisher)
 class SpecimenTraverse(ExtendedTraversal):
     """
@@ -34,7 +34,6 @@ class SpecimenTraverse(ExtendedTraversal):
             ## This will be
             raise Exception("There are multiple entries for this specimen type. This is not supported at this time")
         return None
-
 
 @grok.adapter(interfaces.ISpecimenContext, IHTTPRequest)
 @grok.implementer(IBrowserPublisher)

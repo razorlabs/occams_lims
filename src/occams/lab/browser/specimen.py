@@ -11,6 +11,8 @@ from z3c.saconfig import named_scoped_session
 from occams.lab import interfaces
 from occams.lab import model
 import zope.schema
+
+from Products.CMFCore.utils import getToolByName
 from plone.z3cform import layout
 from beast.browser import widgets
 from zope.app.intid.interfaces import IIntIds
@@ -25,6 +27,7 @@ from collective.beaker.interfaces import ISession
 from zope.schema.vocabulary import SimpleTerm, \
                                    SimpleVocabulary
 import os
+from sqlalchemy.orm import object_session
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
 NO_CHANGES = _(u"No changes made.")
@@ -109,16 +112,24 @@ class SpecimenCoreForm(base.CoreForm):
         return fields
 
     def link(self, item, field):
-        if field == 'patient_our':
+        if field == 'patient_our' and getattr(item.patient, 'zid', None):
             intids = zope.component.getUtility(IIntIds)
-            patient = intids.getObject(item.patient.zid)
+            try:
+                patient = intids.getObject(item.patient.zid)
+            except KeyError:
+                return None
             url = '%s/specimen' % patient.absolute_url()
             return url
+
         elif field == 'visit_date' and getattr(item.visit, 'zid', None):
             intids = zope.component.getUtility(IIntIds)
-            visit = intids.getObject(item.visit.zid)
+            try:
+                visit = intids.getObject(item.visit.zid)
+            except KeyError:
+                return None
             url = '%s/specimen' % visit.absolute_url()
             return url
+
 
     def updateWidgets(self):
         if self.update_schema is not None:
@@ -134,63 +145,13 @@ class SpecimenCoreForm(base.CoreForm):
             session.query(model.Specimen)
                 .join(model.Patient)
                 .join(model.Cycle)
-                .join(model.Visit)
                 .join(model.SpecimenType)
                 .join(model.SpecimenState)
-                .order_by( model.Visit.visit_date.desc(), model.Patient.our, model.SpecimenType.name)
             )
         if self.display_state:
             query = query.filter(model.SpecimenState.name.in_(self.display_state))
-        browsersession  = ISession(self.request)
-        if 'specimen_type' in browsersession.keys():
-            query = query.filter(model.SpecimenType.name == browsersession['aliquot_type'])
-        if 'before_date' in browsersession.keys():
-            if 'after_date' in browsersession.keys():
-                query = query.filter(model.Specimen.collect_date >= browsersession['before_date'])
-                query = query.filter(model.Specimen.collect_date <= browsersession['after_date'])
-            else:
-                query = query.filter(model.Specimen.collect_date == browsersession['before_date'])
-        # if 'patient' in browsersession.keys():
-        #     query = query.filter(or_(model.Specimen.patient.has(our=value), model.Specimen.patient.has(legacy_number=value)))
-        if self.display_state and not browsersession.get('show_all', False):
-            query = query.filter(model.SpecimenState.name.in_(self.display_state))
+        query = query.order_by(model.Specimen.collect_date, model.Patient.our, model.SpecimenType.name)
         return query
-
-    # def filter(self):
-    #     """ 
-    #     """
-    #     kw = ISession(self.request)
-    #     filters = []
-    #     retfilter = None
-    #     for key, item in kw.items():
-    #         if item is None or key not in ['specimen_type', 'before_date', 'after_date', 'patient','modify_name']:
-    #             continue
-    #         if not isinstance(item, list):
-    #             item = [item]
-    #         for value in item:
-    #             filter = None
-    #             if value is not None:
-    #                 if key == 'specimen_type':
-    #                     filter = model.SpecimenType == value
-    #                 elif key == 'before_date':
-    #                     filter = model.Specimen.collect_date <= value
-    #                 elif key == 'after_date':
-    #                     filter = model.Specimen.collect_date >= value
-    #                 elif key == 'patient':
-    #                     filter = or_(model.Specimen.patient.has(our=value), model.Specimen.patient.has(legacy_number=value))
-    #                 elif key == 'modify_name':
-    #                     if value is not None:
-    #                         filter = model.Specimen.modify_name == unicode(value)
-    #                     else:
-    #                         filter = None
-    #                 else:
-    #                     print '%s is not a valid filter' % key
-    #                     filter = None
-    #                 if filter is not None:
-    #                     filters.append(filter)
-    #     if len(filters):
-    #         retfilter = and_(*filters)
-    #     return retfilter
 
 class SpecimenForm(SpecimenCoreForm):
     """
@@ -211,15 +172,35 @@ class SpecimenForm(SpecimenCoreForm):
     def display_state(self):
         return None
 
+    def get_query(self):
+        #makes testing a LOT easier
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        query = (
+            session.query(model.Specimen)
+                .join(model.Patient)
+                .join(model.Cycle)
+                .join(model.SpecimenType)
+                .join(model.SpecimenState)
+                .order_by(model.Specimen.collect_date, model.Patient.our, model.SpecimenType.name)
+            )
+        browsersession  = ISession(self.request)
+        if 'specimen_type' in browsersession.keys():
+            query = query.filter(model.SpecimenType.name == browsersession['aliquot_type'])
+        if 'before_date' in browsersession.keys():
+            if 'after_date' in browsersession.keys():
+                query = query.filter(model.Specimen.collect_date >= browsersession['before_date'])
+                query = query.filter(model.Specimen.collect_date <= browsersession['after_date'])
+            else:
+                query = query.filter(model.Specimen.collect_date == browsersession['before_date'])
+        # if 'patient' in browsersession.keys():
+        #     query = query.filter(or_(model.Specimen.patient.has(our=browsersession['patient']), model.Specimen.patient.has(legacy_number=browsersession['patient'])))
+        if self.display_state and not browsersession.get('show_all', False):
+            query = query.filter(model.SpecimenState.name.in_(self.display_state))
+        return query
 
 class SpecimenAddForm(z3cform.Form):
     label = _(u'Add Specimen')
     ignoreContext = True
-    # redirect_url = os.path.join(context.absolute_url(), '@@specimen')
-
-# #     @property
-# #     def currentUser(self):
-# #         return getSecurityManager().getUser().getId()
         
     def specimenVocabulary(self):
         ## get the terms for our Vocabulary
@@ -279,6 +260,79 @@ class SpecimenAddForm(z3cform.Form):
         return self.request.response.redirect(os.path.join(self.context.absolute_url(), '@@specimen'))
 
 
+class SpecimenTypeForm(SpecimenCoreForm):
+    """
+    Primary view for a clinical lab object.
+    """
+    label = u"Specimen Pending Draw"
+    description = _(u"Specimen pending processing.")
+
+    def update(self):
+        self.view_schema = field.Fields(interfaces.ISpecimen).select('state') + self.edit_schema
+        super(base.CoreForm, self).update()
+
+    @property
+    def editform_factory(self):
+        return SpecimenCoreButtons
+
+    @property
+    def display_state(self):
+        return None
+
+
+    def get_query(self):
+        query = super(SpecimenTypeForm, self).get_query()
+        query = query.filter(model.Specimen.specimen_type == self.context.item)
+        browsersession  = ISession(self.request)
+        if  not browsersession.get('show_all', False):
+            query = query.filter(~model.SpecimenState.name.in_((u'aliquoted',u'cancel-draw', u'rejected')))
+        return query
+
+
+class SpecimenView(BrowserView):
+    """
+    Primary view for a research lab object.
+    """
+    def listAliquotTypes(self):
+        specimen_type = self.context.item
+        session = object_session(specimen_type)
+        query = (
+            session.query(model.AliquotType)
+            .filter(model.AliquotType.specimen_type == specimen_type)
+            .order_by(model.AliquotType.title.asc())
+            )
+        research_url = './'
+        catalog = getToolByName(self.context, 'portal_catalog')
+        brains = catalog.search({'portal_type':'occams.lab.researchlab'})
+        if len(brains):
+            research_url = brains[0].getURL()
+        for aliquot_type in iter(query):
+            url = "%s/%s/%s" %(research_url, specimen_type.name, aliquot_type.name)
+            yield {'url': url, 'title': aliquot_type.title}
+
+    def getFilterForm(self):
+        context = self.context.aq_inner
+        context.omit_filter=['specimen_type',]
+        form = SpecimenFilterForm(context, self.request)
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+    def getCrudForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = SpecimenTypeForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
 class SpecimenPatientForm(SpecimenForm):
     """
     Primary view for a clinical lab object.
@@ -332,7 +386,6 @@ class SpecimenVisitForm(SpecimenForm):
         query = query.filter(model.Specimen.visit == visit).filter(model.Specimen.collect_date == visit.visit_date)
         return query
 
-
 class SpecimenVisitView(BrowserView):
     """
     Primary view for a research lab object.
@@ -370,4 +423,4 @@ class SpecimenVisitView(BrowserView):
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
-        return view
+        return vie

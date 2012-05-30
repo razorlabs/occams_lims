@@ -431,6 +431,30 @@ class IAliquotFilterForm(IFilterForm):
         required=False
         )
 
+class IInventoryFilterForm(IAliquotFilterForm):
+    """
+"""
+    freezer = zope.schema.TextLine(
+        title=_(u'Freezer'),
+        required=False,
+        )
+
+    rack = zope.schema.TextLine(
+        title=_(u'Rack'),
+        required=False,
+        )
+
+    box = zope.schema.TextLine(
+        title=_(u'Box'),
+        required=False,
+        )
+
+    inventory_date = zope.schema.Date(
+        title=_(u"'Not Inventoried Since'"),
+        description=_(u"Show samples that have not been inventoried since this date"),
+        required=False
+        )
+
 class IAvailableSpecimen(form.Schema):
     """
     """

@@ -1,6 +1,7 @@
 
 from occams.lab import MessageFactory as _
 # from occams.lab.browser import crud
+from z3c.form.interfaces import DISPLAY_MODE
 
 from z3c.form import button, form as z3cform
 from Products.Five.browser import BrowserView
@@ -9,7 +10,11 @@ from plone.z3cform import layout
 from beast.browser.crud import NestedFormView
 from occams.lab.browser.specimen import SpecimenCoreButtons
 from occams.lab.browser.specimen import SpecimenCoreForm
-
+from z3c.form import button, field, form as z3cform
+from occams.lab import interfaces
+from datetime import date
+from datetime import timedelta
+from occams.lab import model
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -193,17 +198,90 @@ class ClinicalLabPostponed(BrowserView):
         view.form_instance = form
         return view
 
+class SpecimenRecoverButtons(SpecimenCoreButtons):
+    label = _(u"")
+
+    @property
+    def prefix(self):
+        return 'specimen-pending.'
+
+    @button.buttonAndHandler(_('Recover selected'), name='recover')
+    def handleRecoverDraw(self, action):
+        self.changeState(action, 'pending-draw', 'recovered')
+        return self.request.response.redirect(self.action)
+
 class ClinicalLabDoneForm(SpecimenCoreForm):
     """
     Primary view for a clinical lab object.
     """
     @property
     def editform_factory(self):
-        return SpecimenPendingButtons
+        return SpecimenRecoverButtons
+
+    @property
+    def edit_schema(self):
+        fields = field.Fields(interfaces.ISpecimen, mode=DISPLAY_MODE).\
+            select('state')
+        fields += field.Fields(interfaces.IViewableSpecimen, mode=DISPLAY_MODE).\
+        select( 'patient_our', 'patient_initials', 'cycle_title',
+       'specimen_type_name', 'tube_type')
+        fields += field.Fields(interfaces.ISpecimen, mode=DISPLAY_MODE).\
+        select('tubes', 'collect_date', 'collect_time', 'notes')
+        return fields
 
     @property
     def display_state(self):
-        return (u"complete","cancel-draw")
+        return (u"complete","cancel-draw", "rejected")
 
-ClinicalLabDone = layout.wrap_form(ClinicalLabDoneForm)
+    def get_query(self):
+        query = super(ClinicalLabDoneForm, self).get_query()
+        yesterday =  date.today() - timedelta(1)
+        query = query.filter(model.Specimen.modify_date >= yesterday)
+        return query
+
+class ClinicalLabDone(BrowserView):
+    """
+    Primary view for a research lab object.
+    """
+    def getCrudForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = ClinicalLabDoneForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+# class SpecimenRecoverForm(SpecimenCoreForm):
+#     @property
+#     def view_schema(self):
+#         fields = field.Fields(IViewableSpecimen).\
+#         select('state', 'patient_title', 'patient_initials', 'study_week',
+#        'pretty_type', 'pretty_tube_type')
+#         fields += field.Fields(ISpecimen).\
+#         select('tubes', 'date_collected', 'time_collected', 'notes')
+#         return fields
+
+#     @property
+#     def edit_schema(self):
+#         return None
+
+#     @property
+#     def editform_factory(self):
+#         return buttons.SpecimenRecoverButtons
+
+#     @property
+#     def display_state(self):
+#         return [u'complete', u'rejected']
+
+#     def getkwargs(self):
+#         kw = {'state':self.display_state,
+#               'before_date':date.today(),
+#               'after_date':date.today()}
+#         return kw
 

@@ -42,7 +42,7 @@ class AliquotContext(traversal.DataBaseItemContext):
     Specimen context for traversal. Provides the parts necessary for interacting with
     avrc.data.store Entities in a traversable manner within the Plone context
     """
-    implements(interfaces.ISpecimenContext)
+    implements(interfaces.IAliquotContext)
 
     def __init__(self, item, data=None):
         self.item = item

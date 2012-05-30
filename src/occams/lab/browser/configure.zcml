@@ -5,6 +5,32 @@
     i18n_domain="occams.lab">
 
   <browser:page
+      for="occams.lab.interfaces.IAliquotContext"
+      name="view"
+      class=".aliquot.AliquotView"
+      template="aliquot_templates/aliquot.pt"
+      permission="zope2.View"
+      />
+      
+   <browser:defaultView
+     for="occams.lab.interfaces.IAliquotContext"
+     name="view"
+     />
+
+  <browser:page
+      for="occams.lab.interfaces.ISpecimenContext"
+      name="view"
+      class=".specimen.SpecimenView"
+      template="specimen_templates/specimen.pt"
+      permission="zope2.View"
+      />
+      
+   <browser:defaultView
+     for="occams.lab.interfaces.ISpecimenContext"
+     name="view"
+     />
+
+  <browser:page
       for="occams.lab.interfaces.IClinicalLab"
       name="view"
       class=".clinicallab.ClinicalLabView"
@@ -36,8 +62,11 @@
       for="occams.lab.interfaces.IClinicalLab"
       name="complete"
       class=".clinicallab.ClinicalLabDone"
+      template="clinicallab_templates/completed.pt"
       permission="zope2.View"
       />
+
+
 
   <browser:page
       for="occams.lab.interfaces.IResearchLab"
@@ -68,11 +97,44 @@
       permission="zope2.View"
       />
 
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="edit-aliquot"
+      class=".researchlab.AliquotEditView"
+      template="aliquotlab_templates/aliquotedit.pt"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="inventory"
+      class=".researchlab.AliquotInventoryView"
+      template="aliquotlab_templates/inventory.pt"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="checkedin"
+      class=".researchlab.AliquotRecoverView"
+      template="aliquotlab_templates/recover.pt"
+      permission="zope2.View"
+      />
+
   <browser:page
       for="occams.lab.interfaces.IResearchLab"
       name="checkin"
       class=".researchlab.AliquotCheckInView"
       template="aliquotlab_templates/checkin.pt"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="checkout"
+      class=".researchlab.AliquotCheckoutView"
+      template="aliquotlab_templates/checkout.pt"
       permission="zope2.View"
       />
 
@@ -113,6 +175,21 @@
       name="checklist"
       class=".aliquot.AliquotChecklist"
       template="aliquot_templates/checklist.pt"
+      permission="zope2.View"
+      />
+    <browser:page
+      for="occams.lab.interfaces.ILab"
+      name="checklist"
+      class=".aliquot.AliquotChecklist"
+      template="aliquot_templates/checklist.pt"
+      permission="zope2.View"
+      /> 
+
+   <browser:page
+      for="occams.lab.interfaces.ILab"
+      name="receipt"
+      class=".aliquot.AliquotReciept"
+      template="aliquot_templates/receipt.pt"
       permission="zope2.View"
       />
 </configure>
