@@ -325,6 +325,27 @@ class IAliquotGenerator(form.Schema):
 class IViewableAliquot(form.Schema):
     """
     """
+    aliquot_id = zope.schema.TextLine(
+        title=_(u'Aliquot #'),
+        description=_(u""),
+        readonly=True,
+        )
+    aliquot_type_title = zope.schema.TextLine(
+        title=_(u'Type'),
+        description=_(u"The type of aliquot"),
+        readonly=True,
+        )
+
+    state_title = zope.schema.TextLine(
+        title=_(u'State'),
+        readonly=True,
+        )
+
+    location_title =  zope.schema.TextLine(
+        title=_(u"Location"),
+        description=_(u"The location of the specimen"),
+        readonly=True,
+        )
 
     patient_our = zope.schema.TextLine(
         title=_(u"Patient OUR#"),
@@ -355,7 +376,13 @@ class IViewableAliquot(form.Schema):
         )
     thawed_num = zope.schema.Int(
         title=_(u'Thawed'),
-        required=False
+        readonly=True,
+        )
+
+    special_instruction_title = zope.schema.TextLine(
+        title=_(u"Special Instructions"),
+        description=_(u"Special Instructions for the aliquot"),
+        readonly=True,
         )
 
 class IFilterForm(form.Schema):
@@ -408,13 +435,13 @@ class IAvailableSpecimen(form.Schema):
     """
     """
     form.fieldset('specimen', label=u"Specimen",
-                  fields=['related_specimen'])
+                  fields=['specimen_types'])
 
-    related_specimen = zope.schema.List(
-        title=_(u'label_related_specimen', default=u'Available Specimen'),
+    specimen_types = zope.schema.List(
+        title=_(u'label_specimen_types', default=u'Available Specimen'),
         default=[],
         value_type = zope.schema.Choice(title=u"Type of Sample",
-            vocabulary='occams.lab.aliquottypevocabulary',
+            vocabulary='occams.lab.specimentypevocabulary',
             required=False
             ),
         )
@@ -424,14 +451,14 @@ class IRequiredSpecimen(form.Schema):
     """
     """
     form.fieldset('specimen', label=u"Specimen",
-                  fields=['related_specimen'])
+                  fields=['specimen_types'])
 
-    related_specimen = zope.schema.List(
-        title=_(u'label_related_specimen', default=u'Specimen'),
+    specimen_types = zope.schema.List(
+        title=_(u'label_specimen_types', default=u'Specimen'),
         default=[],
         value_type=zope.schema.Choice(
             title=u"Specimen",
-            vocabulary='occams.lab.specimentypevocabulary',
+            vocabulary='occams.lab.availablespecimenvocabulary',
             required=False
             )
         )

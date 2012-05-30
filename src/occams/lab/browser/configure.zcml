@@ -69,6 +69,14 @@
       />
 
   <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="checkin"
+      class=".researchlab.AliquotCheckInView"
+      template="aliquotlab_templates/checkin.pt"
+      permission="zope2.View"
+      />
+
+  <browser:page
       for="avrc.aeh.interfaces.IPatient"
       name="specimen"
       class=".specimen.SpecimenPatientView"
@@ -100,4 +108,11 @@
       permission="zope2.View"
       />
 
+    <browser:page
+      for="avrc.aeh.interfaces.IClinicalObject"
+      name="checklist"
+      class=".aliquot.AliquotChecklist"
+      template="aliquot_templates/checklist.pt"
+      permission="zope2.View"
+      />
 </configure>

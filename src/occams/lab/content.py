@@ -87,7 +87,6 @@ class ViewableSpecimen(grok.Adapter):
     def visit_date(self):
         return self.context.visit.visit_date
 
-
     @property
     def specimen_type_name(self):
         return self.context.specimen_type.name
@@ -122,6 +121,22 @@ class ViewableAliquot(grok.Adapter):
     grok.provides(interfaces.IViewableAliquot)
 
     @property
+    def aliquot_id(self):
+        return self.context.id
+
+    @property
+    def aliquot_type_title(self):
+        return self.context.aliquot_type.title
+
+    @property
+    def state_title(self):
+        return self.context.state.title
+
+    @property
+    def location_title(self):
+        return self.context.location.title
+
+    @property
     def patient_our(self):
         return self.getPatientOur(self.context)
 
@@ -137,7 +152,6 @@ class ViewableAliquot(grok.Adapter):
     def getPatientLegacyNumber(self, context):
         return context.specimen.patient.legacy_number
 
-
     @property
     def cycle_title(self):
         return self.getCycleTitle(self.context)
@@ -148,10 +162,6 @@ class ViewableAliquot(grok.Adapter):
             return context.specimen.study_cycle_label
         return "%s - %s" %(context.specimen.cycle.study.short_title, context.specimen.cycle.week)
 
-    @property
-    @ram.cache(_render_aliquot_type_cachekey)
-    def aliquot_type_name(self):
-        return self.context.aliquot_type.title
 
     ##  For the checkout display
     @property

@@ -15,6 +15,7 @@ from occams.datastore.batch import SqlBatch
 import datetime
 from z3c.form import form
 from collective.beaker.interfaces import ISession
+import sys
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -32,6 +33,14 @@ class CoreButtons(crud.EditForm):
             return "%s?%spage=%s" % (self.request.getURL(), self.prefix, page)
         navigation.make_link = make_link
         return navigation()
+
+    @property
+    def batch(self):
+        query = self.context.get_query()
+        batch_size = self.context.batch_size or sys.maxint
+        page = self._page()
+        return SqlBatch(
+            query, start=page * batch_size, size=batch_size)
 
     @property
     def _stateModel(self):
@@ -220,7 +229,6 @@ class LabelForm(crud.CrudForm):
             labellist.append((label.getPath(), label))
         return labellist
 
-
 class FilterFormCore(form.Form):
     """
     Take form data and apply it to the session so that filtering takes place.
@@ -260,7 +268,10 @@ class FilterFormCore(form.Form):
             return
         for key, value in data.items():
             if value is not None:
-                session[key] = value
+                if getattr(value, 'name', False):
+                    session[key] = value.name
+                else:
+                    session[key] = value
             elif session.has_key(key):
                 del session[key]
         session.save()

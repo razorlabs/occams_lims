@@ -7,10 +7,16 @@ from zope.schema.vocabulary import SimpleVocabulary
 from zope.schema.vocabulary import SimpleTerm
 from occams.lab import model
 from plone.memoize import ram
+from plone.memoize import view
+from occams.form.traversal import closest
+from avrc.aeh.interfaces import IStudy
 
 
 def _render_vocab_cachekey(method, self, context):
-    return str(self._modelKlass)
+    return "%s_%s" %(str(self.__class__), str(self._modelKlass))
+
+def _render_specimen_vocab_cachekey(method, self, context):
+    return str(closest(context, IStudy).getId())
 
 class OccamsVocabulary(object):
     grok.implements(IVocabularyFactory)
@@ -19,6 +25,7 @@ class OccamsVocabulary(object):
     def _modelKlass(self):
         raise NotImplementedError
 
+    # @ram.cache(_render_vocab_cachekey)
     def getTerms(self, context):
         session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
@@ -80,4 +87,32 @@ class AliquotTypeVocabulary(OccamsVocabulary):
     _modelKlass=model.AliquotType
 
 grok.global_utility(AliquotTypeVocabulary, name=u"occams.lab.aliquottypevocabulary")
+
+
+class AvailableSpecimenVocabulary(object):
+    grok.implements(IVocabularyFactory)
+
+    # @ram.cache(_render_specimen_vocab_cachekey)
+    def getTerms(self, context):
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        study = closest(context, IStudy)
+        query = (
+            session.query(model.SpecimenType)
+            .join(model.SpecimenType.studies)
+            .filter(model.Study.zid == study.zid)
+            .order_by(model.SpecimenType.title.asc())
+            )
+        terms=[]
+        for term in iter(query):
+            terms.append(
+                SimpleTerm(
+                    title=term.title,
+                    token=str(term.name),
+                    value=term)
+                )
+        return terms
+
+    def __call__(self, context):
+        return SimpleVocabulary(terms=self.getTerms(context))
+grok.global_utility(AvailableSpecimenVocabulary, name=u"occams.lab.availablespecimenvocabulary")
 

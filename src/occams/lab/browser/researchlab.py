@@ -20,7 +20,8 @@ from occams.lab.browser.specimen import SpecimenCoreForm
 from occams.lab.browser.aliquot import AliquotButtonCore
 from occams.lab.browser.aliquot import AliquotCoreForm
 from occams.lab.browser.base import LabelForm
-
+from collective.beaker.interfaces import ISession
+from sqlalchemy import or_
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
 NO_CHANGES = _(u"No changes made.")
@@ -45,10 +46,10 @@ class ReadySpecimenForm(SpecimenCoreForm):
         fields = field.Fields(interfaces.IViewableSpecimen).\
             select('patient_our',
              'cycle_title',
-             'tube_type')
+             'tube_type',
+             'specimen_type_name',)
         fields += field.Fields(interfaces.ISpecimen).\
             select(
-             'specimen_type',
              'tubes',
              'collect_date', 
              'collect_time',
@@ -197,9 +198,8 @@ class AliquotReadyForm(AliquotCoreForm):
             select('patient_our',
                      'patient_legacy_number', 
                      'cycle_title', 
+                     'aliquot_type_title'
                      )
-        fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
-            select('aliquot_type')
         fields += field.Fields(interfaces.IAliquot).\
             select('labbook',
                       'volume',
@@ -240,7 +240,6 @@ class AliquotReadyForm(AliquotCoreForm):
             .filter(model.SpecimenState.name.in_(self.display_state))
             )
         return specimenQ
-
 
     def get_items(self):
         """
@@ -336,6 +335,14 @@ class AliquotPreparedForm(AliquotCoreForm):
     def display_state(self):
         return (u'pending', )
 
+
+    def get_query(self):
+        query = super(AliquotPreparedForm, self).get_query()
+        browsersession  = ISession(self.request)
+        if 'patient' in browsersession.keys():
+            query = query.join(model.Specimen.patient).filter(or_(model.Patient.has(our=browsersession['patient']), model.Patient.has(legacy_number=browsersession['patient'])))
+        return query
+
 class AliquotPreparedView(BrowserView):
     """
     Primary view for a research lab object.
@@ -361,6 +368,123 @@ class AliquotPreparedView(BrowserView):
         """
         context = self.context.aq_inner
         form = LabelForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+
+
+class AliquotCheckInButtons(AliquotButtonCore):
+    label = _(u"")
+    z3cform.extends(AliquotButtonCore)
+
+    @property
+    def prefix(self):
+        return 'aliquot-prepared.'
+
+    @button.buttonAndHandler(_('Print Selected'), name='print')
+    def handlePrintAliquot(self, action):
+        self.saveChanges(action)
+        self.queueLabels(action)
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Save Changes'), name='save')
+    def handleSaveChanges(self, action):
+        self.saveChanges(action)
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
+    def handleCheckinAliquot(self, action):
+        self.saveChanges(action)
+        self.changeState(action, 'checked-in', 'Checked In')
+        
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
+    def handleUnusedAliquot(self, action):
+        selected = self.selected_items()
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        if selected:
+            for id, data in selected:
+                aliquot = session.query(model.Aliquot).filter_by(id=id).one()
+                session.delete(aliquot)
+        session.flush()
+        return self.request.response.redirect(self.action)
+
+class AliquotCheckInForm(AliquotCoreForm):
+    """
+    Base Crud form for editing specimen. Some specimen will need to be
+    """
+    batch_size = 20
+    editform_factory = AliquotCheckInButtons
+
+    @property
+    def edit_schema(self):
+        fields = field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
+            select('aliquot_id',
+                     'patient_our',
+                     'patient_legacy_number',
+                     'cycle_title',
+                     'aliquot_type_title'
+                     )
+        fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
+            select('labbook',
+                     'store_date', 
+                     'special_instruction',
+                     'sent_date',
+                     'sent_name',
+                     'sent_notes',
+                    )
+        fields += field.Fields(interfaces.IAliquot).\
+            select('location',
+                      'thawed_num',
+                     'freezer', 
+                     'rack', 
+                     'box',
+                     'notes')
+        return fields
+
+    @property
+    def display_state(self):
+        return (u'checked-out', )
+
+    def get_query(self):
+        query = super(AliquotCheckInForm, self).get_query()
+        browsersession  = ISession(self.request)
+        if 'patient' in browsersession.keys():
+            query = query.join(model.Specimen.patient).filter(or_(model.Patient.has(our=browsersession['patient']), model.Patient.has(legacy_number=browsersession['patient'])))
+        return query
+
+
+from occams.lab.browser.aliquot import AliquotFilterForm
+class AliquotCheckInView(BrowserView):
+    """
+    Primary view for a research lab object.
+    """
+    def getCrudForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotCheckInForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+    def getFilterForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotFilterForm(context, self.request)
         if hasattr(form, 'getCount') and form.getCount() < 1:
             return None
         view = NestedFormView(context, self.request)

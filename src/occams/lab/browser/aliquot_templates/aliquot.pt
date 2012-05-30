@@ -45,8 +45,7 @@
             </tal:nodata>
         </tal:data>
         <hr class="visualClear" />
-        <!--
-        <tal:data define="form view/aliquotqueue">
+        <tal:data define="form view/getQueueForm">
             <tal:hasdata tal:condition="form">
                 <p>
                    Aliquot currently queued for checkout. After developing your queue, verify that the aliquot you want are available before removing them from this screen.
@@ -59,7 +58,7 @@
                         <b>Print List</b>: Print a list to take to storage.
                     </li>
                     <li>
-                        <b><a href="" tal:attributes="href string:${view/lab_url}/checkout">Check Out</a></b>: Place the selected aliquot in the fnial stage for check out. After you have selected all of the aliquot for check out, proceed to the <a href="" tal:attributes="href string:${view/lab_url}/checkout">check out screen</a>.
+ <!--                       <b><a href="" tal:attributes="href string:${view/lab_url}/checkout">Check Out</a></b>: Place the selected aliquot in the fnial stage for check out. After you have selected all of the aliquot for check out, proceed to the <a href="" tal:attributes="href string:${view/lab_url}/checkout">check out screen</a>.
                     </li>
                     <li>
                         <b>Release from Queue</b>:Release the hold on the selected aliquot, returning them to a checked in state.
@@ -69,19 +68,19 @@
                     </li>
                     <li>
                         <b>Mark Missing</b>: Mark the selected aliquot as missing.
-                    </li>
+ -->                   </li>
                 </ul>
             </tal:hasdata>
             <tal:nodata tal:condition="not:form">
                 <p>
                 No aliquot in the checkout queue. 
                 </p>
-                <ul><li>Head to the <a href="" tal:attributes="href string:${view/lab_url}/checkout">Checkout</a> Screen to finalize the checkout process.</li>
+                <!--<ul><li>Head to the <a href="" tal:attributes="href string:${view/lab_url}/checkout">Checkout</a> Screen to finalize the checkout process.</li>
                 <li>Head to the <a href="" tal:attributes="href string:${view/lab_url}/edit-aliquot">Edit</a> Screen to modify incorrect aliquot.</li>
                 </ul>
-                </tal:nodata>
+                -->
+            </tal:nodata>
         </tal:data>
-      -->
     </metal:content-core>
   </metal:content-core>
 </html>

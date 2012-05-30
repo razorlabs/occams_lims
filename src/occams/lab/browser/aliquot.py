@@ -16,6 +16,11 @@ import zope.component
 from beast.browser import widgets
 from avrc.aeh.interfaces import IClinicalMarker
 from occams.lab.browser import base
+from collective.beaker.interfaces import ISession
+from AccessControl import getSecurityManager
+from occams.datastore import model as dsmodel
+import sys
+from Products.CMFCore.utils import getToolByName
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -67,9 +72,8 @@ class AliquotCoreForm(base.CoreForm):
             select('patient_our',
                      'patient_legacy_number',
                      'cycle_title',
+                     'aliquot_type_title'
                      )
-        fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
-            select('aliquot_type')
         fields += field.Fields(interfaces.IAliquot).\
             select('labbook',
                      'volume',
@@ -121,10 +125,19 @@ class AliquotCoreForm(base.CoreForm):
             .join(model.Aliquot.specimen)
             .order_by(model.Aliquot.id.asc())
             )
-        if self.display_state:
+        browsersession  = ISession(self.request)
+        if 'aliquot_type' in browsersession.keys():
+            query = query.filter(model.AliquotType.name == browsersession['aliquot_type'])
+        if 'after_date' in browsersession.keys():
+            if 'before_date' in browsersession.keys():
+                query = query.filter(model.Aliquot.store_date >= browsersession['after_date'])
+                query = query.filter(model.Aliquot.store_date <= browsersession['before_date'])
+            else:
+                query = query.filter(model.Aliquot.store_date == browsersession['after_date'])
+
+        if self.display_state and not browsersession.get('show_all', False):
             query = query.filter(model.AliquotState.name.in_(self.display_state))
         return query
-
 
 class AliquotForm(AliquotCoreForm):
     """
@@ -134,27 +147,29 @@ class AliquotForm(AliquotCoreForm):
     description = _(u"Specimen pending processing.")
 
     def update(self):
-        self.view_schema = field.Fields(interfaces.IAliquot).select('state') + self.edit_schema
+        self.view_schema = self.edit_schema
         super(base.CoreForm, self).update()
 
     @property
     def edit_schema(self):
         fields = field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
-            select('patient_our',
+            select(
+                     'state_title',
+                     'patient_our',
                      'patient_legacy_number',
                      'cycle_title',
+                     'aliquot_type_title'
                      )
-        fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
-            select('aliquot_type')
 
         fields += field.Fields(interfaces.IAliquot).\
             select('labbook',
                      'store_date',
                      'inventory_date',
-                     'location',
                      )
         fields += field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
-            select('vol_count', 
+            select(
+                    'location_title',
+                     'vol_count', 
                      'frb',
                      'thawed_num',
                      )
@@ -171,7 +186,109 @@ class AliquotForm(AliquotCoreForm):
 
     @property
     def display_state(self):
-        return None
+        return ('checked-in',)
+
+class AliquotListButtons(AliquotButtonCore):
+    label = _(u"")
+    z3cform.extends(AliquotButtonCore)
+
+    @property
+    def prefix(self):
+        return 'aliquot-queue.'
+   
+    @button.buttonAndHandler(_('Add to Queue'), name='queue')
+    def handleQueue(self, action):
+        self.changeState(action, 'queued', 'Queued')
+        
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
+    def handleInaccurate(self, action):
+        self.changeState(action, 'incorrect', 'incorrect')
+        
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Hold'), name='hold')
+    def handleRecoverAliquot(self, action):
+        self.changeState(action, 'hold', 'Held')
+        
+        return self.request.response.redirect(self.action)
+
+class AliquotHoldButtons(AliquotButtonCore):
+    """
+    """
+    z3cform.extends(AliquotButtonCore)
+
+    @property
+    def prefix(self):
+        return 'aliquot-hold.'
+        
+    @button.buttonAndHandler(_('Print List'), name='print')
+    def handleQueue(self, action):
+        return self.request.response.redirect('%s/%s' % (self.context.context.absolute_url(), 'checklist'))
+
+    @button.buttonAndHandler(_('Check Out'), name='checkout')
+    def handleCheckout(self, action):
+        self.changeState(action, 'pending-checkout', 'Checked Out')
+        
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Release From Queue'), name='release')
+    def handleRelease(self, action):
+        self.changeState(action, 'checked-in', 'Released')
+        
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
+    def handleInaccurate(self, action):
+        self.changeState(action, 'incorrect', 'incorrect')
+        #
+        return self.request.response.redirect(self.action)
+
+    @button.buttonAndHandler(_('Mark Missing'), name='missing')
+    def handleMissing(self, action):
+        self.changeState(action, 'missing', 'Missing')
+        
+        return self.request.response.redirect(self.action)
+
+class AliquotQueueForm(AliquotCoreForm):
+    """
+    """
+
+    @property
+    def view_schema(self):
+        fields = field.Fields(interfaces.IViewableAliquot).\
+            select('state_title',
+                     'patient_our',
+                     'patient_legacy_number',
+                     'cycle_title',
+                     'aliquot_type_title',
+                     'vol_count', 
+                     )
+        fields += field.Fields(interfaces.IAliquot).\
+            select('store_date')
+        fields += field.Fields(interfaces.IViewableAliquot).\
+            select('frb')
+        fields += field.Fields(interfaces.IAliquot).\
+            select('notes')
+        return fields
+
+    edit_schema = None
+
+    editform_factory = AliquotHoldButtons
+
+    batch_size = 70
+
+    @property
+    def display_state(self):
+        return (u"queued",)
+
+    def get_query(self):
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        current_user = session.query(dsmodel.User).filter_by(key = getSecurityManager().getUser().getId()).one()
+        query = super(AliquotQueueForm, self).get_query()
+        query = query.filter(model.Aliquot.modify_user_id == current_user.id)
+        return query
 
 class AliquotPatientForm(AliquotForm):
     """
@@ -186,6 +303,9 @@ class AliquotPatientForm(AliquotForm):
         query = query.filter(model.Specimen.patient == patient)
         return query
 
+    @property
+    def editform_factory(self):
+        return AliquotListButtons
 
 class AliquotPatientView(BrowserView):
     """
@@ -214,6 +334,28 @@ class AliquotPatientView(BrowserView):
         view.form_instance = form
         return view
 
+    def getQueueForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotQueueForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+    def labUrl(self):
+        url = './'
+        catalog = getToolByName(self.context, 'portal_catalog')
+        brains = catalog.search({'portal_type':'hive.lab.researchlab'})
+        if len(brains):
+            url = brains[0].getURL()
+        return url
+
 class AliquotVisitForm(AliquotForm):
     """
     Primary view for a clinical lab object.
@@ -228,6 +370,10 @@ class AliquotVisitForm(AliquotForm):
         query = query.join(model.Specimen.cycle).filter(model.Cycle.id.in_([cycle.id for cycle in visit.cycles]))
         # query = query.filter(model.Specimen.visit == visit).filter(model.Specimen.collect_date == visit.visit_date)
         return query
+
+    @property
+    def editform_factory(self):
+        return AliquotListButtons
 
 class AliquotVisitView(BrowserView):
     """
@@ -256,3 +402,61 @@ class AliquotVisitView(BrowserView):
         view = view.__of__(context)
         view.form_instance = form
         return view
+
+
+    def getQueueForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotQueueForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+    def labUrl(self):
+        url = './'
+        catalog = getToolByName(self.context, 'portal_catalog')
+        brains = catalog.search({'portal_type':'hive.lab.researchlab'})
+        if len(brains):
+            url = brains[0].getURL()
+        return url
+
+class AliquotChecklist(BrowserView):
+    """
+    """
+    def getQueueItems(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotQueueForm(context, self.request)
+        form.batch_size = sys.maxint
+
+        for aliquot in iter(form.get_query()):
+            viewableAliquot=interfaces.IViewableAliquot(aliquot)
+            ret = {}
+            ret['id'] = aliquot.id
+            ret['patient_our'] = viewableAliquot.patient_our
+            ret['patient_legacy_number'] = viewableAliquot.patient_legacy_number
+            ret['cycle_title'] = viewableAliquot.cycle_title
+            ret['store_date'] = aliquot.store_date
+            ret['aliquot_type_title'] = viewableAliquot.aliquot_type_title
+            ret['vol_count'] = viewableAliquot.vol_count
+            ret['frb'] = viewableAliquot.frb
+
+            yield ret
+
+    def labUrl(self):
+        url = './'
+        catalog = getToolByName(self.context, 'portal_catalog')
+        brains = catalog.search({'portal_type':'hive.lab.researchlab'})
+        if len(brains):
+            url = brains[0].getURL()
+        return ur
+

@@ -22,7 +22,9 @@ from Products.statusmessages.interfaces import IStatusMessage
 from occams.lab import vocabularies
 from sqlalchemy import or_, and_
 from collective.beaker.interfaces import ISession
-
+from zope.schema.vocabulary import SimpleTerm, \
+                                   SimpleVocabulary
+import os
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
 NO_CHANGES = _(u"No changes made.")
@@ -139,29 +141,19 @@ class SpecimenCoreForm(base.CoreForm):
             )
         if self.display_state:
             query = query.filter(model.SpecimenState.name.in_(self.display_state))
-        # specimenfilter = self.filter()
-        kw = ISession(self.request)
-        for key, item in kw.items():
-            if item is None or key not in ['specimen_type', 'before_date', 'after_date', 'patient','modify_name']:
-                continue
-            if not isinstance(item, list):
-                item = [item]
-            for value in item:
-                if value is not None:
-                    if key == 'specimen_type':
-                        query = query.filter(model.SpecimenType.id == value.id)
-                    elif key == 'before_date':
-                        query = query.filter(model.Specimen.collect_date <= value)
-                    elif key == 'after_date':
-                        query = query.filter(model.Specimen.collect_date >= value)
-                    elif key == 'patient':
-                        query = query.filter(or_(model.Specimen.patient.has(our=value), model.Specimen.patient.has(legacy_number=value)))
-                    elif key == 'modify_name':
-                        if value is not None:
-                            query = query.filter( model.Specimen.modify_name == unicode(value))
-
-        # if specimenfilter:
-        #     query = query.filter(specimenfilter)
+        browsersession  = ISession(self.request)
+        if 'specimen_type' in browsersession.keys():
+            query = query.filter(model.SpecimenType.name == browsersession['aliquot_type'])
+        if 'before_date' in browsersession.keys():
+            if 'after_date' in browsersession.keys():
+                query = query.filter(model.Specimen.collect_date >= browsersession['before_date'])
+                query = query.filter(model.Specimen.collect_date <= browsersession['after_date'])
+            else:
+                query = query.filter(model.Specimen.collect_date == browsersession['before_date'])
+        # if 'patient' in browsersession.keys():
+        #     query = query.filter(or_(model.Specimen.patient.has(our=value), model.Specimen.patient.has(legacy_number=value)))
+        if self.display_state and not browsersession.get('show_all', False):
+            query = query.filter(model.SpecimenState.name.in_(self.display_state))
         return query
 
     # def filter(self):
@@ -220,46 +212,71 @@ class SpecimenForm(SpecimenCoreForm):
         return None
 
 
-# class SpecimenAddForm(z3cform.Form):
-#     label = _(u'Add Specimen')
-#     ignoreContext = True
-#     # redirect_url = os.path.join(context.absolute_url(), '@@specimen')
+class SpecimenAddForm(z3cform.Form):
+    label = _(u'Add Specimen')
+    ignoreContext = True
+    # redirect_url = os.path.join(context.absolute_url(), '@@specimen')
 
 # #     @property
 # #     def currentUser(self):
 # #         return getSecurityManager().getUser().getId()
         
-#     def specimenVocabulary(self):
+    def specimenVocabulary(self):
+        ## get the terms for our Vocabulary
 
-#         return []
+        context = self.context.aq_inner
+        termlist = []
+        for cycle in context.cycles:
+            for specimen_type in cycle.study.specimen_types:
+                term_title =u"%s -- %s" % (cycle.title, specimen_type.title)
+                termlist.append(
+                    SimpleTerm(
+                        title= term_title,
+                        token=str(term_title),
+                        value=(cycle, specimen_type)
+                        )
+                    )
+        return SimpleVocabulary(terms=termlist) 
 
-#     def update(self):
-#         available_specimen = zope.schema.List(
-#             title=_(u'Available Specimen'),
-#             value_type=zope.schema.Choice(
-#                            title=_(u'Available Specimen'),
-#                            description=_(u''),
-#                            source=self.specimenVocabulary()
-#                            )
-#             )
-#         available_specimen.__name__ = 'available_specimen'
-#         self.fields += field.Fields(available_specimen)
-#         super(SpecimenAddForm, self).update()
+    def update(self):
+        request_specimen = zope.schema.List(
+            title=_(u'Available Specimen'),
+            value_type=zope.schema.Choice(
+                           title=_(u'Available Specimen'),
+                           description=_(u''),
+                           source=self.specimenVocabulary()
+                           )
+            )
+        request_specimen.__name__ = 'request_specimen'
+        self.fields = field.Fields(request_specimen)
+        super(SpecimenAddForm, self).update()
 
-#     @button.buttonAndHandler(_('Request More Specimen'), name='requestSpecimen',
-#     condition=lambda self: checkPermission('hive.lab.RequestSpecimen', self.context))
-#     def requestSpecimen(self, action):
-#         data, errors = self.extractData()
-#         messages = IStatusMessage(self.request)
-#         if errors:
-#             messages.addStatusMessage(
-#                 _(u'There was an error with your request.'),
-#                 type='error'
-#                 )
-#             return
-#         for specimen in data['available_specimen']:
-#             print 'foo'
-#         return self.request.response.redirect(self.redirect_url)
+    @button.buttonAndHandler(_('Request More Specimen'), name='requestSpecimen')
+    def requestSpecimen(self, action):
+        data, errors = self.extractData()
+        messages = IStatusMessage(self.request)
+        if errors:
+            messages.addStatusMessage(
+                _(u'There was an error with your request.'),
+                type='error'
+                )
+            return
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        drawstate = session.query(model.SpecimenState).filter_by(name=u'pending-draw').one()
+        visitSQL = self.context.getSQLObj()
+        for cycle, specimen_type in data['request_specimen']:
+            newSpecimen = model.Specimen(
+                    patient = visitSQL.patient,
+                    cycle = cycle,
+                    specimen_type = specimen_type,
+                    state=drawstate,
+                    collect_date = visitSQL.visit_date,
+                    location_id = specimen_type.location_id,
+                    tubes = specimen_type.default_tubes
+                )
+            session.add(newSpecimen)
+            session.flush()
+        return self.request.response.redirect(os.path.join(self.context.absolute_url(), '@@specimen'))
 
 
 class SpecimenPatientForm(SpecimenForm):
@@ -287,6 +304,7 @@ class SpecimenPatientView(BrowserView):
         view = view.__of__(context)
         view.form_instance = form
         return view
+
     def getCrudForm(self):
         """
         Create a form instance.
@@ -342,14 +360,14 @@ class SpecimenVisitView(BrowserView):
         view.form_instance = form
         return view
 
-    # def requestSpecimen(self):
-    #     """ Create a form instance.
-    #         Returns:
-    #             z3c.form wrapped for Plone 3 view
-    #     """
-    #     context = self.context.aq_inner
-    #     form = SpecimenAddForm(context, self.request)
-    #     view = NestedFormView(context, self.request)
-    #     view = view.__of__(context)
-    #     view.form_instance = form
-    #     return view
+    def requestSpecimen(self):
+        """ Create a form instance.
+            Returns:
+                z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = SpecimenAddForm(context, self.request)
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
