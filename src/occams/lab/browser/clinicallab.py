@@ -256,32 +256,3 @@ class ClinicalLabDone(BrowserView):
         view = view.__of__(context)
         view.form_instance = form
         return view
-
-# class SpecimenRecoverForm(SpecimenCoreForm):
-#     @property
-#     def view_schema(self):
-#         fields = field.Fields(IViewableSpecimen).\
-#         select('state', 'patient_title', 'patient_initials', 'study_week',
-#        'pretty_type', 'pretty_tube_type')
-#         fields += field.Fields(ISpecimen).\
-#         select('tubes', 'date_collected', 'time_collected', 'notes')
-#         return fields
-
-#     @property
-#     def edit_schema(self):
-#         return None
-
-#     @property
-#     def editform_factory(self):
-#         return buttons.SpecimenRecoverButtons
-
-#     @property
-#     def display_state(self):
-#         return [u'complete', u'rejected']
-
-#     def getkwargs(self):
-#         kw = {'state':self.display_state,
-#               'before_date':date.today(),
-#               'after_date':date.today()}
-#         return kw
-

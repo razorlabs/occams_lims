@@ -9,7 +9,7 @@
       name="view"
       class=".aliquot.AliquotView"
       template="aliquot_templates/aliquot.pt"
-      permission="zope2.View"
+      permission="hive.lab.ViewAliquot"
       />
       
    <browser:defaultView
@@ -22,7 +22,7 @@
       name="view"
       class=".specimen.SpecimenView"
       template="specimen_templates/specimen.pt"
-      permission="zope2.View"
+      permission="hive.lab.ViewSpecimen"
       />
       
    <browser:defaultView
@@ -35,7 +35,7 @@
       name="view"
       class=".clinicallab.ClinicalLabView"
       template="clinicallab_templates/view.pt"
-      permission="zope2.View"
+      permission="hive.lab.ManageSpecimen"
       />
 
    <browser:defaultView
@@ -48,14 +48,14 @@
       name="batched"
       class=".clinicallab.ClinicalLabBatched"
       template="clinicallab_templates/batched.pt"
-      permission="zope2.View"
+      permission="hive.lab.ManageSpecimen"
       />
   <browser:page
       for="occams.lab.interfaces.IClinicalLab"
       name="postponed"
       class=".clinicallab.ClinicalLabPostponed"
       template="clinicallab_templates/postponed.pt"
-      permission="zope2.View"
+      permission="hive.lab.ManageSpecimen"
       />
 
   <browser:page
@@ -63,7 +63,7 @@
       name="complete"
       class=".clinicallab.ClinicalLabDone"
       template="clinicallab_templates/completed.pt"
-      permission="zope2.View"
+      permission="hive.lab.ManageSpecimen"
       />
 
 
@@ -73,7 +73,7 @@
       name="view"
       class=".researchlab.ResearchLabView"
       template="aliquotlab_templates/view.pt"
-      permission="zope2.View"
+      permission="hive.lab.AliquotSpecimen"
       />
 
   <browser:defaultView
@@ -86,7 +86,7 @@
       name="ready"
       class=".researchlab.AliquotReadyView"
       template="aliquotlab_templates/ready.pt"
-      permission="zope2.View"
+      permission="hive.lab.AliquotSpecimen"
       />
 
   <browser:page
@@ -94,7 +94,7 @@
       name="prepared"
       class=".researchlab.AliquotPreparedView"
       template="aliquotlab_templates/prepared.pt"
-      permission="zope2.View"
+      permission="hive.lab.ManageAliquot"
       />
 
 
@@ -103,7 +103,7 @@
       name="edit-aliquot"
       class=".researchlab.AliquotEditView"
       template="aliquotlab_templates/aliquotedit.pt"
-      permission="zope2.View"
+      permission="hive.lab.ModifyAliquot"
       />
 
   <browser:page
@@ -111,7 +111,7 @@
       name="inventory"
       class=".researchlab.AliquotInventoryView"
       template="aliquotlab_templates/inventory.pt"
-      permission="zope2.View"
+      permission="hive.lab.ModifyAliquot"
       />
 
   <browser:page
@@ -119,7 +119,7 @@
       name="checkedin"
       class=".researchlab.AliquotRecoverView"
       template="aliquotlab_templates/recover.pt"
-      permission="zope2.View"
+      permission="hive.lab.ManageAliquot"
       />
 
   <browser:page
@@ -127,7 +127,7 @@
       name="checkin"
       class=".researchlab.AliquotCheckInView"
       template="aliquotlab_templates/checkin.pt"
-      permission="zope2.View"
+      permission="hive.lab.CheckinAliquot"
       />
 
   <browser:page
@@ -135,7 +135,7 @@
       name="checkout"
       class=".researchlab.AliquotCheckoutView"
       template="aliquotlab_templates/checkout.pt"
-      permission="zope2.View"
+      permission="hive.lab.CheckoutAliquot"
       />
 
   <browser:page
@@ -143,7 +143,7 @@
       name="specimen"
       class=".specimen.SpecimenPatientView"
       template="specimen_templates/specimen.pt"
-      permission="zope2.View"
+      permission="hive.lab.ViewSpecimen"
       />
 
   <browser:page
@@ -151,7 +151,7 @@
       name="specimen"
       class=".specimen.SpecimenVisitView"
       template="specimen_templates/specimen.pt"
-      permission="zope2.View"
+      permission="hive.lab.ViewSpecimen"
       />
 
   <browser:page
@@ -159,7 +159,7 @@
       name="aliquot"
       class=".aliquot.AliquotPatientView"
       template="aliquot_templates/aliquot.pt"
-      permission="zope2.View"
+      permission="hive.lab.ViewAliquot"
       />
 
   <browser:page
@@ -167,7 +167,7 @@
       name="aliquot"
       class=".aliquot.AliquotVisitView"
       template="aliquot_templates/aliquot.pt"
-      permission="zope2.View"
+      permission="hive.lab.ViewAliquot"
       />
 
     <browser:page
@@ -175,14 +175,14 @@
       name="checklist"
       class=".aliquot.AliquotChecklist"
       template="aliquot_templates/checklist.pt"
-      permission="zope2.View"
+      permission="hive.lab.ViewAliquot"
       />
     <browser:page
       for="occams.lab.interfaces.ILab"
       name="checklist"
       class=".aliquot.AliquotChecklist"
       template="aliquot_templates/checklist.pt"
-      permission="zope2.View"
+      permission="hive.lab.ViewAliquot"
       /> 
 
    <browser:page
@@ -190,6 +190,6 @@
       name="receipt"
       class=".aliquot.AliquotReciept"
       template="aliquot_templates/receipt.pt"
-      permission="zope2.View"
+      permission="hive.lab.ViewAliquot"
       />
 </configure>

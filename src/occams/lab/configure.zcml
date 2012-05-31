@@ -43,9 +43,6 @@
 
   <browser:resourceDirectory name="occams.lab" directory="static" />
 
-  <!-- Managers are going away, this just breaks -->
-<!--   <adapter factory=".content.managers.SpecimenManager" />
-  <adapter factory=".content.managers.AliquotManager" /> -->
 
 <plone:behavior
       title="Label Sheet"
@@ -76,18 +73,6 @@
       provides="occams.lab.interfaces.IRequestedSpecimen"
       for="avrc.aeh.interfaces.IVisit"
       />
-<!--   <plone:behavior
-      title="Aliquot View"
-      description="Make this item Show Filtered Aliquot"
-      provides="occams.lab.interfaces.aliquot.IAliquotSupport"
-      for="avrc.aeh.interfaces.IClinicalObject"
-      />
 
-  <plone:behavior
-      title="Specimen View"
-      description="Make this item Show Filtered Specimen"
-      provides="occams.lab.interfaces.specimen.ISpecimenSupport"
-      for="avrc.aeh.interfaces.IClinicalObject"
-      /> -->
 
 </configure>
