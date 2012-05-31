@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<object name="avrc.aeh.cycle"
-   meta_type="Dexterity FTI"
-   i18n:domain="avrc.aeh" xmlns:i18n="http://xml.zope.org/namespaces/i18n">
-
- <property name="behaviors" purge="false">
-     <element value="hive.lab.interfaces.specimen.IRequiredSpecimen" />
- </property>
-</object>

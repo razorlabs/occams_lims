@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 import os
 
-version = '0.4.7'
+version = '1.0.0b1'
 
 setup(
-    name='hive.lab',
+    name='occams.lab',
     version=version,
     description="Lab Inventory management",
     classifiers=[
@@ -13,12 +13,12 @@ setup(
         ],
     keywords='',
     author='BEAST Core Development Team',
-    author_email='beast@ucsd.edu',
-    url='https://github.com/beastcore/hive.lab',
+    author_email='bitcore@ucsd.edu',
+    url='https://github.com/beastcore/occams.lab',
     license='GPL',
     packages=find_packages('src', exclude=['ez_setup']),
     package_dir={'':'src'},
-    namespace_packages=['hive'],
+    namespace_packages=['occams'],
     include_package_data=True,
     zip_safe=False,
     install_requires=[
@@ -33,7 +33,7 @@ setup(
         'z3c.form >= 2.4.1', # For attributes to work correctly
 
         'avrc.aeh',
-        'avrc.data.store', # EAV Back-end
+        'occams.datastore [postgresql]',
         'beast.browser', # Tools for browser displays
         ],
     extras_require=dict(
