@@ -42,7 +42,7 @@
   </head>
 
   <body>
-     <a href="./">return to Checkout</a>
+     <a href="./" tal:attributes="href string:${view/lab_url}/checkout">return to Checkout</a>
         <h1
           class="documentFirstHeading">Specimen Pending Aliquot</h1>
 

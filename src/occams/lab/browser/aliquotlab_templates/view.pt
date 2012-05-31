@@ -77,7 +77,7 @@
      
         <br class="visualClear" />
 
-        <tal:data define="form view/crudform">
+        <tal:data define="form view/getCrudForm">
             <tal:hasdata tal:condition="form">
                 <tal:crud  replace="structure form" />
                 <a href="#" name="" style="display:none"></a>

@@ -243,7 +243,6 @@ class FilterFormCore(form.Form):
                 continue
             elif type(value) == datetime.date:
                 self.widgets[key].value = (unicode(value.year), unicode(value.month), unicode(value.day))
- ## totally broken?!?!?
             elif hasattr(self.widgets[key], 'terms'):
                 try: # to process this vocabulary object
                     self.widgets[key].value = [value]

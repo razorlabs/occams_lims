@@ -259,7 +259,6 @@ class SpecimenAddForm(z3cform.Form):
             session.flush()
         return self.request.response.redirect(os.path.join(self.context.absolute_url(), '@@specimen'))
 
-
 class SpecimenTypeForm(SpecimenCoreForm):
     """
     Primary view for a clinical lab object.

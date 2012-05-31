@@ -80,12 +80,9 @@ class ResearchLabView(BrowserView):
     """
     Primary view for a research lab object.
     """
-    # def __init__(self, context, request):
-    #     self.context = context
-    #     self.request = request
-    #     self.crudform = self.getCrudForm()
-    #     super(ResearchLabView, self).__init__(context, request)
-
+ 
+    def labUrl(self):
+        return self.context.absolute_url()
 
     def listAliquotTypes(self):
         session = named_scoped_session(SCOPED_SESSION_KEY)
@@ -93,10 +90,9 @@ class ResearchLabView(BrowserView):
             session.query(model.AliquotType)
             .order_by(model.AliquotType.title.asc())
             )
-        research_url = self.context.absolute_url()
 
         for aliquot_type in iter(query):
-            url = "%s/%s/%s" %(research_url, aliquot_type.specimen_type.name, aliquot_type.name)
+            url = "%s/%s/%s" %(self.labUrl(), aliquot_type.specimen_type.name, aliquot_type.name)
             yield {'url': url, 'title': aliquot_type.title}
 
     def getCrudForm(self):
@@ -188,7 +184,8 @@ class AliquotCreator(crud.EditForm):
             kwargs['inventory_date'] = kwargs['store_date']
             # clean up the dictionary
             for field in ['patient_legacy_number', 'cycle_title', 'patient_our','select']:
-                del kwargs[field]
+                if field in kwargs.keys():
+                    del kwargs[field]
             while count:
                 newAliquot = model.Aliquot(**kwargs)
                 session.add(newAliquot)
@@ -307,6 +304,9 @@ class AliquotReadyView(BrowserView):
         view.form_instance = form
         return view
 
+    def labUrl(self):
+        return self.context.absolute_url()
+
 class AliquotPreparedButtons(AliquotButtonCore):
     label = _(u"")
     z3cform.extends(AliquotButtonCore)
@@ -408,6 +408,9 @@ class AliquotPreparedView(BrowserView):
         view = view.__of__(context)
         view.form_instance = form
 
+    def labUrl(self):
+        return self.context.absolute_url()
+
 class AliquotEditButtons(AliquotButtonCore):
     label = _(u"")
     z3cform.extends(AliquotButtonCore)
@@ -470,6 +473,9 @@ class AliquotEditView(BrowserView):
         view = view.__of__(context)
         view.form_instance = form
         return view
+
+    def labUrl(self):
+        return self.context.absolute_url()
 
 class AliquotHoldButtons(AliquotButtonCore):
     """
@@ -583,6 +589,9 @@ class AliquotCheckoutView(BrowserView):
         view.form_instance = form
         return view
 
+    def labUrl(self):
+        return self.context.absolute_url()
+
 class AliquotRecoverButtons(AliquotButtonCore):
     label = _(u"")
     z3cform.extends(AliquotButtonCore)
@@ -677,6 +686,9 @@ class AliquotRecoverView(BrowserView):
         view = view.__of__(context)
         view.form_instance = form
         return view
+
+    def labUrl(self):
+        return self.context.absolute_url()
 
 class AliquotCheckInButtons(AliquotButtonCore):
     label = _(u"")
@@ -790,6 +802,9 @@ class AliquotCheckInView(BrowserView):
         view = view.__of__(context)
         view.form_instance = form
         return view
+
+    def labUrl(self):
+        return self.context.absolute_url()
 
 class AliquotInventoryButtons(AliquotButtonCore):
     """
@@ -933,3 +948,6 @@ class AliquotInventoryView(BrowserView):
         view = view.__of__(context)
         view.form_instance = form
         return view
+
+    def labUrl(self):
+        return self.context.absolute_url()

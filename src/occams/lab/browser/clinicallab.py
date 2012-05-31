@@ -56,8 +56,8 @@ class ClinicalLabViewForm(SpecimenCoreForm):
     """
     Primary view for a clinical lab object.
     """
-    label = u"Specimen Pending Draw"
-    description = _(u"Specimen pending processing.")
+    label = u""
+    description = _(u"")
 
     @property
     def editform_factory(self):

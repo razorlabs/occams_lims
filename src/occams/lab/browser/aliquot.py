@@ -64,7 +64,7 @@ class AliquotButtonCore(base.CoreButtons):
 
 class AliquotCoreForm(base.CoreForm):
     """
-    Base Crud form for editing specimen. Some specimen will need to be 
+    Base Crud form for aliquot
     """ 
     @property
     def edit_schema(self):
@@ -303,7 +303,6 @@ class AliquotQueueForm(AliquotCoreForm):
         query = query.filter(model.Aliquot.modify_user_id == current_user.id)
         return query
 
-
 class AliquotTypeForm(AliquotForm):
     """
     Primary view for a clinical lab object.
@@ -348,6 +347,13 @@ class AliquotView(BrowserView):
         view.form_instance = form
         return view
 
+    def labUrl(self):
+        url = './'
+        catalog = getToolByName(self.context, 'portal_catalog')
+        brains = catalog.search({'portal_type':'occams.lab.researchlab'})
+        if len(brains):
+            url = brains[0].getURL()
+        return url
 
     def getQueueForm(self):
         """
@@ -366,11 +372,10 @@ class AliquotView(BrowserView):
     def labUrl(self):
         url = './'
         catalog = getToolByName(self.context, 'portal_catalog')
-        brains = catalog.search({'portal_type':'hive.lab.researchlab'})
+        brains = catalog.search({'portal_type':'occams.lab.researchlab'})
         if len(brains):
             url = brains[0].getURL()
         return url
-
 
 class AliquotPatientForm(AliquotForm):
     """
@@ -433,7 +438,7 @@ class AliquotPatientView(BrowserView):
     def labUrl(self):
         url = './'
         catalog = getToolByName(self.context, 'portal_catalog')
-        brains = catalog.search({'portal_type':'hive.lab.researchlab'})
+        brains = catalog.search({'portal_type':'occams.lab.researchlab'})
         if len(brains):
             url = brains[0].getURL()
         return url
@@ -503,7 +508,7 @@ class AliquotVisitView(BrowserView):
     def labUrl(self):
         url = './'
         catalog = getToolByName(self.context, 'portal_catalog')
-        brains = catalog.search({'portal_type':'hive.lab.researchlab'})
+        brains = catalog.search({'portal_type':'occams.lab.researchlab'})
         if len(brains):
             url = brains[0].getURL()
         return url
@@ -537,7 +542,7 @@ class AliquotChecklist(BrowserView):
     def labUrl(self):
         url = './'
         catalog = getToolByName(self.context, 'portal_catalog')
-        brains = catalog.search({'portal_type':'hive.lab.researchlab'})
+        brains = catalog.search({'portal_type':'occams.lab.researchlab'})
         if len(brains):
             url = brains[0].getURL()
         return ur
@@ -574,7 +579,7 @@ class AliquotReciept(BrowserView):
     def labUrl(self):
         url = './'
         catalog = getToolByName(self.context, 'portal_catalog')
-        brains = catalog.search({'portal_type':'hive.lab.researchlab'})
+        brains = catalog.search({'portal_type':'occams.lab.researchlab'})
         if len(brains):
             url = brains[0].getURL()
         return ur
