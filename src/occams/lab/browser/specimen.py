@@ -18,7 +18,6 @@ from beast.browser import widgets
 from zope.app.intid.interfaces import IIntIds
 from occams.lab.browser import base
 from beast.browser.crud import NestedFormView
-from avrc.aeh.interfaces import IClinicalMarker
 from zope.security import checkPermission
 from Products.statusmessages.interfaces import IStatusMessage
 from occams.lab import vocabularies
@@ -341,7 +340,7 @@ class SpecimenPatientForm(SpecimenForm):
 
     def get_query(self):
         query = super(SpecimenPatientForm, self).get_query()
-        patient = IClinicalMarker(self.context).modelObj()
+        patient = self.context.getSQLObj()
         query = query.filter(model.Specimen.patient == patient)
         return query
 
@@ -381,7 +380,7 @@ class SpecimenVisitForm(SpecimenForm):
 
     def get_query(self):
         query = super(SpecimenVisitForm, self).get_query()
-        visit = IClinicalMarker(self.context).modelObj()
+        visit = self.context.getSQLObj()
         query = query.filter(model.Specimen.visit == visit).filter(model.Specimen.collect_date == visit.visit_date)
         return query
 
