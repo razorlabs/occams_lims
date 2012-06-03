@@ -14,7 +14,6 @@ from occams.lab import interfaces
 from zope.app.intid.interfaces import IIntIds
 import zope.component
 from beast.browser import widgets
-from avrc.aeh.interfaces import IClinicalMarker
 from occams.lab.browser import base
 from collective.beaker.interfaces import ISession
 from AccessControl import getSecurityManager
@@ -386,7 +385,7 @@ class AliquotPatientForm(AliquotForm):
 
     def get_query(self):
         query = super(AliquotPatientForm, self).get_query()
-        patient = IClinicalMarker(self.context).modelObj()
+        patient = self.context.getSQLObj()
         query = query.filter(model.Specimen.patient == patient)
         return query
 
@@ -452,10 +451,9 @@ class AliquotVisitForm(AliquotForm):
 
     def get_query(self):
         query = super(AliquotVisitForm, self).get_query()
-        visit = IClinicalMarker(self.context).modelObj()
+        visit = self.context.getSQLObj()
         query = query.filter(model.Specimen.patient == visit.patient)
         query = query.join(model.Specimen.cycle).filter(model.Cycle.id.in_([cycle.id for cycle in visit.cycles]))
-        # query = query.filter(model.Specimen.visit == visit).filter(model.Specimen.collect_date == visit.visit_date)
         return query
 
     @property
