@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<object name="avrc.aeh.institute"
+   meta_type="Dexterity FTI"
+   i18n:domain="avrc.aeh" xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+  <property name="allowed_content_types" purge="false">
+        <element value="occams.lab.cliniclab" />
+        <element value="occams.lab.researchlab" />
+  </property>
+ 
+</object>

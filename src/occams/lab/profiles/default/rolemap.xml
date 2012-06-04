@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<rolemap>
+  <roles>
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </roles>
+  <permissions>
+
+  <permission name="avrc: View an Institute" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="Nurse" />
+      <role name="Assistant" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+
+  </permission>
+
+  <permission name="avrc: View a Patient" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="Nurse" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="avrc: View a Visit" acquire="True">
+      <role name="Manager"/>
+      <role name="PrimaryInvestigator" />
+      <role name="Nurse" />
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+  </permission>
+  
+  <permission name="occams: Add Lab" acquire="True">
+      <role name="Manager"/>  
+  </permission>
+  
+  <permission name="occams: Modify Lab" acquire="True">
+      <role name="Manager"/>  
+  </permission>
+  
+  <permission name="occams: Request Specimen" acquire="True">
+      <role name="Manager" />
+      <role name="Nurse" />
+      <role name="ClinicalLab" />
+  </permission>
+
+  <permission name="occams: Manage Specimen" acquire="True">
+      <role name="Manager"/>
+      <role name="ClinicalLab" />
+  </permission>
+
+  <permission name="occams: Aliquot Specimen" acquire="True">
+      <role name="Manager"/>  
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="occams: Manage Aliquot" acquire="True">
+      <role name="Manager"/>
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="occams: View Specimen" acquire="True">
+      <role name="Manager"/>
+      <role name="ClinicalLab" />
+      <role name="ExperimentalLab" />
+      <role name="Nurse" />
+  </permission>
+  
+  <permission name="occams: View Aliquot" acquire="True">
+      <role name="Manager"/>
+      <role name="ExperimentalLab" />
+      <role name="PrimaryInvestigator" />
+  </permission>
+
+  <permission name="occams: Add Blueprints" acquire="True">
+      <role name="Manager"/>
+  </permission>
+
+  <permission name="occams: Modify Blueprints" acquire="True">
+      <role name="Manager"/>
+  </permission>
+
+  <permission name="occams: Hold Aliquot" acquire="True">
+      <role name="Manager"/>
+      <role name="ExperimentalLab" />
+      <role name="PrimaryInvestigator" />
+  </permission>
+
+  <permission name="occams: Check In Aliquot" acquire="True">
+      <role name="Manager"/>
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="occams: Modify Aliquot" acquire="True">
+      <role name="Manager"/>
+      <role name="ExperimentalLab" />
+  </permission>
+
+  <permission name="occams: Check Out Aliquot" acquire="True">
+      <role name="Manager"/>
+      <role name="ExperimentalLab" />
+  </permission>
+  
+  </permissions>
+</rolemap>

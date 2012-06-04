@@ -1,0 +1,195 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="occams.lab">
+
+  <browser:page
+      for="occams.lab.interfaces.IAliquotContext"
+      name="view"
+      class=".aliquot.AliquotView"
+      template="aliquot_templates/aliquot.pt"
+      permission="occams.lab.ViewAliquot"
+      />
+      
+   <browser:defaultView
+     for="occams.lab.interfaces.IAliquotContext"
+     name="view"
+     />
+
+  <browser:page
+      for="occams.lab.interfaces.ISpecimenContext"
+      name="view"
+      class=".specimen.SpecimenView"
+      template="specimen_templates/specimen.pt"
+      permission="occams.lab.ViewSpecimen"
+      />
+      
+   <browser:defaultView
+     for="occams.lab.interfaces.ISpecimenContext"
+     name="view"
+     />
+
+  <browser:page
+      for="occams.lab.interfaces.IClinicalLab"
+      name="view"
+      class=".clinicallab.ClinicalLabView"
+      template="clinicallab_templates/view.pt"
+      permission="occams.lab.ManageSpecimen"
+      />
+
+   <browser:defaultView
+     for="occams.lab.interfaces.IClinicalLab"
+     name="view"
+     />
+
+  <browser:page
+      for="occams.lab.interfaces.IClinicalLab"
+      name="batched"
+      class=".clinicallab.ClinicalLabBatched"
+      template="clinicallab_templates/batched.pt"
+      permission="occams.lab.ManageSpecimen"
+      />
+  <browser:page
+      for="occams.lab.interfaces.IClinicalLab"
+      name="postponed"
+      class=".clinicallab.ClinicalLabPostponed"
+      template="clinicallab_templates/postponed.pt"
+      permission="occams.lab.ManageSpecimen"
+      />
+
+  <browser:page
+      for="occams.lab.interfaces.IClinicalLab"
+      name="complete"
+      class=".clinicallab.ClinicalLabDone"
+      template="clinicallab_templates/completed.pt"
+      permission="occams.lab.ManageSpecimen"
+      />
+
+
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="view"
+      class=".researchlab.ResearchLabView"
+      template="aliquotlab_templates/view.pt"
+      permission="occams.lab.AliquotSpecimen"
+      />
+
+  <browser:defaultView
+     for="occams.lab.interfaces.IResearchLab"
+     name="view"
+     />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="ready"
+      class=".researchlab.AliquotReadyView"
+      template="aliquotlab_templates/ready.pt"
+      permission="occams.lab.AliquotSpecimen"
+      />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="prepared"
+      class=".researchlab.AliquotPreparedView"
+      template="aliquotlab_templates/prepared.pt"
+      permission="occams.lab.ManageAliquot"
+      />
+
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="edit-aliquot"
+      class=".researchlab.AliquotEditView"
+      template="aliquotlab_templates/aliquotedit.pt"
+      permission="occams.lab.ModifyAliquot"
+      />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="inventory"
+      class=".researchlab.AliquotInventoryView"
+      template="aliquotlab_templates/inventory.pt"
+      permission="occams.lab.ModifyAliquot"
+      />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="checkedin"
+      class=".researchlab.AliquotRecoverView"
+      template="aliquotlab_templates/recover.pt"
+      permission="occams.lab.ManageAliquot"
+      />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="checkin"
+      class=".researchlab.AliquotCheckInView"
+      template="aliquotlab_templates/checkin.pt"
+      permission="occams.lab.CheckinAliquot"
+      />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="checkout"
+      class=".researchlab.AliquotCheckoutView"
+      template="aliquotlab_templates/checkout.pt"
+      permission="occams.lab.CheckoutAliquot"
+      />
+
+  <browser:page
+      for="avrc.aeh.interfaces.IPatient"
+      name="specimen"
+      class=".specimen.SpecimenPatientView"
+      template="specimen_templates/specimen.pt"
+      permission="occams.lab.ViewSpecimen"
+      />
+
+  <browser:page
+      for="avrc.aeh.interfaces.IVisit"
+      name="specimen"
+      class=".specimen.SpecimenVisitView"
+      template="specimen_templates/specimen.pt"
+      permission="occams.lab.ViewSpecimen"
+      />
+
+  <browser:page
+      for="avrc.aeh.interfaces.IPatient"
+      name="aliquot"
+      class=".aliquot.AliquotPatientView"
+      template="aliquot_templates/aliquot.pt"
+      permission="occams.lab.ViewAliquot"
+      />
+
+  <browser:page
+      for="avrc.aeh.interfaces.IVisit"
+      name="aliquot"
+      class=".aliquot.AliquotVisitView"
+      template="aliquot_templates/aliquot.pt"
+      permission="occams.lab.ViewAliquot"
+      />
+
+    <browser:page
+      for="avrc.aeh.interfaces.IClinicalObject"
+      name="checklist"
+      class=".aliquot.AliquotChecklist"
+      template="aliquot_templates/checklist.pt"
+      permission="occams.lab.ViewAliquot"
+      />
+    <browser:page
+      for="occams.lab.interfaces.ILab"
+      name="checklist"
+      class=".aliquot.AliquotChecklist"
+      template="aliquot_templates/checklist.pt"
+      permission="occams.lab.ViewAliquot"
+      /> 
+
+   <browser:page
+      for="occams.lab.interfaces.ILab"
+      name="receipt"
+      class=".aliquot.AliquotReciept"
+      template="aliquot_templates/receipt.pt"
+      permission="occams.lab.ViewAliquot"
+      />
+</configure>
