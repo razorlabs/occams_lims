@@ -156,8 +156,8 @@ class SpecimenForm(SpecimenCoreForm):
     """
     Primary view for a clinical lab object.
     """
-    label = u"Specimen Pending Draw"
-    description = _(u"Specimen pending processing.")
+    label = u""
+    description = _(u"")
 
     def update(self):
         self.view_schema = field.Fields(interfaces.ISpecimen).select('state') + self.edit_schema
