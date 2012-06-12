@@ -421,4 +421,4 @@ class SpecimenVisitView(BrowserView):
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
-        return vie
+        return view
