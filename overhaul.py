@@ -37,14 +37,26 @@ def main():
     configureGlobalSession(sys.argv[1], sys.argv[2])
     addUser("bitcore@ucsd.edu")
     updateUsers()
+    Session.commit()
+    print "Moving in vocabularies ...."
     moveInSpecialInstruction()
+    Session.commit()
     moveInLocation()
+    Session.commit()
     moveInSpecimenState()
+    Session.commit()
     moveInAliquotState()
+    Session.commit()
     moveInSpecimenType()
+    Session.commit()
     moveInAliquotType()
+    Session.commit()
+    print "Moving in specimen ...."
     moveInSpecimen()
+    Session.commit()
+    print "Moving in aliquot ...."
     moveInAliquot()
+    Session.commit()
     resetId(model.SpecialInstruction, sys.argv[2])
     resetId(model.Location, sys.argv[2])
     resetId(model.SpecimenState, sys.argv[2])
@@ -53,8 +65,6 @@ def main():
     resetId(model.AliquotType, sys.argv[2])
     resetId(model.Specimen, sys.argv[2])
     resetId(model.Aliquot, sys.argv[2])
-
-
     Session.commit()
     # moveIn
 
@@ -192,26 +202,14 @@ def moveInSpecimen():
     global Session
     global old_model
     spec=aliased(old_model.entity("specimen"))
-    # aliq = aliased(old_model.entity("aliquot"))
-    # ali_h= aliased(old_model.entity("aliquot_history"))
-    # vocab = aliased(old_model.entity('specimen_aliquot_term'))
-    # vocab_alias  = aliased(old_model.entity('specimen_aliquot_term'))
-    # state = aliased(old_model.entity('specimen_aliquot_term'))
-    # location = aliased(old_model.entity('specimen_aliquot_term'))
+
 
     query = (
         Session.query(spec).filter(spec.is_active==True).order_by(spec.id)
         )
     for entry in iter(query):
         if Session.query(cmodel.Patient).filter(cmodel.Patient.id == entry.subject_id).count()>0:
-        # create_user = entry.create_name is not None and entry.create_name or 'bitcore@ucsd.edu'
-        # create_user = Session.query(dsmodel.User).filter(key=create_user).one()
-        # modify_user = entry.modify_name is not None and entry.modify_name or \
-        #                       entry.create_name is not None and entry.create_name or 'bitcore@ucsd.edu'
-        # modify_user = Session.query(dsmodel.User).filter(key=modify_user).one()
 
-
-        # location_id = Session.query(model.Location.id).filter(model.Location.value==location).one()
             specimen = model.Specimen(
                 id = entry.id,
                 specimen_type_id = entry.type_id,
@@ -230,19 +228,13 @@ def moveInSpecimen():
                 modify_date = entry.modify_date
                 )
             Session.add(specimen)
-            print specimen.id
+            print "specimen - %s" % specimen.id
             Session.flush()
 
 def moveInAliquot():
     global Session
     global old_model
-    # spec=old_model.entity("specimen")
     aliq = old_model.entity("aliquot")
-    # ali_h= old_model.entity("aliquot_history")
-    # vocab = old_model.entity('specimen_aliquot_term')
-    # vocab_alias  = old_model.entity('specimen_aliquot_term')
-    # state = old_model.entity('specimen_aliquot_term')
-    # location = old_model.entity('specimen_aliquot_term')
 
     query = (
         Session.query(aliq)
@@ -272,7 +264,7 @@ def moveInAliquot():
             special_instruction_id = entry.special_instruction_id,
             )
         Session.add(aliquot)
-        print aliquot.id
+        print "Aliquot - %s" % aliquot.id
         Session.flush()
 
 

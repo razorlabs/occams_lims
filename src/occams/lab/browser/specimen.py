@@ -156,8 +156,8 @@ class SpecimenForm(SpecimenCoreForm):
     """
     Primary view for a clinical lab object.
     """
-    label = u"Specimen Pending Draw"
-    description = _(u"Specimen pending processing.")
+    label = u""
+    description = _(u"")
 
     def update(self):
         self.view_schema = field.Fields(interfaces.ISpecimen).select('state') + self.edit_schema
@@ -421,4 +421,4 @@ class SpecimenVisitView(BrowserView):
         view = NestedFormView(context, self.request)
         view = view.__of__(context)
         view.form_instance = form
-        return vie
+        return view
