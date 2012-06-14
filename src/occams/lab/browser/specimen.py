@@ -88,6 +88,29 @@ class SpecimenCoreButtons(base.CoreButtons):
         self.saveChanges(action)
         return self.request.response.redirect(self.action)
 
+
+class SpecimenViewButtons(base.CoreButtons):
+    z3cform.extends(base.CoreButtons)
+
+    @property
+    def _stateModel(self):
+        return model.SpecimenState
+
+    @property 
+    def sampletype(self):
+        return u'specimen'
+        
+    @property 
+    def _model(self):
+        return model.Specimen
+
+
+    @button.buttonAndHandler(_('Recover selected'), name='recover')
+    def handleRecoverDraw(self, action):
+        self.changeState(action, 'pending-draw', 'recovered')
+        return self.request.response.redirect(self.action)
+
+
 class SpecimenCoreForm(base.CoreForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
@@ -286,7 +309,6 @@ class SpecimenTypeForm(SpecimenCoreForm):
             query = query.filter(~model.SpecimenState.name.in_((u'aliquoted',u'cancel-draw', u'rejected')))
         return query
 
-
 class SpecimenView(BrowserView):
     """
     Primary view for a research lab object.
@@ -335,8 +357,12 @@ class SpecimenPatientForm(SpecimenForm):
     """
     Primary view for a clinical lab object.
     """
-    label = u"Specimen Pending Draw"
-    description = _(u"Specimen pending processing.")
+    label = u""
+    description = _(u"")
+
+    @property
+    def editform_factory(self):
+        return SpecimenViewButtons
 
     def get_query(self):
         query = super(SpecimenPatientForm, self).get_query()
@@ -375,8 +401,12 @@ class SpecimenVisitForm(SpecimenForm):
     """
     Primary view for a clinical lab object.
     """
-    label = u"Specimen Pending Draw"
-    description = _(u"Specimen pending processing.")
+    label = u""
+    description = _(u"")
+    
+    @property
+    def editform_factory(self):
+        return SpecimenViewButtons
 
     def get_query(self):
         query = super(SpecimenVisitForm, self).get_query()
