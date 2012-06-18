@@ -132,8 +132,8 @@ class AliquotForm(AliquotCoreForm):
     """
     Primary view for a clinical lab object.
     """
-    label = u"Specimen Pending Draw"
-    description = _(u"Specimen pending processing.")
+    label = u""
+    description = _(u"")
 
     def update(self):
         self.view_schema = self.edit_schema

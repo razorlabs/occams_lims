@@ -49,7 +49,7 @@ class SpecimenPendingButtons(SpecimenCoreButtons):
     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='rejected')
     def handleCancelDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'rejected', 'canceled')
+        self.changeState(action, 'cancel-draw', 'canceled')
         return self.request.response.redirect(self.action)
 
 class ClinicalLabViewForm(SpecimenCoreForm):
@@ -159,7 +159,7 @@ class SpecimenPostponedButtons(SpecimenCoreButtons):
     @button.buttonAndHandler(_('Mark Selected Undrawn'), name='rejected')
     def handleCancelDraw(self, action):
         self.saveChanges(action)
-        self.changeState(action, 'rejected', 'canceled')
+        self.changeState(action, 'cancel-draw', 'canceled')
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Draw selected'), name='draw')

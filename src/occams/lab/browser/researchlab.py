@@ -283,7 +283,6 @@ class AliquotReadyForm(AliquotCoreForm):
                 }
                 self._aliquotList.append((i, newAliquot))
                 i = i + 1
-        # session.rollback()
         return self._aliquotList
 
 class AliquotReadyView(BrowserView):
