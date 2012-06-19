@@ -171,6 +171,7 @@ class AliquotCreator(crud.EditForm):
             data, errors = subform.extractData()
             if not data['select'] or not data['count']:
                 continue
+
             if errors:
                 if status is no_changes:
                     status = subform.formErrorsMessage
@@ -178,25 +179,26 @@ class AliquotCreator(crud.EditForm):
                     status = partly_success
                 continue
             count = data.pop('count')
+            del data['select']
             changes = subform.applyChanges(data)
-            kwargs = subform.content
-            kwargs['state'] = session.query(model.AliquotState).filter_by(name = 'pending').one()
-            kwargs['inventory_date'] = kwargs['store_date']
-            # clean up the dictionary
-            for field in ['patient_legacy_number', 'aliquot_type_title', 'cycle_title', 'patient_our','select']:
-                if field in kwargs.keys():
-                    del kwargs[field]
-            labelsheet = interfaces.ILabelPrinter(self.context.context)
-            while count:
-                newAliquot = model.Aliquot(**kwargs)
-                session.add(newAliquot)
+            if changes:
+                kwargs = subform.content
+                kwargs['state'] = session.query(model.AliquotState).filter_by(name = 'pending').one()
+                kwargs['inventory_date'] = kwargs['store_date']
+                # clean up the dictionary
+                for field in ['patient_legacy_number', 'aliquot_type_title', 'cycle_title', 'patient_our']:
+                    if field in kwargs.keys():
+                        del kwargs[field]
+                while count:
+                    newAliquot = model.Aliquot(**kwargs)
+                    session.add(newAliquot)
+                    count = count -1
                 session.flush()
-                labelsheet.queueLabel(newAliquot)
-                count = count -1
             if status is no_changes:
                 status = success
         return self.request.response.redirect(self.action)
 
+                
     @button.buttonAndHandler(_('Mark Specimen Complete'), name='complete')
     def handleCompleteSpecimen(self, action):
         self.changeState(action, 'aliquoted', 'completed')
@@ -300,20 +302,6 @@ class AliquotReadyView(BrowserView):
         """
         context = self.context.aq_inner
         form = AliquotReadyForm(context, self.request)
-        if hasattr(form, 'getCount') and form.getCount() < 1:
-            return None
-        view = NestedFormView(context, self.request)
-        view = view.__of__(context)
-        view.form_instance = form
-        return view
-
-    def getLabelForm(self):
-        """
-        Create a form instance.
-        @return: z3c.form wrapped for Plone 3 view
-        """
-        context = self.context.aq_inner
-        form = LabelForm(context, self.request)
         if hasattr(form, 'getCount') and form.getCount() < 1:
             return None
         view = NestedFormView(context, self.request)

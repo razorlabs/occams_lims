@@ -30,24 +30,6 @@
                 <p>If you feel that this is in error, contact the <a href="" tal:attributes="href string:mailto:${context/email_from_address}">site administrator</a>.</p>
             </tal:nodata>
         </tal:data>
-
-        <br class="visualClear" />
-        <tal:data define="form view/getLabelForm">
-            <tal:hasdata tal:condition="form">
-                <tal:crud replace="structure form" />
-                <a href="#" name="" style="display:none"></a>
-                <br class="visualClear" />
-                <ul>
-                    <li><b>Print Selected:</b> Prints selected aliquot labels to pdf, and clears the list.</li>
-                    <li><b>Refresh List:</b> Refreshes the list to the most current label queue.</li>
-                    <li><b>Clear Selected:</b>Clears selected labels from the label Queue.
-                    </li>
-                </ul>
-            </tal:hasdata>
-            <tal:nodata tal:condition="not:form">
-                <p>No labels currently in the queue.</p>
-            </tal:nodata>
-        </tal:data>
     </metal:content-core>
   </metal:content-core>
 </html>
