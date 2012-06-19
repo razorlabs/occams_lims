@@ -196,7 +196,9 @@ class AliquotCreator(crud.EditForm):
                 session.flush()
             if status is no_changes:
                 status = success
+        return self.request.response.redirect(self.action)
 
+                
     @button.buttonAndHandler(_('Mark Specimen Complete'), name='complete')
     def handleCompleteSpecimen(self, action):
         self.changeState(action, 'aliquoted', 'completed')
