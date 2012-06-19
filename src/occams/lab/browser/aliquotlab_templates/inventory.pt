@@ -11,7 +11,7 @@
 
          <tal:data define="form view/getFilterForm">
             <tal:hasdata tal:condition="form">
-            <dl class="collapsible collapsedOnLoad">
+            <dl class="collapsible">
               <dt class="collapsibleHeader">
                     Apply a Filter
               </dt>
@@ -29,7 +29,6 @@
 
         <tal:data define="form view/getCrudForm">
             <tal:hasdata tal:condition="form">
-                Aliquot that have incorrect data. Please update and return to the checked in state.
                 <tal:crud replace="structure form" />
                 <a href="#" name="" style="display:none"></a>
                 <br class="visualClear" />
