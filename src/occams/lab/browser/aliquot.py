@@ -67,14 +67,16 @@ class AliquotCoreForm(base.CoreForm):
     """ 
     @property
     def edit_schema(self):
-        fields = field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
+        fields = field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
+            select('id')
+        fields += field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
             select('patient_our',
                      'patient_legacy_number',
                      'cycle_title',
                      'aliquot_type_title'
                      )
         fields += field.Fields(interfaces.IAliquot).\
-            select('labbook',
+            select(
                      'volume',
                      'cell_amount', 
                      'store_date', 
@@ -100,8 +102,6 @@ class AliquotCoreForm(base.CoreForm):
     def updateWidgets(self):
         super(AliquotCoreForm, self).updateWidgets()
         if self.update_schema is not None:
-            if 'labbook' in self.update_schema.keys():
-                self.update_schema['labbook'].widgetFactory = widgets.AmountFieldWidget
             if 'volume' in self.update_schema.keys():
                 self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
             if 'cell_amount' in self.update_schema.keys():
@@ -151,7 +151,7 @@ class AliquotForm(AliquotCoreForm):
                      )
 
         fields += field.Fields(interfaces.IAliquot).\
-            select('labbook',
+            select(
                      'store_date',
                      'inventory_date',
                      )
@@ -187,6 +187,8 @@ class AliquotForm(AliquotCoreForm):
             .order_by(model.Aliquot.id.asc())
             )
         browsersession  = ISession(self.request)
+        if 'patient' in browsersession.keys():
+            query = query.filter(model.Specimen.patient.our == browsersession['patient'])
         if 'aliquot_type' in browsersession.keys():
             query = query.filter(model.AliquotType.name == browsersession['aliquot_type'])
         if 'after_date' in browsersession.keys():
@@ -368,14 +370,6 @@ class AliquotView(BrowserView):
         view.form_instance = form
         return view
 
-    def labUrl(self):
-        url = './'
-        catalog = getToolByName(self.context, 'portal_catalog')
-        brains = catalog.search({'portal_type':'occams.lab.researchlab'})
-        if len(brains):
-            url = brains[0].getURL()
-        return url
-
 class AliquotPatientForm(AliquotForm):
     """
     Primary view for a clinical lab object.
@@ -543,7 +537,7 @@ class AliquotChecklist(BrowserView):
         brains = catalog.search({'portal_type':'occams.lab.researchlab'})
         if len(brains):
             url = brains[0].getURL()
-        return ur
+        return url
 
 class AliquotReciept(BrowserView):
     """
@@ -580,5 +574,5 @@ class AliquotReciept(BrowserView):
         brains = catalog.search({'portal_type':'occams.lab.researchlab'})
         if len(brains):
             url = brains[0].getURL()
-        return ur
+        return url
 

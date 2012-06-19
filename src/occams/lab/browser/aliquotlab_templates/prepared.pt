@@ -8,9 +8,9 @@
       lang="en">
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
-        <tal:data define="form view/getFilterForm">
-            <tal:hasdata tal:condition="form">
-            <dl class="collapsible collapsedOnLoad">
+        <tal:data define="filterform view/getFilterForm">
+            <tal:hasdata tal:condition="filterform">
+            <dl class="collapsible">
               <dt class="collapsibleHeader">
                     Apply a Filter
               </dt>
@@ -18,7 +18,7 @@
                 <p>
                 Enter the criteria you would like to use as a filter the checked out aliquot. The filter will persist while you are logged in. Be sure to remove the filter to make sure you are seeing all available aliquot if that is your wish.
                 </p>
-                <tal:crud replace="structure form" />
+                <tal:crud replace="structure filterform" />
                 <a href="#" name="" style="display:none"></a>
               </dd>
             </dl>
