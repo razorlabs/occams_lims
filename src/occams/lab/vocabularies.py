@@ -12,11 +12,11 @@ from occams.form.traversal import closest
 from avrc.aeh.interfaces import IStudy
 
 
-def _render_vocab_cachekey(method, self, context):
-    return "%s_%s" %(str(self.__class__), str(self._modelKlass))
+# def _render_vocab_cachekey(method, self, context):
+#     return "%s_%s" %(str(self.__class__), str(self._modelKlass))
 
-def _render_specimen_vocab_cachekey(method, self, context):
-    return str(closest(context, IStudy).getId())
+# def _render_specimen_vocab_cachekey(method, self, context):
+#     return str(closest(context, IStudy).getId())
 
 class OccamsVocabulary(object):
     grok.implements(IVocabularyFactory)
@@ -25,7 +25,6 @@ class OccamsVocabulary(object):
     def _modelKlass(self):
         raise NotImplementedError
 
-    # @ram.cache(_render_vocab_cachekey)
     def getTerms(self, context):
         session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
@@ -92,7 +91,6 @@ grok.global_utility(AliquotTypeVocabulary, name=u"occams.lab.aliquottypevocabula
 class AvailableSpecimenVocabulary(object):
     grok.implements(IVocabularyFactory)
 
-    # @ram.cache(_render_specimen_vocab_cachekey)
     def getTerms(self, context):
         session = named_scoped_session(SCOPED_SESSION_KEY)
         study = closest(context, IStudy)

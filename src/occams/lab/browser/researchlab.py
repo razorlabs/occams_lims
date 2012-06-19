@@ -183,14 +183,16 @@ class AliquotCreator(crud.EditForm):
             kwargs['state'] = session.query(model.AliquotState).filter_by(name = 'pending').one()
             kwargs['inventory_date'] = kwargs['store_date']
             # clean up the dictionary
-            for field in ['patient_legacy_number', 'cycle_title', 'patient_our','select']:
+            for field in ['patient_legacy_number', 'aliquot_type_title', 'cycle_title', 'patient_our','select']:
                 if field in kwargs.keys():
                     del kwargs[field]
+            labelsheet = interfaces.ILabelPrinter(self.context.context)
             while count:
                 newAliquot = model.Aliquot(**kwargs)
                 session.add(newAliquot)
+                session.flush()
+                labelsheet.queueLabel(newAliquot)
                 count = count -1
-            session.flush()
             if status is no_changes:
                 status = success
         return self.request.response.redirect(self.action)
@@ -218,7 +220,7 @@ class AliquotReadyForm(AliquotCoreForm):
                      'aliquot_type_title'
                      )
         fields += field.Fields(interfaces.IAliquot).\
-            select('labbook',
+            select(
                       'volume',
                      'cell_amount', 
                      'store_date', 
@@ -255,6 +257,7 @@ class AliquotReadyForm(AliquotCoreForm):
             session.query(model.Specimen)
             .join(model.SpecimenState)
             .filter(model.SpecimenState.name.in_(self.display_state))
+            .order_by(model.Specimen.id.desc())
             )
         return specimenQ
 
@@ -262,14 +265,14 @@ class AliquotReadyForm(AliquotCoreForm):
         """
         Use a special ``get_item`` method to return a query instead for batching
         """
-        if getattr(self, '_aliquotList', None):
-            return self._aliquotList
+        if getattr(self, '_v_aliquotList', False):
+            return self._v_aliquotList
         session = named_scoped_session(SCOPED_SESSION_KEY)
         specimenQ = self.get_query()
-        self._aliquotList = []
+        self._v_aliquotList = []
         i = 0
         for specimen in iter(specimenQ):
-            types = session.query(model.AliquotType).filter(model.AliquotType.specimen_type == specimen.specimen_type)
+            types = session.query(model.AliquotType).filter(model.AliquotType.specimen_type == specimen.specimen_type).order_by(model.AliquotType.id)
             viewableSpecimen = interfaces.IViewableSpecimen(specimen)
             for aliquotType in types:
                 newAliquot = {
@@ -278,12 +281,13 @@ class AliquotReadyForm(AliquotCoreForm):
                 'cycle_title': viewableSpecimen.cycle_title,
                 'specimen':specimen,
                 'aliquot_type':aliquotType,
+                'aliquot_type_title':aliquotType.title,
                 'store_date':date.today(),
                 'location': aliquotType.location
                 }
-                self._aliquotList.append((i, newAliquot))
+                self._v_aliquotList.append((i, newAliquot))
                 i = i + 1
-        return self._aliquotList
+        return self._v_aliquotList
 
 class AliquotReadyView(BrowserView):
     """
@@ -296,6 +300,20 @@ class AliquotReadyView(BrowserView):
         """
         context = self.context.aq_inner
         form = AliquotReadyForm(context, self.request)
+        if hasattr(form, 'getCount') and form.getCount() < 1:
+            return None
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
+    def getLabelForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = LabelForm(context, self.request)
         if hasattr(form, 'getCount') and form.getCount() < 1:
             return None
         view = NestedFormView(context, self.request)
@@ -354,12 +372,11 @@ class AliquotPreparedForm(AliquotCoreForm):
     def display_state(self):
         return (u'pending', )
 
-
     def get_query(self):
         query = super(AliquotPreparedForm, self).get_query()
         browsersession  = ISession(self.request)
         if 'patient' in browsersession.keys():
-            query = query.join(model.Specimen.patient).filter(or_(model.Patient.has(our=browsersession['patient']), model.Patient.has(legacy_number=browsersession['patient'])))
+            query = query.join(model.Specimen.patient).filter(or_(model.Patient.our==browsersession['patient'], model.Patient.legacy_number==browsersession['patient']))
         return query
 
 class AliquotPreparedView(BrowserView):
@@ -380,6 +397,18 @@ class AliquotPreparedView(BrowserView):
         view.form_instance = form
         return view
 
+    def getFilterForm(self):
+        """
+        Create a form instance.
+        @return: z3c.form wrapped for Plone 3 view
+        """
+        context = self.context.aq_inner
+        form = AliquotFilterForm(context, self.request)
+        view = NestedFormView(context, self.request)
+        view = view.__of__(context)
+        view.form_instance = form
+        return view
+
     def getLabelForm(self):
         """
         Create a form instance.
@@ -393,19 +422,7 @@ class AliquotPreparedView(BrowserView):
         view = view.__of__(context)
         view.form_instance = form
         return view
-        
-    def getFilterForm(self):
-        """
-        Create a form instance.
-        @return: z3c.form wrapped for Plone 3 view
-        """
-        context = self.context.aq_inner
-        form = AliquotFilterForm(context, self.request)
-        if hasattr(form, 'getCount') and form.getCount() < 1:
-            return None
-        view = NestedFormView(context, self.request)
-        view = view.__of__(context)
-        view.form_instance = form
+
 
     def labUrl(self):
         return self.context.absolute_url()
@@ -743,7 +760,7 @@ class AliquotCheckInForm(AliquotCoreForm):
                      'aliquot_type_title'
                      )
         fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
-            select('labbook',
+            select(
                      'store_date', 
                      'special_instruction',
                      'sent_date',
@@ -767,7 +784,7 @@ class AliquotCheckInForm(AliquotCoreForm):
         query = super(AliquotCheckInForm, self).get_query()
         browsersession  = ISession(self.request)
         if 'patient' in browsersession.keys():
-            query = query.join(model.Specimen.patient).filter(or_(model.Patient.has(our=browsersession['patient']), model.Patient.has(legacy_number=browsersession['patient'])))
+            query = query.join(model.Specimen.patient).filter(or_(model.Patient.our==browsersession['patient'], model.Patient.legacy_number==browsersession['patient']))
         return query
 
 class AliquotCheckInView(BrowserView):
@@ -856,7 +873,7 @@ class AliquotInventoryForm(AliquotCoreForm):
                      'vol_count'
                      )
         fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
-            select('labbook',
+            select(
                      'store_date', 
                      'inventory_date',
                     )
@@ -874,7 +891,7 @@ class AliquotInventoryForm(AliquotCoreForm):
         query = super(AliquotInventoryForm, self).get_query()
         browsersession  = ISession(self.request)
         if 'patient' in browsersession.keys():
-            query = query.join(model.Specimen.patient).filter(or_(model.Patient.has(our=browsersession['patient']), model.Patient.has(legacy_number=browsersession['patient'])))
+            query = query.join(model.Specimen.patient).filter(or_(model.Patient.our==browsersession['patient'], model.Patient.legacy_number == browsersession['patient']))
         if 'after_date' in browsersession.keys():
             if 'before_date' in browsersession.keys():
                 query = query.filter(model.Aliquot.store_date >= browsersession['after_date'])
