@@ -145,7 +145,7 @@ class AliquotCreator(crud.EditForm):
         state = session.query(model.SpecimenState).filter_by(name='aliquoted').one()
         if selected:
             for id, aliquottemplate in selected:
-                aliquottemplate.specimen.state =state
+                aliquottemplate['specimen'].state =state
             session.flush()
             self.status = _(u"Your specimen have been %s." % (acttitle))
         else:
