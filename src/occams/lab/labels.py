@@ -10,7 +10,7 @@ from reportlab.graphics.barcode import code39
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from Products.ZCatalog.interfaces import ICatalogBrain
-
+from operator import itemgetter
 from datetime import date
 from occams.lab import interfaces
 # ------------------------------------------------------------------------------
@@ -366,7 +366,9 @@ class LabelPrinter(grok.Adapter):
 
     def getLabelBrains(self):
         queue = self.getLabelQueue()
-        return queue(sort_on='id', sort_order='ascending')
+        results = queue(sort_on='id', sort_order='ascending')
+        return sorted(results, key=itemgetter('patient_title', 'sample_type','id'))
+
 
     def queueLabel(self, labelable, uid=None):
         """
