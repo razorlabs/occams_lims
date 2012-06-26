@@ -122,7 +122,7 @@ class ViewableAliquot(grok.Adapter):
 
     @property
     def aliquot_id(self):
-        return self.context.id
+        return str(self.context.id)
 
     @property
     def aliquot_type_title(self):
