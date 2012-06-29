@@ -20,7 +20,7 @@ from beast.browser import widgets
 from occams.lab.browser.specimen import SpecimenCoreButtons
 from occams.lab.browser.specimen import SpecimenCoreForm
 from occams.lab.browser.aliquot import AliquotButtonCore
-from occams.lab.browser.aliquot import AliquotCoreForm
+from occams.lab.browser.aliquot import AliquotCoreForm, AliquotLimitForm
 from occams.lab.browser.base import LabelForm
 from collective.beaker.interfaces import ISession
 from occams.lab.browser.aliquot import AliquotFilterForm
@@ -349,7 +349,7 @@ class AliquotPreparedButtons(AliquotButtonCore):
         session.flush()
         return self.request.response.redirect(self.action)
 
-class AliquotPreparedForm(AliquotCoreForm):
+class AliquotPreparedForm(AliquotLimitForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
@@ -731,7 +731,7 @@ class AliquotCheckInButtons(AliquotButtonCore):
         session.flush()
         return self.request.response.redirect(self.action)
 
-class AliquotCheckInForm(AliquotCoreForm):
+class AliquotCheckInForm(AliquotLimitForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
@@ -843,7 +843,7 @@ class AliquotInventoryButtons(AliquotButtonCore):
         self.changeState(action, 'missing', 'Missing')
         return self.request.response.redirect(self.action)
 
-class AliquotInventoryForm(AliquotCoreForm):
+class AliquotInventoryForm(AliquotLimitForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """

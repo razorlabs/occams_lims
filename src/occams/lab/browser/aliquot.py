@@ -67,10 +67,9 @@ class AliquotCoreForm(base.CoreForm):
     """ 
     @property
     def edit_schema(self):
-        fields = field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
-            select('id')
-        fields += field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
-            select('patient_our',
+        fields = field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
+            select('aliquot_id',
+                     'patient_our',
                      'patient_legacy_number',
                      'cycle_title',
                      'aliquot_type_title'
@@ -89,15 +88,21 @@ class AliquotCoreForm(base.CoreForm):
 
     def link(self, item, field):
         if field == 'patient_our':
-            intids = zope.component.getUtility(IIntIds)
-            patient = intids.getObject(item.specimen.patient.zid)
-            url = '%s/aliquot' % patient.absolute_url()
-            return url
+            try:
+                intids = zope.component.getUtility(IIntIds)
+                patient = intids.getObject(item.specimen.patient.zid)
+                url = '%s/aliquot' % patient.absolute_url()
+                return url
+            except KeyError:
+                return None
         elif field == 'cycle_title' and getattr(item.specimen.visit, 'zid', None):
-            intids = zope.component.getUtility(IIntIds)
-            visit = intids.getObject(item.specimen.visit.zid)
-            url = '%s/aliquot' % visit.absolute_url()
-            return url
+            try:
+                intids = zope.component.getUtility(IIntIds)
+                visit = intids.getObject(item.specimen.visit.zid)
+                url = '%s/aliquot' % visit.absolute_url()
+                return url
+            except KeyError:
+                return None
 
     def updateWidgets(self):
         super(AliquotCoreForm, self).updateWidgets()
@@ -122,13 +127,52 @@ class AliquotCoreForm(base.CoreForm):
             .join(model.Aliquot.state)
             .join(model.Aliquot.aliquot_type)
             .join(model.Aliquot.specimen)
-            .order_by(model.Aliquot.id.asc())
             )
         if self.display_state:
             query = query.filter(model.AliquotState.name.in_(self.display_state))
+        query = (
+                    query
+                    .join(model.Aliquot.specimen)
+                    .join(model.Specimen.patient)
+                    .join(model.Aliquot.aliquot_type)
+                    .order_by(model.Patient.id, model.AliquotType.id, model.Aliquot.id)
+                    )
         return query
 
-class AliquotForm(AliquotCoreForm):
+
+class AliquotLimitForm(AliquotCoreForm):
+
+    def get_query(self):
+        session = named_scoped_session(SCOPED_SESSION_KEY)
+        query = (
+            session.query(model.Aliquot)
+            .join(model.Aliquot.state)
+            .join(model.Aliquot.aliquot_type)
+            .join(model.Aliquot.specimen)
+            .join(model.Specimen.patient)
+            )
+        browsersession  = ISession(self.request)
+        omitted = getattr(self.context, 'omit_filter', [])
+        if 'patient' in browsersession.keys() and 'patient' not in omitted:
+            query = query.filter(model.Patient.our == browsersession['patient'])
+        if 'aliquot_type' in browsersession.keys() and 'aliquot_type' not in omitted:
+            query = query.filter(model.AliquotType.name == browsersession['aliquot_type'])
+        if 'after_date' in browsersession.keys() and 'after_date' not in omitted:
+            if 'before_date' in browsersession.keys() and 'before_date' not in omitted:
+                query = query.filter(model.Aliquot.store_date >= browsersession['after_date'])
+                query = query.filter(model.Aliquot.store_date <= browsersession['before_date'])
+            else:
+                query = query.filter(model.Aliquot.store_date == browsersession['after_date'])
+
+        if self.display_state and not browsersession.get('show_all', False):
+            query = query.filter(model.AliquotState.name.in_(self.display_state))
+        query = (
+                    query
+                    .order_by(model.Patient.id, model.AliquotType.id, model.Aliquot.id)
+                    )
+        return query
+
+class AliquotForm(AliquotLimitForm):
     """
     Primary view for a clinical lab object.
     """
@@ -142,7 +186,7 @@ class AliquotForm(AliquotCoreForm):
     @property
     def edit_schema(self):
         fields = field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
-            select(
+            select('aliquot_id',
                      'state_title',
                      'patient_our',
                      'patient_legacy_number',
@@ -177,30 +221,7 @@ class AliquotForm(AliquotCoreForm):
     def display_state(self):
         return ('checked-in',)
 
-    def get_query(self):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
-        query = (
-            session.query(model.Aliquot)
-            .join(model.Aliquot.state)
-            .join(model.Aliquot.aliquot_type)
-            .join(model.Aliquot.specimen)
-            .order_by(model.Aliquot.id.asc())
-            )
-        browsersession  = ISession(self.request)
-        if 'patient' in browsersession.keys():
-            query = query.filter(model.Specimen.patient.our == browsersession['patient'])
-        if 'aliquot_type' in browsersession.keys():
-            query = query.filter(model.AliquotType.name == browsersession['aliquot_type'])
-        if 'after_date' in browsersession.keys():
-            if 'before_date' in browsersession.keys():
-                query = query.filter(model.Aliquot.store_date >= browsersession['after_date'])
-                query = query.filter(model.Aliquot.store_date <= browsersession['before_date'])
-            else:
-                query = query.filter(model.Aliquot.store_date == browsersession['after_date'])
 
-        if self.display_state and not browsersession.get('show_all', False):
-            query = query.filter(model.AliquotState.name.in_(self.display_state))
-        return query
 
 class AliquotListButtons(AliquotButtonCore):
     label = _(u"")
@@ -302,6 +323,13 @@ class AliquotQueueForm(AliquotCoreForm):
         current_user = session.query(dsmodel.User).filter_by(key = getSecurityManager().getUser().getId()).one()
         query = super(AliquotQueueForm, self).get_query()
         query = query.filter(model.Aliquot.modify_user_id == current_user.id)
+        query = (
+                    query
+                    .join(model.Aliquot.specimen)
+                    .join(model.Specimen.patient)
+                    .join(model.Aliquot.aliquot_type)
+                    .order_by(model.Patient.id, model.AliquotType.id, model.Aliquot.id)
+                    )
         return query
 
 class AliquotTypeForm(AliquotForm):
