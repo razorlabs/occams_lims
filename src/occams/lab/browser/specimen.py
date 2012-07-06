@@ -48,11 +48,11 @@ class SpecimenCoreButtons(base.CoreButtons):
     def _stateModel(self):
         return model.SpecimenState
 
-    @property 
+    @property
     def sampletype(self):
         return u'specimen'
-        
-    @property 
+
+    @property
     def _model(self):
         return model.Specimen
 
@@ -96,11 +96,11 @@ class SpecimenViewButtons(base.CoreButtons):
     def _stateModel(self):
         return model.SpecimenState
 
-    @property 
+    @property
     def sampletype(self):
         return u'specimen'
-        
-    @property 
+
+    @property
     def _model(self):
         return model.Specimen
 
@@ -121,13 +121,13 @@ class SpecimenCoreForm(base.CoreForm):
                     select('patient_our',
                              'patient_initials',
                              'cycle_title',
-                             'visit_date', 
+                             'visit_date',
                              'tube_type',
                              )
         fields += field.Fields(interfaces.ISpecimen).\
                     select('specimen_type',
-                             'tubes', 
-                             'collect_date', 
+                             'tubes',
+                             'collect_date',
                              'collect_time',
                              'notes'
                              )
@@ -206,16 +206,14 @@ class SpecimenForm(SpecimenCoreForm):
                 .order_by(model.Specimen.collect_date, model.Patient.our, model.SpecimenType.name)
             )
         browsersession  = ISession(self.request)
-        if 'specimen_type' in browsersession.keys():
-            query = query.filter(model.SpecimenType.name == browsersession['aliquot_type'])
-        if 'before_date' in browsersession.keys():
-            if 'after_date' in browsersession.keys():
+        if 'specimen_type' in browsersession:
+            query = query.filter(model.SpecimenType.name == browsersession['specimen_type'])
+        if 'before_date' in browsersession:
+            if 'after_date' in browsersession:
                 query = query.filter(model.Specimen.collect_date >= browsersession['before_date'])
                 query = query.filter(model.Specimen.collect_date <= browsersession['after_date'])
             else:
                 query = query.filter(model.Specimen.collect_date == browsersession['before_date'])
-        # if 'patient' in browsersession.keys():
-        #     query = query.filter(or_(model.Specimen.patient.has(our=browsersession['patient']), model.Specimen.patient.has(legacy_number=browsersession['patient'])))
         if self.display_state and not browsersession.get('show_all', False):
             query = query.filter(model.SpecimenState.name.in_(self.display_state))
         return query
@@ -223,7 +221,7 @@ class SpecimenForm(SpecimenCoreForm):
 class SpecimenAddForm(z3cform.Form):
     label = _(u'Add Specimen')
     ignoreContext = True
-        
+
     def specimenVocabulary(self):
         ## get the terms for our Vocabulary
 
@@ -239,7 +237,7 @@ class SpecimenAddForm(z3cform.Form):
                         value=(cycle, specimen_type)
                         )
                     )
-        return SimpleVocabulary(terms=termlist) 
+        return SimpleVocabulary(terms=termlist)
 
     def update(self):
         request_specimen = zope.schema.List(
@@ -403,7 +401,7 @@ class SpecimenVisitForm(SpecimenForm):
     """
     label = u""
     description = _(u"")
-    
+
     @property
     def editform_factory(self):
         return SpecimenViewButtons
