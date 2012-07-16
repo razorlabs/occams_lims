@@ -409,7 +409,11 @@ class SpecimenVisitForm(SpecimenForm):
     def get_query(self):
         query = super(SpecimenVisitForm, self).get_query()
         visit = self.context.getSQLObj()
-        query = query.filter(model.Specimen.visit == visit).filter(model.Specimen.collect_date == visit.visit_date)
+        query = (
+            query
+            .filter(model.Specimen.patient == visit.patient)
+            .filter(model.Specimen.collect_date == visit.visit_date)
+            )
         return query
 
 class SpecimenVisitView(BrowserView):
