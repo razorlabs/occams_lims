@@ -86,7 +86,7 @@ class AliquotState(Model, AutoNamed, Describeable, Referenceable, Modifiable):
     Right now we just need a vocabulary
     """
     zope.interface.implements(interfaces.IOccamsVocabulary)
- 
+
     @declared_attr
     def __table_args__(cls):
         return (
@@ -156,7 +156,7 @@ class SpecimenType(Model, AutoNamed, Referenceable, Describeable, Modifiable):
         )
 
     # aliquot_types backreffed in AliquotType
-    
+
     @declared_attr
     def __table_args__(cls):
         return (
@@ -271,15 +271,6 @@ class Specimen(Model, AutoNamed, Referenceable, Auditable, Modifiable):
                 ),
             primaryjoin=(cycle_id==Cycle.id)
             )
-
-    visit = Relationship(
-        Visit,
-        uselist=False,
-        secondary=visit_cycle_table,
-        primaryjoin=((cycle_id == visit_cycle_table.c.cycle_id) & (Visit.patient_id == patient_id)),
-        secondaryjoin=(Visit.id == visit_cycle_table.c.visit_id),
-        foreign_keys=[visit_cycle_table.c.cycle_id, visit_cycle_table.c.visit_id, Visit.patient_id, ]
-        )
 
     state_id = Column(
             Integer,

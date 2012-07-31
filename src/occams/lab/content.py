@@ -8,6 +8,7 @@ from zope.interface.common.mapping import IFullMapping
 from sqlalchemy.orm import object_session
 
 from occams.lab import interfaces
+from occams.lab import model
 
 class SpecimenContext(traversal.DataBaseItemContext):
     """
@@ -85,7 +86,17 @@ class ViewableSpecimen(grok.Adapter):
 
     @property
     def visit_date(self):
-        return self.context.visit.visit_date
+        # this might be slow, but it's the only fix we have available
+        session = object_session(self.context)
+        visit_query = (
+            session.query(model.Visit)
+            .filter(model.Visit.patient == self.context.patient)
+            .filter(model.Visit.cycles.any(id=self.context.cycle.id))
+            )
+        visit_entries = visit_query.all()
+        if len(visit_entries) == 1:
+            return visit_entries[0].visit_date
+        return self.context.collect_date
 
     @property
     def specimen_type_name(self):
