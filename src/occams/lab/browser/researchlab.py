@@ -1,4 +1,5 @@
 
+
 from occams.lab import MessageFactory as _, \
                      SCOPED_SESSION_KEY
 from z3c.form.interfaces import DISPLAY_MODE
@@ -30,6 +31,8 @@ from sqlalchemy.orm import object_session
 from Products.CMFCore.utils import getToolByName
 from occams.lab.browser.base import FilterFormCore
 from occams.lab.browser.aliquot import AliquotQueueForm
+from avrc.aeh import model as clinical
+
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
 NO_CHANGES = _(u"No changes made.")
@@ -44,7 +47,7 @@ class ReadySpecimenButtons(SpecimenCoreButtons):
     @button.buttonAndHandler(_('Ready selected'), name='ready')
     def handleCompleteDraw(self, action):
         pass
-        self.changeState(action, 'pending-aliquot', 'ready')        
+        self.changeState(action, 'pending-aliquot', 'ready')
         return self.request.response.redirect(self.action)
 
 class ReadySpecimenForm(SpecimenCoreForm):
@@ -59,9 +62,9 @@ class ReadySpecimenForm(SpecimenCoreForm):
         fields += field.Fields(interfaces.ISpecimen).\
             select(
              'tubes',
-             'collect_date', 
+             'collect_date',
              'collect_time',
-             'notes')            
+             'notes')
         return fields
 
     @property
@@ -80,7 +83,7 @@ class ResearchLabView(BrowserView):
     """
     Primary view for a research lab object.
     """
- 
+
     def labUrl(self):
         return self.context.absolute_url()
 
@@ -119,11 +122,11 @@ class ResearchLabView(BrowserView):
             session.query(model.Specimen)
                 .join(model.Patient)
                 .join(model.Cycle)
-                .join(model.Visit)
+                # .join(model.Visit)
                 .join(model.SpecimenType)
                 .join(model.SpecimenState)
                 .filter(model.SpecimenState.name.in_((u'pending-draw',)))
-                .order_by( model.Visit.visit_date.desc(), model.SpecimenType.name, model.Patient.our)
+                .order_by( model.Specimen.collect_date.desc(), model.SpecimenType.name, model.Patient.our)
             )
         for entry in iter(query):
             yield entry
@@ -135,10 +138,10 @@ class AliquotCreator(crud.EditForm):
     @property
     def prefix(self):
         return 'aliquot-creator.'
-        
+
     def changeState(self, action, state, acttitle):
         """
-        Change the state of a specimen based on the id pulled from a template 
+        Change the state of a specimen based on the id pulled from a template
         """
         selected = self.selected_items()
         session = named_scoped_session(SCOPED_SESSION_KEY)
@@ -154,7 +157,7 @@ class AliquotCreator(crud.EditForm):
     @button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
         pass
-        
+
     @button.buttonAndHandler(_('Create Aliquot'), name='aliquot')
     def handleCreateAliquot(self, action):
         """
@@ -198,11 +201,11 @@ class AliquotCreator(crud.EditForm):
                 status = success
         return self.request.response.redirect(self.action)
 
-                
+
     @button.buttonAndHandler(_('Mark Specimen Complete'), name='complete')
     def handleCompleteSpecimen(self, action):
         self.changeState(action, 'aliquoted', 'completed')
-        
+
         return self.request.response.redirect(self.action)
 
 class AliquotReadyForm(AliquotCoreForm):
@@ -217,17 +220,17 @@ class AliquotReadyForm(AliquotCoreForm):
         select('count')
         fields += field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
             select('patient_our',
-                     'patient_legacy_number', 
-                     'cycle_title', 
+                     'patient_legacy_number',
+                     'cycle_title',
                      'aliquot_type_title'
                      )
         fields += field.Fields(interfaces.IAliquot).\
             select(
                       'volume',
-                     'cell_amount', 
-                     'store_date', 
-                     'freezer', 
-                     'rack', 
+                     'cell_amount',
+                     'store_date',
+                     'freezer',
+                     'rack',
                      'box',
                      'special_instruction',
                      'notes')
@@ -247,10 +250,28 @@ class AliquotReadyForm(AliquotCoreForm):
             patient = intids.getObject(item['specimen'].patient.zid)
             url = '%s/specimen' % patient.absolute_url()
             return url
-        elif field == 'cycle_title' and getattr(item['specimen'].visit, 'zid', None):
-            intids = zope.component.getUtility(IIntIds)
-            visit = intids.getObject(item['specimen'].visit.zid)
-            url = '%s/aliquot' % visit.absolute_url()
+        elif field == 'cycle_title':
+            try:
+                intids = zope.component.getUtility(IIntIds)
+                patient = item['specimen'].patient
+                # this might be slow, but it's the only fix we have available
+                session = object_session(patient)
+                visit_query = (
+                    session.query(model.Visit)
+                    .filter(model.Visit.patient == patient)
+                    .filter(model.Visit.cycles.any(id=item['specimen'].cycle.id))
+                    )
+                visit_entries = visit_query.all()
+                if len(visit_entries) == 1:
+                    visit_entry = visit_entries[0]
+                    visit = intids.getObject(visit_entry.zid)
+                    url = '%s/aliquot' % visit.absolute_url()
+                else:
+                    url = None
+                return url
+            except KeyError:
+                return None
+
             return url
 
     def get_query(self):
@@ -258,8 +279,9 @@ class AliquotReadyForm(AliquotCoreForm):
         specimenQ = (
             session.query(model.Specimen)
             .join(model.SpecimenState)
+            .join(model.Specimen.patient)
             .filter(model.SpecimenState.name.in_(self.display_state))
-            .order_by(model.Specimen.id.desc())
+            .order_by(model.Patient.id, model.Specimen.id)
             )
         return specimenQ
 
@@ -279,7 +301,7 @@ class AliquotReadyForm(AliquotCoreForm):
             for aliquotType in types:
                 newAliquot = {
                 'patient_our':viewableSpecimen.patient_our,
-                'patient_legacy_number':specimen.patient.legacy_number, 
+                'patient_legacy_number':specimen.patient.legacy_number,
                 'cycle_title': viewableSpecimen.cycle_title,
                 'specimen':specimen,
                 'aliquot_type':aliquotType,
@@ -335,7 +357,7 @@ class AliquotPreparedButtons(AliquotButtonCore):
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-in', 'Checked In')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
@@ -353,19 +375,11 @@ class AliquotPreparedForm(AliquotLimitForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotPreparedButtons
-    
+
     @property
     def display_state(self):
         return (u'pending', )
-
-    def get_query(self):
-        query = super(AliquotPreparedForm, self).get_query()
-        browsersession  = ISession(self.request)
-        if 'patient' in browsersession.keys():
-            query = query.join(model.Specimen.patient).filter(or_(model.Patient.our==browsersession['patient'], model.Patient.legacy_number==browsersession['patient']))
-        return query
 
 class AliquotPreparedView(BrowserView):
     """
@@ -422,40 +436,61 @@ class AliquotEditButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-edit.'
-        
+
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check Back In'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-in', 'Checked In')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check Out'), name='checkout')
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'pending-checkout', 'Checked Out')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Hold'), name='hold')
     def handleRecoverAliquot(self, action):
         self.changeState(action, 'hold', 'Held')
-        
+
         return self.request.response.redirect(self.action)
 
 class AliquoEditForm(AliquotCoreForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotEditButtons
-    
+
+    @property
+    def edit_schema(self):
+        fields = field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
+            select('aliquot_id',
+                     'patient_our',
+                     'patient_legacy_number',
+                     'cycle_title',
+                     'aliquot_type_title'
+                     )
+        fields += field.Fields(interfaces.IAliquot).\
+            select(
+                     'volume',
+                     'cell_amount',
+                     'store_date',
+                     'freezer',
+                     'rack',
+                     'box',
+                     'thawed_num',
+                     'special_instruction',
+                     'notes')
+        return fields
+
     @property
     def display_state(self):
         return (u'incorrect', )
@@ -489,43 +524,39 @@ class AliquotHoldButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-hold.'
-        
-    @property
-    def prefix(self):
-        return 'aliquot-checkout.'
+
     @button.buttonAndHandler(_('Print Receipt'), name='print')
     def handleQueue(self, action):
         return self.request.response.redirect('%s/%s' % (self.context.context.absolute_url(), 'receipt'))
-        
+
     @button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
         self.saveChanges(action)
         return self.request.response.redirect(self.action)
-                
+
     @button.buttonAndHandler(_('Complete Check Out'), name='checkedout')
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-out', 'Checked Out')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Return To Queue'), name='queued')
     def handleRehold(self, action):
         self.changeState(action, 'queued', 'Held')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Check Back In'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.changeState(action, 'checked-in', 'Checked In')
-        
+
         return self.request.response.redirect(self.action)
 
 class AliquotCheckoutForm(AliquotCoreForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotHoldButtons
 
     @property
@@ -535,13 +566,13 @@ class AliquotCheckoutForm(AliquotCoreForm):
         fields = field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
             select('patient_our',
                      'patient_legacy_number',
-                      'cycle_title', 
+                      'cycle_title',
                       'aliquot_type_title',
                        'vol_count',)
         fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
             select('store_date')
         fields += field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
-            select('frb', 
+            select('frb',
                     'special_instruction_title')
         fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
             select('notes')
@@ -615,16 +646,15 @@ class AliquotRecoverButtons(AliquotButtonCore):
     def handleRecoverAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'pending', 'Checked In')
-        
+
         return self.request.response.redirect(self.action)
 
 class AliquotRecoverForm(AliquotCoreForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotPreparedButtons
-    
+
     @property
     def display_state(self):
         return (u'checked-in', 'unused')
@@ -639,7 +669,7 @@ class AliquotRecoverForm(AliquotCoreForm):
                      'patient_legacy_number',
                      'cycle_title',
                      'aliquot_type_title',
-                     'vol_count', 
+                     'vol_count',
                      )
         fields += field.Fields(interfaces.IAliquot).\
             select('store_date')
@@ -717,7 +747,7 @@ class AliquotCheckInButtons(AliquotButtonCore):
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-in', 'Checked In')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
@@ -735,7 +765,6 @@ class AliquotCheckInForm(AliquotLimitForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotCheckInButtons
 
     @property
@@ -749,7 +778,7 @@ class AliquotCheckInForm(AliquotLimitForm):
                      )
         fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
             select(
-                     'store_date', 
+                     'store_date',
                      'special_instruction',
                      'sent_date',
                      'sent_name',
@@ -758,8 +787,8 @@ class AliquotCheckInForm(AliquotLimitForm):
         fields += field.Fields(interfaces.IAliquot).\
             select('location',
                       'thawed_num',
-                     'freezer', 
-                     'rack', 
+                     'freezer',
+                     'rack',
                      'box',
                      'notes')
         return fields
@@ -768,12 +797,22 @@ class AliquotCheckInForm(AliquotLimitForm):
     def display_state(self):
         return (u'checked-out', )
 
-    def get_query(self):
-        query = super(AliquotCheckInForm, self).get_query()
-        browsersession  = ISession(self.request)
-        if 'patient' in browsersession.keys():
-            query = query.join(model.Specimen.patient).filter(or_(model.Patient.our==browsersession['patient'], model.Patient.legacy_number==browsersession['patient']))
-        return query
+    # def get_query(self):
+    #     query = super(AliquotCheckInForm, self).get_query()
+    #     browsersession  = ISession(self.request)
+    #     if 'patient' in browsersession.keys():
+    #         query = (
+    #                  query.join(model.Specimen.patient)
+    #                  .join(model.Patient.reference_numbers)
+    #                  .filter(or_(
+    #                          model.Patient.our==browsersession['patient'],
+    #                          model.Patient.legacy_number==browsersession['patient'],
+    #                          clinical.PatientReference.reference_number == browsersession['patient']
+    #                          )
+    #                  )
+    #             )
+    #     return query
+
 
 class AliquotCheckInView(BrowserView):
     """
@@ -818,7 +857,7 @@ class AliquotInventoryButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-inventory.'
-        
+
     @button.buttonAndHandler(_('Mark Inventoried'), name='inventory')
     def handleInventory(self, action):
         session = named_scoped_session(SCOPED_SESSION_KEY)
@@ -847,7 +886,6 @@ class AliquotInventoryForm(AliquotLimitForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotInventoryButtons
 
     @property
@@ -862,7 +900,7 @@ class AliquotInventoryForm(AliquotLimitForm):
                      )
         fields += field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
             select(
-                     'store_date', 
+                     'store_date',
                      'inventory_date',
                     )
         fields += field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
@@ -878,16 +916,6 @@ class AliquotInventoryForm(AliquotLimitForm):
     def get_query(self):
         query = super(AliquotInventoryForm, self).get_query()
         browsersession  = ISession(self.request)
-        if 'patient' in browsersession.keys():
-            query = query.join(model.Specimen.patient).filter(or_(model.Patient.our==browsersession['patient'], model.Patient.legacy_number == browsersession['patient']))
-        if 'after_date' in browsersession.keys():
-            if 'before_date' in browsersession.keys():
-                query = query.filter(model.Aliquot.store_date >= browsersession['after_date'])
-                query = query.filter(model.Aliquot.store_date <= browsersession['before_date'])
-            else:
-                query = query.filter(model.Aliquot.store_date == browsersession['after_date'])
-        if 'aliquot_type' in browsersession.keys():
-            query = query.filter(model.AliquotType.name == browsersession['aliquot_type'])
         if 'freezer' in browsersession.keys():
                 query = query.filter(model.Aliquot.freezer==browsersession['freezer'])
         if 'rack' in browsersession.keys():
@@ -897,7 +925,7 @@ class AliquotInventoryForm(AliquotLimitForm):
         if 'inventory_date' in browsersession.keys():
             query = query.filter(or_(model.Aliquot.inventory_date == None, model.Aliquot.inventory_date < browsersession['inventory_date']))
         if self.display_state and not browsersession.get('show_all', False):
-            query = query.filter(model.AliquotState.name.in_(self.display_state))       
+            query = query.filter(model.AliquotState.name.in_(self.display_state))
         return query
 
 class InventoryFilterForm(FilterFormCore):

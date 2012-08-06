@@ -46,11 +46,11 @@ class CoreButtons(crud.EditForm):
     def _stateModel(self):
         raise NotImplementedError
 
-    @property 
+    @property
     def sampletype(self):
         raise NotImplementedError
-        
-    @property 
+
+    @property
     def _model(self):
         raise NotImplementedError
 
@@ -146,7 +146,7 @@ class LabelButtons(crud.EditForm):
     @property
     def prefix(self):
         return 'label.'
-        
+
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone
@@ -196,7 +196,7 @@ class LabelButtons(crud.EditForm):
         #self.context.labeler
         for id, label in selected:
             self.context.labeler.purgeLabel(id)
-        
+
         return self.request.response.redirect(self.action)
 
 class LabelForm(crud.CrudForm):
@@ -222,7 +222,7 @@ class LabelForm(crud.CrudForm):
          'sample_type')
 
     def get_items(self):
-        
+
         brainz = self.labeler.getLabelBrains()
         labellist = []
         for label in brainz:

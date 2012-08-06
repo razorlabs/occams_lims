@@ -26,6 +26,8 @@ from collective.beaker.interfaces import ISession
 from zope.schema.vocabulary import SimpleTerm, \
                                    SimpleVocabulary
 import os
+from avrc.aeh import model as clinical
+
 from sqlalchemy.orm import object_session
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -143,15 +145,27 @@ class SpecimenCoreForm(base.CoreForm):
             url = '%s/specimen' % patient.absolute_url()
             return url
 
-        elif field == 'visit_date' and getattr(item.visit, 'zid', None):
-            intids = zope.component.getUtility(IIntIds)
+        elif field == 'cycle_title':
             try:
-                visit = intids.getObject(item.visit.zid)
+                intids = zope.component.getUtility(IIntIds)
+                patient = item.patient
+                # this might be slow, but it's the only fix we have available
+                session = object_session(patient)
+                visit_query = (
+                    session.query(model.Visit)
+                    .filter(model.Visit.patient == patient)
+                    .filter(model.Visit.cycles.any(id=item.cycle.id))
+                    )
+                visit_entries = visit_query.all()
+                if len(visit_entries) == 1:
+                    visit_entry = visit_entries[0]
+                    visit = intids.getObject(visit_entry.zid)
+                    url = '%s/aliquot' % visit.absolute_url()
+                else:
+                    url = None
+                return url
             except KeyError:
                 return None
-            url = '%s/specimen' % visit.absolute_url()
-            return url
-
 
     def updateWidgets(self):
         if self.update_schema is not None:
@@ -205,7 +219,15 @@ class SpecimenForm(SpecimenCoreForm):
                 .join(model.SpecimenState)
                 .order_by(model.Specimen.collect_date, model.Patient.our, model.SpecimenType.name)
             )
+        omitted = getattr(self.context, 'omit_filter', [])
         browsersession  = ISession(self.request)
+        if 'patient' in browsersession.keys() and 'patient' not in omitted:
+            query = query.filter(or_(
+                                 model.Patient.our == browsersession['patient'],
+                                 model.Patient.legacy_number == browsersession['patient'],
+                                 clinical.PatientReference.reference_number == browsersession['patient']
+                                 )
+                        )
         if 'specimen_type' in browsersession:
             query = query.filter(model.SpecimenType.name == browsersession['specimen_type'])
         if 'before_date' in browsersession:
@@ -409,7 +431,11 @@ class SpecimenVisitForm(SpecimenForm):
     def get_query(self):
         query = super(SpecimenVisitForm, self).get_query()
         visit = self.context.getSQLObj()
-        query = query.filter(model.Specimen.visit == visit).filter(model.Specimen.collect_date == visit.visit_date)
+        query = (
+            query
+            .filter(model.Specimen.patient == visit.patient)
+            .filter(model.Specimen.collect_date == visit.visit_date)
+            )
         return query
 
 class SpecimenVisitView(BrowserView):
