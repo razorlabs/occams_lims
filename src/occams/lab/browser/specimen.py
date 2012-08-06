@@ -26,6 +26,8 @@ from collective.beaker.interfaces import ISession
 from zope.schema.vocabulary import SimpleTerm, \
                                    SimpleVocabulary
 import os
+from avrc.aeh import model as clinical
+
 from sqlalchemy.orm import object_session
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -217,7 +219,15 @@ class SpecimenForm(SpecimenCoreForm):
                 .join(model.SpecimenState)
                 .order_by(model.Specimen.collect_date, model.Patient.our, model.SpecimenType.name)
             )
+        omitted = getattr(self.context, 'omit_filter', [])
         browsersession  = ISession(self.request)
+        if 'patient' in browsersession.keys() and 'patient' not in omitted:
+            query = query.filter(or_(
+                                 model.Patient.our == browsersession['patient'],
+                                 model.Patient.legacy_number == browsersession['patient'],
+                                 clinical.PatientReference.reference_number == browsersession['patient']
+                                 )
+                        )
         if 'specimen_type' in browsersession:
             query = query.filter(model.SpecimenType.name == browsersession['specimen_type'])
         if 'before_date' in browsersession:
