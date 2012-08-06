@@ -21,6 +21,8 @@ from occams.datastore import model as dsmodel
 import sys
 from Products.CMFCore.utils import getToolByName
 from sqlalchemy.orm import object_session
+from sqlalchemy import or_
+from avrc.aeh import model as clinical
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -164,11 +166,17 @@ class AliquotLimitForm(AliquotCoreForm):
             .join(model.Aliquot.aliquot_type)
             .join(model.Aliquot.specimen)
             .join(model.Specimen.patient)
+            .join(model.Patient.reference_numbers)
             )
         browsersession  = ISession(self.request)
         omitted = getattr(self.context, 'omit_filter', [])
         if 'patient' in browsersession.keys() and 'patient' not in omitted:
-            query = query.filter(model.Patient.our == browsersession['patient'])
+            query = query.filter(or_(
+                                 model.Patient.our == browsersession['patient'],
+                                 model.Patient.legacy_number == browsersession['patient'],
+                                 clinical.PatientReference.reference_number == browsersession['patient']
+                                 )
+                        )
         if 'aliquot_type' in browsersession.keys() and 'aliquot_type' not in omitted:
             query = query.filter(model.AliquotType.name == browsersession['aliquot_type'])
         if 'after_date' in browsersession.keys() and 'after_date' not in omitted:
