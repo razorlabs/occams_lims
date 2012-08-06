@@ -122,11 +122,11 @@ class ResearchLabView(BrowserView):
             session.query(model.Specimen)
                 .join(model.Patient)
                 .join(model.Cycle)
-                .join(model.Visit)
+                # .join(model.Visit)
                 .join(model.SpecimenType)
                 .join(model.SpecimenState)
                 .filter(model.SpecimenState.name.in_((u'pending-draw',)))
-                .order_by( model.Visit.visit_date.desc(), model.SpecimenType.name, model.Patient.our)
+                .order_by( model.Specimen.collect_date.desc(), model.SpecimenType.name, model.Patient.our)
             )
         for entry in iter(query):
             yield entry
@@ -250,10 +250,28 @@ class AliquotReadyForm(AliquotCoreForm):
             patient = intids.getObject(item['specimen'].patient.zid)
             url = '%s/specimen' % patient.absolute_url()
             return url
-        elif field == 'cycle_title' and getattr(item['specimen'].visit, 'zid', None):
-            intids = zope.component.getUtility(IIntIds)
-            visit = intids.getObject(item['specimen'].visit.zid)
-            url = '%s/aliquot' % visit.absolute_url()
+        elif field == 'cycle_title':
+            try:
+                intids = zope.component.getUtility(IIntIds)
+                patient = item['specimen'].patient
+                # this might be slow, but it's the only fix we have available
+                session = object_session(patient)
+                visit_query = (
+                    session.query(model.Visit)
+                    .filter(model.Visit.patient == patient)
+                    .filter(model.Visit.cycles.any(id=item['specimen'].cycle.id))
+                    )
+                visit_entries = visit_query.all()
+                if len(visit_entries) == 1:
+                    visit_entry = visit_entries[0]
+                    visit = intids.getObject(visit_entry.zid)
+                    url = '%s/aliquot' % visit.absolute_url()
+                else:
+                    url = None
+                return url
+            except KeyError:
+                return None
+
             return url
 
     def get_query(self):
@@ -356,19 +374,11 @@ class AliquotPreparedForm(AliquotLimitForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotPreparedButtons
 
     @property
     def display_state(self):
         return (u'pending', )
-
-    def get_query(self):
-        query = super(AliquotPreparedForm, self).get_query()
-        browsersession  = ISession(self.request)
-        if 'patient' in browsersession.keys():
-            query = query.join(model.Specimen.patient).filter(or_(model.Patient.our==browsersession['patient'], model.Patient.legacy_number==browsersession['patient']))
-        return query
 
 class AliquotPreparedView(BrowserView):
     """
@@ -456,7 +466,6 @@ class AliquoEditForm(AliquotCoreForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotEditButtons
 
     @property
@@ -515,9 +524,6 @@ class AliquotHoldButtons(AliquotButtonCore):
     def prefix(self):
         return 'aliquot-hold.'
 
-    @property
-    def prefix(self):
-        return 'aliquot-checkout.'
     @button.buttonAndHandler(_('Print Receipt'), name='print')
     def handleQueue(self, action):
         return self.request.response.redirect('%s/%s' % (self.context.context.absolute_url(), 'receipt'))
@@ -550,7 +556,6 @@ class AliquotCheckoutForm(AliquotCoreForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotHoldButtons
 
     @property
@@ -647,7 +652,6 @@ class AliquotRecoverForm(AliquotCoreForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotPreparedButtons
 
     @property
@@ -760,7 +764,6 @@ class AliquotCheckInForm(AliquotLimitForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotCheckInButtons
 
     @property
@@ -793,21 +796,21 @@ class AliquotCheckInForm(AliquotLimitForm):
     def display_state(self):
         return (u'checked-out', )
 
-    def get_query(self):
-        query = super(AliquotCheckInForm, self).get_query()
-        browsersession  = ISession(self.request)
-        if 'patient' in browsersession.keys():
-            query = (
-                     query.join(model.Specimen.patient)
-                     .join(model.Patient.reference_numbers)
-                     .filter(or_(
-                             model.Patient.our==browsersession['patient'],
-                             model.Patient.legacy_number==browsersession['patient'],
-                             clinical.PatientReference.reference_number == browsersession['patient']
-                             )
-                     )
-                )
-        return query
+    # def get_query(self):
+    #     query = super(AliquotCheckInForm, self).get_query()
+    #     browsersession  = ISession(self.request)
+    #     if 'patient' in browsersession.keys():
+    #         query = (
+    #                  query.join(model.Specimen.patient)
+    #                  .join(model.Patient.reference_numbers)
+    #                  .filter(or_(
+    #                          model.Patient.our==browsersession['patient'],
+    #                          model.Patient.legacy_number==browsersession['patient'],
+    #                          clinical.PatientReference.reference_number == browsersession['patient']
+    #                          )
+    #                  )
+    #             )
+    #     return query
 
 
 class AliquotCheckInView(BrowserView):
@@ -882,7 +885,6 @@ class AliquotInventoryForm(AliquotLimitForm):
     """
     Base Crud form for editing specimen. Some specimen will need to be
     """
-    batch_size = 20
     editform_factory = AliquotInventoryButtons
 
     @property
@@ -913,16 +915,6 @@ class AliquotInventoryForm(AliquotLimitForm):
     def get_query(self):
         query = super(AliquotInventoryForm, self).get_query()
         browsersession  = ISession(self.request)
-        if 'patient' in browsersession.keys():
-            query = query.join(model.Specimen.patient).filter(or_(model.Patient.our==browsersession['patient'], model.Patient.legacy_number == browsersession['patient']))
-        if 'after_date' in browsersession.keys():
-            if 'before_date' in browsersession.keys():
-                query = query.filter(model.Aliquot.store_date >= browsersession['after_date'])
-                query = query.filter(model.Aliquot.store_date <= browsersession['before_date'])
-            else:
-                query = query.filter(model.Aliquot.store_date == browsersession['after_date'])
-        if 'aliquot_type' in browsersession.keys():
-            query = query.filter(model.AliquotType.name == browsersession['aliquot_type'])
         if 'freezer' in browsersession.keys():
                 query = query.filter(model.Aliquot.freezer==browsersession['freezer'])
         if 'rack' in browsersession.keys():

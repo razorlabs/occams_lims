@@ -68,6 +68,8 @@ class AliquotCoreForm(base.CoreForm):
     """
     Base Crud form for aliquot
     """
+    batch_size = 20
+
     @property
     def edit_schema(self):
         fields = field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
@@ -162,19 +164,20 @@ class AliquotLimitForm(AliquotCoreForm):
         session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
             session.query(model.Aliquot)
+            .select_from(model.Aliquot)
             .join(model.Aliquot.state)
             .join(model.Aliquot.aliquot_type)
             .join(model.Aliquot.specimen)
             .join(model.Specimen.patient)
-            .join(model.Patient.reference_numbers)
             )
         browsersession  = ISession(self.request)
         omitted = getattr(self.context, 'omit_filter', [])
+
         if 'patient' in browsersession.keys() and 'patient' not in omitted:
             query = query.filter(or_(
                                  model.Patient.our == browsersession['patient'],
                                  model.Patient.legacy_number == browsersession['patient'],
-                                 clinical.PatientReference.reference_number == browsersession['patient']
+                                 model.Patient.reference_numbers.any(reference_number = browsersession['patient'])
                                  )
                         )
         if 'aliquot_type' in browsersession.keys() and 'aliquot_type' not in omitted:
