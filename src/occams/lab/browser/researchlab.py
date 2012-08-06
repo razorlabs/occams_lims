@@ -279,8 +279,9 @@ class AliquotReadyForm(AliquotCoreForm):
         specimenQ = (
             session.query(model.Specimen)
             .join(model.SpecimenState)
+            .join(model.Specimen.patient)
             .filter(model.SpecimenState.name.in_(self.display_state))
-            .order_by(model.Specimen.id.desc())
+            .order_by(model.Patient.id, model.Specimen.id)
             )
         return specimenQ
 
