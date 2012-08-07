@@ -20,6 +20,9 @@ from AccessControl import getSecurityManager
 from occams.datastore import model as dsmodel
 import sys
 from Products.CMFCore.utils import getToolByName
+from sqlalchemy.orm import object_session
+from sqlalchemy import or_
+from avrc.aeh import model as clinical
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -41,8 +44,8 @@ class AliquotButtonCore(base.CoreButtons):
     @property
     def _stateModel(self):
         return model.AliquotState
-        
-    @property 
+
+    @property
     def _model(self):
         return model.Aliquot
 
@@ -64,7 +67,9 @@ class AliquotButtonCore(base.CoreButtons):
 class AliquotCoreForm(base.CoreForm):
     """
     Base Crud form for aliquot
-    """ 
+    """
+    batch_size = 20
+
     @property
     def edit_schema(self):
         fields = field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
@@ -77,10 +82,10 @@ class AliquotCoreForm(base.CoreForm):
         fields += field.Fields(interfaces.IAliquot).\
             select(
                      'volume',
-                     'cell_amount', 
-                     'store_date', 
-                     'freezer', 
-                     'rack', 
+                     'cell_amount',
+                     'store_date',
+                     'freezer',
+                     'rack',
                      'box',
                      'special_instruction',
                      'notes')
@@ -95,11 +100,24 @@ class AliquotCoreForm(base.CoreForm):
                 return url
             except KeyError:
                 return None
-        elif field == 'cycle_title' and getattr(item.specimen.visit, 'zid', None):
+        elif field == 'cycle_title':
             try:
                 intids = zope.component.getUtility(IIntIds)
-                visit = intids.getObject(item.specimen.visit.zid)
-                url = '%s/aliquot' % visit.absolute_url()
+                patient = item.specimen.patient
+                # this might be slow, but it's the only fix we have available
+                session = object_session(patient)
+                visit_query = (
+                    session.query(model.Visit)
+                    .filter(model.Visit.patient == patient)
+                    .filter(model.Visit.cycles.any(id=item.specimen.cycle.id))
+                    )
+                visit_entries = visit_query.all()
+                if len(visit_entries) == 1:
+                    visit_entry = visit_entries[0]
+                    visit = intids.getObject(visit_entry.zid)
+                    url = '%s/aliquot' % visit.absolute_url()
+                else:
+                    url = None
                 return url
             except KeyError:
                 return None
@@ -146,6 +164,7 @@ class AliquotLimitForm(AliquotCoreForm):
         session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
             session.query(model.Aliquot)
+            .select_from(model.Aliquot)
             .join(model.Aliquot.state)
             .join(model.Aliquot.aliquot_type)
             .join(model.Aliquot.specimen)
@@ -153,8 +172,14 @@ class AliquotLimitForm(AliquotCoreForm):
             )
         browsersession  = ISession(self.request)
         omitted = getattr(self.context, 'omit_filter', [])
+
         if 'patient' in browsersession.keys() and 'patient' not in omitted:
-            query = query.filter(model.Patient.our == browsersession['patient'])
+            query = query.filter(or_(
+                                 model.Patient.our == browsersession['patient'],
+                                 model.Patient.legacy_number == browsersession['patient'],
+                                 model.Patient.reference_numbers.any(reference_number = browsersession['patient'])
+                                 )
+                        )
         if 'aliquot_type' in browsersession.keys() and 'aliquot_type' not in omitted:
             query = query.filter(model.AliquotType.name == browsersession['aliquot_type'])
         if 'after_date' in browsersession.keys() and 'after_date' not in omitted:
@@ -202,7 +227,7 @@ class AliquotForm(AliquotLimitForm):
         fields += field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
             select(
                     'location_title',
-                     'vol_count', 
+                     'vol_count',
                      'frb',
                      'thawed_num',
                      )
@@ -230,23 +255,23 @@ class AliquotListButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-queue.'
-   
+
     @button.buttonAndHandler(_('Add to Queue'), name='queue')
     def handleQueue(self, action):
         self.changeState(action, 'queued', 'Queued')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
     def handleInaccurate(self, action):
         self.changeState(action, 'incorrect', 'incorrect')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Hold'), name='hold')
     def handleRecoverAliquot(self, action):
         self.changeState(action, 'hold', 'Held')
-        
+
         return self.request.response.redirect(self.action)
 
 class AliquotHoldButtons(AliquotButtonCore):
@@ -257,7 +282,7 @@ class AliquotHoldButtons(AliquotButtonCore):
     @property
     def prefix(self):
         return 'aliquot-hold.'
-        
+
     @button.buttonAndHandler(_('Print List'), name='print')
     def handleQueue(self, action):
         return self.request.response.redirect('%s/%s' % (self.context.context.absolute_url(), 'checklist'))
@@ -265,13 +290,13 @@ class AliquotHoldButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Check Out'), name='checkout')
     def handleCheckout(self, action):
         self.changeState(action, 'pending-checkout', 'Checked Out')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Release From Queue'), name='release')
     def handleRelease(self, action):
         self.changeState(action, 'checked-in', 'Released')
-        
+
         return self.request.response.redirect(self.action)
 
     @button.buttonAndHandler(_('Mark Inaccurate'), name='incorrect')
@@ -283,7 +308,7 @@ class AliquotHoldButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Mark Missing'), name='missing')
     def handleMissing(self, action):
         self.changeState(action, 'missing', 'Missing')
-        
+
         return self.request.response.redirect(self.action)
 
 class AliquotQueueForm(AliquotCoreForm):
@@ -298,7 +323,7 @@ class AliquotQueueForm(AliquotCoreForm):
                      'patient_legacy_number',
                      'cycle_title',
                      'aliquot_type_title',
-                     'vol_count', 
+                     'vol_count',
                      )
         fields += field.Fields(interfaces.IAliquot).\
             select('store_date')
@@ -589,7 +614,7 @@ class AliquotReciept(BrowserView):
             ret['store_date'] = aliquot.store_date
             ret['aliquot_type_title'] = viewableAliquot.aliquot_type_title
             ret['vol_count'] = viewableAliquot.vol_count
-            ret['special_instruction_title'] = aliquot.special_instruction.title  
+            ret['special_instruction_title'] = aliquot.special_instruction.title
             ret['notes'] = aliquot.notes
             ret['sent_notes'] = aliquot.sent_notes
 
