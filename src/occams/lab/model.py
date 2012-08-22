@@ -22,7 +22,7 @@ from sqlalchemy.schema import Table
 
 import zope.interface
 from occams.lab import interfaces
-from occams.datastore.model import Model
+from occams.datastore.model import ModelClass
 from occams.datastore.model.metadata import AutoNamed
 from occams.datastore.model.metadata import Describeable
 from occams.datastore.model.metadata import Referenceable
@@ -33,14 +33,15 @@ from occams.datastore.model.auditing import Auditable
 
 from avrc.aeh.model import *
 
+LabModel = ModelClass(u'LabModel')
 
 NOW = text('CURRENT_TIMESTAMP')
 
-specimentype_study_table = Table('specimentype_study', Model.metadata,
+specimentype_study_table = Table('specimentype_study', LabModel.metadata,
     Column(
         'study_id',
         Integer,
-        ForeignKey('study.id', name='fk_specimentype_study_study_id', ondelete='CASCADE',),
+        ForeignKey(Study.id, name='fk_specimentype_study_study_id', ondelete='CASCADE',),
         primary_key=True
         ),
     Column(
@@ -51,11 +52,11 @@ specimentype_study_table = Table('specimentype_study', Model.metadata,
          ),
     )
 
-specimentype_cycle_table = Table('specimentype_cycle', Model.metadata,
+specimentype_cycle_table = Table('specimentype_cycle', LabModel.metadata,
     Column(
         'cycle_id',
         Integer,
-        ForeignKey('cycle.id', name='fk_specimentype_cycle_cycle_id', ondelete='CASCADE',),
+        ForeignKey(Cycle.id, name='fk_specimentype_cycle_cycle_id', ondelete='CASCADE',),
         primary_key=True
         ),
     Column(
@@ -67,7 +68,7 @@ specimentype_cycle_table = Table('specimentype_cycle', Model.metadata,
     )
 
 
-class SpecimenState(Model, AutoNamed, Describeable, Referenceable, Modifiable):
+class SpecimenState(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
     """
     We may wish to add information here about the destination, such as address, contact info, etc.
     Right now we just need a vocabulary
@@ -80,7 +81,7 @@ class SpecimenState(Model, AutoNamed, Describeable, Referenceable, Modifiable):
             UniqueConstraint('name'),
             )
 
-class AliquotState(Model, AutoNamed, Describeable, Referenceable, Modifiable):
+class AliquotState(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
     """
     We may wish to add information here about the destination, such as address, contact info, etc.
     Right now we just need a vocabulary
@@ -93,7 +94,7 @@ class AliquotState(Model, AutoNamed, Describeable, Referenceable, Modifiable):
             UniqueConstraint('name'),
             )
 
-class Location(Model, AutoNamed, Describeable, Referenceable, Modifiable):
+class Location(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
     """
     We may wish to add information here about the destination, such as address, contact info, etc.
     Right now we just need a vocabulary
@@ -106,7 +107,7 @@ class Location(Model, AutoNamed, Describeable, Referenceable, Modifiable):
             UniqueConstraint('name'),
             )
 
-class SpecialInstruction(Model, AutoNamed, Describeable, Referenceable, Modifiable):
+class SpecialInstruction(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
     """
     We may wish to add information here about the special instruction
     Right now we just need a vocabulary
@@ -119,7 +120,7 @@ class SpecialInstruction(Model, AutoNamed, Describeable, Referenceable, Modifiab
             UniqueConstraint('name'),
             )
 
-class SpecimenType(Model, AutoNamed, Referenceable, Describeable, Modifiable):
+class SpecimenType(LabModel, AutoNamed, Referenceable, Describeable, Modifiable):
     """
     """
     zope.interface.implements(interfaces.ISpecimenType)
@@ -169,7 +170,7 @@ class SpecimenType(Model, AutoNamed, Referenceable, Describeable, Modifiable):
             UniqueConstraint('name'),
             )
 
-class AliquotType(Model, AutoNamed,Referenceable, Describeable, Modifiable):
+class AliquotType(LabModel, AutoNamed,Referenceable, Describeable, Modifiable):
     """
     """
     zope.interface.implements(interfaces.IAliquotType)
@@ -212,7 +213,7 @@ class AliquotType(Model, AutoNamed,Referenceable, Describeable, Modifiable):
             UniqueConstraint('specimen_type_id', 'name'),
             )
 
-class Specimen(Model, AutoNamed, Referenceable, Auditable, Modifiable):
+class Specimen(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
     """ Speccialized table for specimen data. Note that only one specimen can be
         drawn from a patient/protocol/type.
 
@@ -314,13 +315,13 @@ class Specimen(Model, AutoNamed, Referenceable, Auditable, Modifiable):
                 ),
             ForeignKeyConstraint(
                 columns=['patient_id'],
-                refcolumns=['patient.id'],
+                refcolumns=[Patient.id],
                 name='fk_%s_patient_id' % cls.__tablename__,
                 ondelete='CASCADE',
                 ),
             ForeignKeyConstraint(
                 columns=['cycle_id'],
-                refcolumns=['cycle.id'],
+                refcolumns=[Cycle.id],
                 name='fk_%s_cycle_id' % cls.__tablename__,
                 ondelete='SET NULL',
                 ),
@@ -339,7 +340,7 @@ class Specimen(Model, AutoNamed, Referenceable, Auditable, Modifiable):
             # UniqueConstraint('patient_id', 'cycle_id', 'specimen_type_id'),
             )
 
-class Aliquot(Model, AutoNamed, Referenceable, Auditable, Modifiable):
+class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
     """ Specialized table for aliquot parts generated from a specimen.
 
         Attributes:
@@ -468,4 +469,4 @@ class Aliquot(Model, AutoNamed, Referenceable, Auditable, Modifiable):
 if __name__ == '__main__': # pragma: no cover
     import sqlalchemy
     # A convenient way for checking the model even correctly loads the tables
-    Model.metadata.create_all(bind=sqlalchemy.create_engine('sqlite://', echo=True))
+    LabModel.metadata.create_all(bind=sqlalchemy.create_engine('sqlite://', echo=True))
