@@ -6,7 +6,7 @@ from occams.lab import model
 import occams.lab.upgrades.migrate as repository
 
 def importVarious(context):
-    """ 
+    """
     GenericSetup conventional handle for importing miscellaneous steps.
     """
     if context.readDataFile('occams-lab.txt') is None:
@@ -17,5 +17,5 @@ def importVarious(context):
 
 def setupSQLDatabase(portal):
     session = named_scoped_session(SCOPED_SESSION_KEY)
-    install(model.Model.metadata, session.bind, repository)
+    install(model.LabModel.metadata, session.bind, repository)
 
