@@ -23,7 +23,7 @@ class AvailableSpecimen(object):
 
     def __init__(self, context):
         self.context = context
-    
+
     @getproperty
     def specimen_types(self):
         if getattr(self.context, 'zid', None) is not None:
@@ -34,7 +34,7 @@ class AvailableSpecimen(object):
                 .filter(model.Study.zid == self.context.zid)
                 )
             return query.all()
-        return self.context._addArgs.get('specimen_types')
+        return self.context._v_addArgs.get('specimen_types')
 
     @setproperty
     def specimen_types(self, value):
@@ -46,7 +46,7 @@ class AvailableSpecimen(object):
             modelObj.specimen_types = set(value)
             session.flush()
         else:
-            self.context._addArgs['specimen_types'] = set(value)
+            self.context._v_addArgs['specimen_types'] = set(value)
 
 
 class RequiredSpecimen(object):
@@ -57,7 +57,7 @@ class RequiredSpecimen(object):
 
     def __init__(self, context):
         self.context = context
-    
+
     @getproperty
     def specimen_types(self):
         if getattr(self.context, 'zid', None) is not None:
@@ -68,7 +68,7 @@ class RequiredSpecimen(object):
                 .filter(model.Cycle.zid == self.context.zid)
                 )
             return query.all()
-        return self.context._addArgs.get('specimen_types')
+        return self.context._v_addArgs.get('specimen_types')
 
     @setproperty
     def specimen_types(self, value):
@@ -80,7 +80,7 @@ class RequiredSpecimen(object):
             modelObj.specimen_types = set(value)
             session.flush()
         else:
-            self.context._addArgs['specimen_types'] = set(value)
+            self.context._v_addArgs['specimen_types'] = set(value)
 
 @grok.subscribe(interfaces.IRequestedSpecimen, IObjectAddedEvent)
 def handleRequestedSpecimenAdded(visit, event):
