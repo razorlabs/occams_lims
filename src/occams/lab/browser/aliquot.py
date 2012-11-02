@@ -108,7 +108,7 @@ class AliquotCoreForm(base.CoreForm):
                 visit_entries = visit_query.all()
                 if len(visit_entries) == 1:
                     visit_entry = visit_entries[0]
-                    visit = IClinicalObject(visit_entry.zid)
+                    visit = IClinicalObject(visit_entry)
                     url = '%s/aliquot' % visit.absolute_url()
                 else:
                     url = None
