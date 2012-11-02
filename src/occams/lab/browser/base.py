@@ -6,7 +6,7 @@ from occams.lab import MessageFactory as _, \
 from z3c.form import button, field
 from beast.browser.crud import BatchNavigation
 
-from z3c.saconfig import named_scoped_session
+from occams.lab import Session
 
 from occams.lab import interfaces
 from plone.z3cform.crud import crud
@@ -61,7 +61,6 @@ class CoreButtons(crud.EditForm):
         success = SUCCESS_MESSAGE
         partly_success = _(u"Some of your changes could not be applied.")
         status = no_changes = NO_CHANGES
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         for subform in self.subforms:
             data, errors = subform.extractData()
             if errors:
@@ -72,7 +71,7 @@ class CoreButtons(crud.EditForm):
                 continue
             changes = subform.applyChanges(data)
             if changes:
-                session.flush()
+                Session.flush()
             if status is no_changes:
                 status = success
         self.status = status
@@ -82,13 +81,12 @@ class CoreButtons(crud.EditForm):
         Using the passed state, change the selected items to that state
         """
         selected = self.selected_items()
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         if selected:
-            state = session.query(self._stateModel).filter_by(name=state).one()
+            state = Session.query(self._stateModel).filter_by(name=state).one()
             for id, data in selected:
-                obj = session.query(self._model).filter_by(id=id).one()
+                obj = Session.query(self._model).filter_by(id=id).one()
                 obj.state = state
-                session.flush()
+                Session.flush()
             self.status = _(u"Your %s have been changed to the status of %s." % (self.sampletype, acttitle))
         else:
             self.status = _(u"Please select %s" % (self.sampletype))

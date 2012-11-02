@@ -6,15 +6,13 @@ from zope.publisher.interfaces.browser import IBrowserPublisher
 from zope.publisher.interfaces.http import IHTTPRequest
 
 from occams.form.traversal import ExtendedTraversal
-from z3c.saconfig import named_scoped_session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.exc import MultipleResultsFound
 
 from occams.lab import model
 from occams.lab import interfaces
-from occams.lab import SCOPED_SESSION_KEY
-from occams.lab.content import SpecimenContext
-from occams.lab.content import AliquotContext
+from occams.lab import Session
+from occams.lab import content
 
 @grok.adapter(interfaces.IResearchLab, IHTTPRequest)
 @grok.implementer(IBrowserPublisher)
@@ -23,11 +21,10 @@ class SpecimenTraverse(ExtendedTraversal):
     Allows traversal from IClinicalObjects to EAV data forms
     """
     def traverse(self, name):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
-        query = session.query(model.SpecimenType).filter(model.SpecimenType.name == name)
+        query = Session.query(model.SpecimenType).filter(model.SpecimenType.name == name)
         try:
             item = query.one()
-            return SpecimenContext(item=item, data=None)
+            return content.SpecimenContext(item=item, data=None)
         except NoResultFound:
             return None
         except MultipleResultsFound:
@@ -42,16 +39,15 @@ class AliquotTraverse(ExtendedTraversal):
     Allows traversal from IClinicalObjects to EAV data forms
     """
     def traverse(self, name):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         specimen = self.context.item
         query = (
-            session.query(model.AliquotType)
+            Session.query(model.AliquotType)
             .filter(model.AliquotType.specimen_type == specimen)
             .filter(model.AliquotType.name == name)
         )
         try:
             item = query.one()
-            return AliquotContext(item=item, data=None)
+            return content.AliquotContext(item=item, data=None)
         except NoResultFound:
             return None
         except MultipleResultsFound:

@@ -1,22 +1,12 @@
 from five import grok
-from occams.lab import SCOPED_SESSION_KEY
 # from occams.lab.interfaces.managers import ISpecimenManager
-from z3c.saconfig import named_scoped_session
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleVocabulary
 from zope.schema.vocabulary import SimpleTerm
 from occams.lab import model
-from plone.memoize import ram
-from plone.memoize import view
 from occams.form.traversal import closest
 from avrc.aeh.interfaces import IStudy
-
-
-# def _render_vocab_cachekey(method, self, context):
-#     return "%s_%s" %(str(self.__class__), str(self._modelKlass))
-
-# def _render_specimen_vocab_cachekey(method, self, context):
-#     return str(closest(context, IStudy).getId())
+from occams.lab import Session
 
 class OccamsVocabulary(object):
     grok.implements(IVocabularyFactory)
@@ -26,9 +16,8 @@ class OccamsVocabulary(object):
         raise NotImplementedError
 
     def getTerms(self, context):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
-            session.query(self._modelKlass)
+            Session.query(self._modelKlass)
             .order_by(self._modelKlass.title.asc())
             )
         terms=[]
@@ -92,10 +81,9 @@ class AvailableSpecimenVocabulary(object):
     grok.implements(IVocabularyFactory)
 
     def getTerms(self, context):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         study = closest(context, IStudy)
         query = (
-            session.query(model.SpecimenType)
+            Session.query(model.SpecimenType)
             .join(model.SpecimenType.studies)
             .filter(model.Study.zid == study.zid)
             .order_by(model.SpecimenType.title.asc())

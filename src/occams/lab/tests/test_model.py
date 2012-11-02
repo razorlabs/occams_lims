@@ -5,9 +5,21 @@ from occams.lab import interfaces
 from occams.lab.testing import OCCAMS_LAB_MODEL_FIXTURE
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import FlushError
-from occams.lab import model
-from datetime import date
 
+import datetime
+
+t1 = datetime.date(2012, 1, 1)
+t2 = datetime.date(2012, 2, 1)
+t3 = datetime.date(2012, 3, 1)
+t4 = datetime.date(2012, 4, 1)
+t5 = datetime.date(2012, 5, 1)
+t6 = datetime.date(2012, 6, 1)
+t7 = datetime.date(2012, 7, 1)
+t8 = datetime.date(2012, 8, 1)
+t9 = datetime.date(2012, 9, 1)
+t10 = datetime.date(2012, 10, 1)
+t11 = datetime.date(2012, 11, 1)
+t12 = datetime.date(2012, 12, 1)
 
 class SpecimenStateModelTestCase(unittest.TestCase):
     """
@@ -17,7 +29,7 @@ class SpecimenStateModelTestCase(unittest.TestCase):
     layer = OCCAMS_LAB_MODEL_FIXTURE
 
     def testImplementation(self):
-        self.assertTrue(verifyClass(interfaces.IOccamsVocabulary, model.Location))
+        self.assertTrue(verifyClass(interfaces.IOccamsVocabulary, model.SpecimenState))
 
     def testaddingSpecimenState(self):
         session = self.layer['session']

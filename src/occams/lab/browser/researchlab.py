@@ -1,10 +1,8 @@
 
 
-from occams.lab import MessageFactory as _, \
-                     SCOPED_SESSION_KEY
+from occams.lab import MessageFactory as _
 from z3c.form.interfaces import DISPLAY_MODE
 
-from z3c.saconfig import named_scoped_session
 from z3c.form import button, field, form as z3cform
 from beast.browser.crud import NestedFormView
 from occams.datastore import model as dsmodel
@@ -15,7 +13,6 @@ from Products.Five.browser import BrowserView
 from datetime import date
 from occams.lab import interfaces
 from plone.z3cform.crud import crud
-from zope.app.intid.interfaces import IIntIds
 import zope.component
 from beast.browser import widgets
 from occams.lab.browser.specimen import SpecimenCoreButtons
@@ -28,10 +25,10 @@ from occams.lab.browser.aliquot import AliquotFilterForm
 from datetime import timedelta
 from sqlalchemy import or_
 from sqlalchemy.orm import object_session
-from Products.CMFCore.utils import getToolByName
 from occams.lab.browser.base import FilterFormCore
 from occams.lab.browser.aliquot import AliquotQueueForm
-from avrc.aeh import model as clinical
+from avrc.aeh.interfaces import IClinicalObject
+from occams.lab import Session
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -88,9 +85,8 @@ class ResearchLabView(BrowserView):
         return self.context.absolute_url()
 
     def listAliquotTypes(self):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
-            session.query(model.AliquotType)
+            Session.query(model.AliquotType)
             .order_by(model.AliquotType.title.asc())
             )
 
@@ -117,9 +113,8 @@ class ResearchLabView(BrowserView):
         Create a form instance.
         @return: z3c.form wrapped for Plone 3 view
         """
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
-            session.query(model.Specimen)
+            Session.query(model.Specimen)
                 .join(model.Patient)
                 .join(model.Cycle)
                 # .join(model.Visit)
@@ -144,12 +139,11 @@ class AliquotCreator(crud.EditForm):
         Change the state of a specimen based on the id pulled from a template
         """
         selected = self.selected_items()
-        session = named_scoped_session(SCOPED_SESSION_KEY)
-        state = session.query(model.SpecimenState).filter_by(name='aliquoted').one()
+        state = Session.query(model.SpecimenState).filter_by(name='aliquoted').one()
         if selected:
             for id, aliquottemplate in selected:
                 aliquottemplate['specimen'].state =state
-            session.flush()
+            Session.flush()
             self.status = _(u"Your specimen have been %s." % (acttitle))
         else:
             self.status = _(u"Please select aliquot templates." % (acttitle))
@@ -169,7 +163,6 @@ class AliquotCreator(crud.EditForm):
         success = _(u"Successfully Aliquoted")
         partly_success = _(u"Some of your changes could not be applied.")
         status = no_changes = _(u"No Aliquot Entered.")
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         for subform in self.subforms:
             data, errors = subform.extractData()
             if not data['select'] or not data['count']:
@@ -186,7 +179,7 @@ class AliquotCreator(crud.EditForm):
             changes = subform.applyChanges(data)
             if changes:
                 kwargs = subform.content
-                kwargs['state'] = session.query(model.AliquotState).filter_by(name = 'pending').one()
+                kwargs['state'] = Session.query(model.AliquotState).filter_by(name = 'pending').one()
                 kwargs['inventory_date'] = kwargs['store_date']
                 # clean up the dictionary
                 for field in ['patient_legacy_number', 'aliquot_type_title', 'cycle_title', 'patient_our']:
@@ -194,9 +187,9 @@ class AliquotCreator(crud.EditForm):
                         del kwargs[field]
                 while count:
                     newAliquot = model.Aliquot(**kwargs)
-                    session.add(newAliquot)
+                    Session.add(newAliquot)
                     count = count -1
-                session.flush()
+                Session.flush()
             if status is no_changes:
                 status = success
         return self.request.response.redirect(self.action)
@@ -246,13 +239,11 @@ class AliquotReadyForm(AliquotCoreForm):
 
     def link(self, item, field):
         if field == 'patient_our':
-            intids = zope.component.getUtility(IIntIds)
-            patient = intids.getObject(item['specimen'].patient.zid)
+            patient = IClinicalObject(item['specimen'].patient)
             url = '%s/specimen' % patient.absolute_url()
             return url
         elif field == 'cycle_title':
             try:
-                intids = zope.component.getUtility(IIntIds)
                 patient = item['specimen'].patient
                 # this might be slow, but it's the only fix we have available
                 session = object_session(patient)
@@ -264,7 +255,7 @@ class AliquotReadyForm(AliquotCoreForm):
                 visit_entries = visit_query.all()
                 if len(visit_entries) == 1:
                     visit_entry = visit_entries[0]
-                    visit = intids.getObject(visit_entry.zid)
+                    visit = IClinicalObject(visit_entry)
                     url = '%s/aliquot' % visit.absolute_url()
                 else:
                     url = None
@@ -275,9 +266,8 @@ class AliquotReadyForm(AliquotCoreForm):
             return url
 
     def get_query(self):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         specimenQ = (
-            session.query(model.Specimen)
+            Session.query(model.Specimen)
             .join(model.SpecimenState)
             .join(model.Specimen.patient)
             .filter(model.SpecimenState.name.in_(self.display_state))
@@ -291,12 +281,11 @@ class AliquotReadyForm(AliquotCoreForm):
         """
         if getattr(self, '_v_aliquotList', False):
             return self._v_aliquotList
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         specimenQ = self.get_query()
         self._v_aliquotList = []
         i = 0
         for specimen in iter(specimenQ):
-            types = session.query(model.AliquotType).filter(model.AliquotType.specimen_type == specimen.specimen_type).order_by(model.AliquotType.id)
+            types = Session.query(model.AliquotType).filter(model.AliquotType.specimen_type == specimen.specimen_type).order_by(model.AliquotType.id)
             viewableSpecimen = interfaces.IViewableSpecimen(specimen)
             for aliquotType in types:
                 newAliquot = {
@@ -363,12 +352,11 @@ class AliquotPreparedButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
     def handleUnusedAliquot(self, action):
         selected = self.selected_items()
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         if selected:
             for id, data in selected:
-                aliquot = session.query(model.Aliquot).filter_by(id=id).one()
-                session.delete(aliquot)
-        session.flush()
+                aliquot = Session.query(model.Aliquot).filter_by(id=id).one()
+                Session.delete(aliquot)
+        Session.flush()
         return self.request.response.redirect(self.action)
 
 class AliquotPreparedForm(AliquotLimitForm):
@@ -582,8 +570,7 @@ class AliquotCheckoutForm(AliquotCoreForm):
         return fields
 
     def get_query(self):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
-        current_user = session.query(dsmodel.User).filter_by(key = getSecurityManager().getUser().getId()).one()
+        current_user = Session.query(dsmodel.User).filter_by(key = getSecurityManager().getUser().getId()).one()
         query = super(AliquotCheckoutForm, self).get_query()
         query = query.filter(model.Aliquot.modify_user_id == current_user.id)
         return query
@@ -753,12 +740,11 @@ class AliquotCheckInButtons(AliquotButtonCore):
     @button.buttonAndHandler(_('Mark Aliquot Unused'), name='unused')
     def handleUnusedAliquot(self, action):
         selected = self.selected_items()
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         if selected:
             for id, data in selected:
-                aliquot = session.query(model.Aliquot).filter_by(id=id).one()
-                session.delete(aliquot)
-        session.flush()
+                aliquot = Session.query(model.Aliquot).filter_by(id=id).one()
+                Session.delete(aliquot)
+        Session.flush()
         return self.request.response.redirect(self.action)
 
 class AliquotCheckInForm(AliquotLimitForm):
@@ -860,12 +846,11 @@ class AliquotInventoryButtons(AliquotButtonCore):
 
     @button.buttonAndHandler(_('Mark Inventoried'), name='inventory')
     def handleInventory(self, action):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         selected = self.selected_items()
         if selected:
             for id, obj in selected:
                 setattr(obj, 'inventory_date',date.today())
-                session.flush()
+                Session.flush()
             self.status = _(u"Your Aliquot have been inventoried.")
         else:
             self.status = _(u"Please select Aliquot to inventory")
