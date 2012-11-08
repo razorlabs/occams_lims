@@ -2,23 +2,10 @@
 """
 
 from sqlalchemy import text
-from sqlalchemy.orm import relation as Relationship
-from sqlalchemy.orm import backref
-from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.schema import Column
-from sqlalchemy.schema import ForeignKey
-from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.types import Date
-from sqlalchemy.types import Enum
-from sqlalchemy.types import Float
-from sqlalchemy.types import Integer
-from sqlalchemy.types import Time
-from sqlalchemy.types import Unicode
+from sqlalchemy import types
+from sqlalchemy import schema
+from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.schema import ForeignKeyConstraint
-from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.schema import Index
-from sqlalchemy.schema import Table
 
 import zope.interface
 from occams.lab import interfaces
@@ -28,8 +15,7 @@ from occams.datastore.model.metadata import Describeable
 from occams.datastore.model.metadata import Referenceable
 from occams.datastore.model.metadata import Modifiable
 from occams.datastore.model.auditing import Auditable
-# from occams.lab.interfaces import ISpecimen
-# from occams.lab.interfaces import IAliquot
+
 
 from avrc.aeh.model import *
 
@@ -37,34 +23,64 @@ LabModel = ModelClass(u'LabModel')
 
 NOW = text('CURRENT_TIMESTAMP')
 
-specimentype_study_table = Table('specimentype_study', LabModel.metadata,
-    Column(
+__all__ = (
+           'specimentype_study_table',
+           'specimentype_cycle_table',
+           'site_lab_location_table',
+           'SpecimenState',
+           'AliquotState',
+           'Location',
+           'SpecialInstruction',
+           'SpecimenType',
+           'AliquotType',
+           'Specimen',
+           'Aliquot'
+           )
+
+
+specimentype_study_table = schema.Table('specimentype_study', LabModel.metadata,
+    schema.Column(
         'study_id',
-        Integer,
-        ForeignKey(Study.id, name='fk_specimentype_study_study_id', ondelete='CASCADE',),
+        types.Integer,
+        schema.ForeignKey(Study.id, name='fk_specimentype_study_study_id', ondelete='CASCADE',),
         primary_key=True
         ),
-    Column(
+    schema.Column(
         'specimentype_id',
-         Integer,
-         ForeignKey('specimentype.id', name='fk_specimentype_study_specimentype_id', ondelete='CASCADE',),
+         types.Integer,
+         schema.ForeignKey('specimentype.id', name='fk_specimentype_study_specimentype_id', ondelete='CASCADE',),
          primary_key=True
          ),
     )
 
-specimentype_cycle_table = Table('specimentype_cycle', LabModel.metadata,
-    Column(
+specimentype_cycle_table = schema.Table('specimentype_cycle', LabModel.metadata,
+    schema.Column(
         'cycle_id',
-        Integer,
-        ForeignKey(Cycle.id, name='fk_specimentype_cycle_cycle_id', ondelete='CASCADE',),
+        types.Integer,
+        schema.ForeignKey(Cycle.id, name='fk_specimentype_cycle_cycle_id', ondelete='CASCADE',),
         primary_key=True
         ),
-    Column(
+    schema.Column(
         'specimentype_id',
-         Integer,
-         ForeignKey('specimentype.id', name='fk_specimentype_cycle_specimentype_id', ondelete='CASCADE',),
+         types.Integer,
+         schema.ForeignKey('specimentype.id', name='fk_specimentype_cycle_specimentype_id', ondelete='CASCADE',),
          primary_key=True
          ),
+    )
+
+site_lab_location_table = schema.Table('site_lab_location', LabModel.metadata,
+    schema.Column(
+        'site_id',
+        types.Integer,
+        schema.ForeignKey(Site.id, name='fk_site_lab_location_site_id', ondelete='CASCADE',),
+        primary_key=True
+        ),
+     schema.Column(
+        'location_id',
+        types.Integer,
+        schema.ForeignKey('location.id', name='fk_site_lab_location_location_id', ondelete='CASCADE',),
+        primary_key=True
+        ),
     )
 
 
@@ -78,7 +94,7 @@ class SpecimenState(LabModel, AutoNamed, Describeable, Referenceable, Modifiable
     @declared_attr
     def __table_args__(cls):
         return (
-            UniqueConstraint('name'),
+            schema.UniqueConstraint('name'),
             )
 
 class AliquotState(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
@@ -91,7 +107,7 @@ class AliquotState(LabModel, AutoNamed, Describeable, Referenceable, Modifiable)
     @declared_attr
     def __table_args__(cls):
         return (
-            UniqueConstraint('name'),
+            schema.UniqueConstraint('name'),
             )
 
 class Location(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
@@ -104,7 +120,7 @@ class Location(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
     @declared_attr
     def __table_args__(cls):
         return (
-            UniqueConstraint('name'),
+            schema.UniqueConstraint('name'),
             )
 
 class SpecialInstruction(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
@@ -117,40 +133,32 @@ class SpecialInstruction(LabModel, AutoNamed, Describeable, Referenceable, Modif
     @declared_attr
     def __table_args__(cls):
         return (
-            UniqueConstraint('name'),
+            schema.UniqueConstraint('name'),
             )
 
 class SpecimenType(LabModel, AutoNamed, Referenceable, Describeable, Modifiable):
-    """
-    """
     zope.interface.implements(interfaces.ISpecimenType)
 
-    ## Tube type always matches the specimen type
-    tube_type = Column(Unicode)
+    __doc__ = interfaces.ISpecimenType.__doc__
 
-    default_tubes = Column(Integer)
+    tube_type = schema.Column(types.Unicode)
 
-    location_id = Column(Integer)
+    default_tubes = schema.Column(types.Integer)
 
-    location = Relationship(
-            Location,
-            primaryjoin=(location_id==Location.id)
-            )
-
-    studies = Relationship(
+    studies = orm.relationship(
         Study,
         secondary=specimentype_study_table,
         collection_class=set,
-        backref=backref(
+        backref=orm.backref(
             name='specimen_types',
             collection_class=set,
             )
         )
-    cycles = Relationship(
+    cycles = orm.relationship(
         Cycle,
         secondary=specimentype_cycle_table,
         collection_class=set,
-        backref=backref(
+        backref=orm.backref(
             name='specimen_types',
             collection_class=set,
             )
@@ -158,90 +166,47 @@ class SpecimenType(LabModel, AutoNamed, Referenceable, Describeable, Modifiable)
 
     # aliquot_types backreffed in AliquotType
 
-    @declared_attr
-    def __table_args__(cls):
-        return (
-            ForeignKeyConstraint(
-                columns=['location_id'],
-                refcolumns=['location.id'],
-                name='fk_%s_location_id' % cls.__tablename__,
-                ondelete='SET NULL',
-                ),
-            UniqueConstraint('name'),
-            )
-
 class AliquotType(LabModel, AutoNamed,Referenceable, Describeable, Modifiable):
-    """
-    """
     zope.interface.implements(interfaces.IAliquotType)
 
-    specimen_type_id = Column(Integer, nullable=False)
+    __doc__ = interfaces.IAliquotType.__doc__
 
-    specimen_type = Relationship(
+    specimen_type_id = schema.Column(types.Integer, nullable=False)
+
+    specimen_type = orm.relationship(
             SpecimenType,
-            backref=backref(
+            backref=orm.backref(
                 name='aliquot_types',
                 primaryjoin='SpecimenType.id == AliquotType.specimen_type_id',
-                collection_class=attribute_mapped_collection('name'),
+                collection_class=orm.collections.attribute_mapped_collection('name'),
                 cascade='all, delete, delete-orphan',
                 ),
             primaryjoin=(specimen_type_id == SpecimenType.id)
             )
 
-    location_id = Column(Integer)
-
-    location = Relationship(
-            Location,
-            primaryjoin=(location_id==Location.id)
-            )
-
     @declared_attr
     def __table_args__(cls):
         return (
-            ForeignKeyConstraint(
+            schema.ForeignKeyConstraint(
                 columns=['specimen_type_id'],
                 refcolumns=['specimentype.id'],
                 name='fk_%s_specimentype_id' % cls.__tablename__,
                 ondelete='CASCADE',
                 ),
-            ForeignKeyConstraint(
-                columns=['location_id'],
-                refcolumns=['location.id'],
-                name='fk_%s_location_id' % cls.__tablename__,
-                ondelete='SET NULL',
-                ),
-            UniqueConstraint('specimen_type_id', 'name'),
+            schema.UniqueConstraint('specimen_type_id', 'name'),
+            schema.Index('ix_%s_specimen_type_id' % cls.__tablename__, 'specimen_type_id'),
             )
 
 class Specimen(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
-    """ Speccialized table for specimen data. Note that only one specimen can be
-        drawn from a patient/protocol/type.
-
-        Attributes:
-            id: (int) machine generated primary key
-            subject_id: (int) reference to the subject this specimen was
-                drawn from
-            subject: (object) the relation to the subject
-            protocol_id: (int) reference to the protocol this specimen was
-                drawn for
-            protocol: (object) the relation to the protocol
-            state: (str) current state of the specimen
-            collect_date: (datetime) the date/time said specimen was collected
-            type: (str) the type of specimen
-            destination: (str) the destination of where the specimen is sent to.
-            tubes: (int) number of tubes collected (optional, if applicable)
-            volume_per_tube: (int) volume of each tube (optional, if applicable)
-            notes: (str) optinal notes that can be entered by users (optional)
-            aliquot: (list) convenience relation to the aliquot parts generated
-                from this speciemen
-    """
     zope.interface.implements(interfaces.ISpecimen)
 
-    specimen_type_id = Column(Integer, nullable=False)
+    __doc__ = interfaces.ISpecimen.__doc__
 
-    specimen_type = Relationship(
+    specimen_type_id = schema.Column(types.Integer, nullable=False)
+
+    specimen_type = orm.relationship(
             SpecimenType,
-            backref=backref(
+            backref=orm.backref(
                 name='specimen',
                 primaryjoin='SpecimenType.id == Specimen.specimen_type_id',
                 cascade='all, delete, delete-orphan',
@@ -249,11 +214,11 @@ class Specimen(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             primaryjoin=(specimen_type_id == SpecimenType.id)
             )
 
-    patient_id = Column(Integer, nullable=False)
+    patient_id = schema.Column(types.Integer, nullable=False)
 
-    patient = Relationship(
+    patient = orm.relationship(
             Patient,
-            backref=backref(
+            backref=orm.backref(
                 name='specimen',
                 primaryjoin='Patient.id==Specimen.patient_id',
                 cascade='all, delete, delete-orphan',
@@ -261,11 +226,11 @@ class Specimen(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             primaryjoin=(patient_id==Patient.id)
             )
 
-    cycle_id = Column(Integer)
+    cycle_id = schema.Column(types.Integer)
 
-    cycle = Relationship(
+    cycle = orm.relationship(
             Cycle,
-            backref=backref(
+            backref=orm.backref(
                 name='specimen',
                 primaryjoin='Cycle.id==Specimen.cycle_id',
                 cascade='all, delete, delete-orphan',
@@ -273,87 +238,85 @@ class Specimen(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             primaryjoin=(cycle_id==Cycle.id)
             )
 
-    state_id = Column(
-            Integer,
+    state_id = schema.Column(
+            types.Integer,
             nullable=False
             )
 
-    state = Relationship(
+    state = orm.relationship(
             SpecimenState,
             primaryjoin=(state_id==SpecimenState.id)
             )
 
-    collect_date = Column(Date)
+    collect_date = schema.Column(types.Date)
 
-    collect_time = Column(Time)
+    collect_time = schema.Column(types.Time)
 
-    location_id = Column(Integer)
+    location_id = schema.Column(types.Integer)
 
-    location = Relationship(
+    location = orm.relationship(
             Location,
-            backref=backref(
+            backref=orm.backref(
                 name='specimen',
                 primaryjoin='Location.id==Specimen.location_id',
                 ),
             primaryjoin=(location_id==Location.id)
             )
 
-    tubes = Column(Integer)
+    tubes = schema.Column(types.Integer)
 
-    notes = Column(Unicode)
-
-    study_cycle_label = Column(Unicode(255))
+    notes = schema.Column(types.Unicode)
 
     @declared_attr
     def __table_args__(cls):
         return (
-            ForeignKeyConstraint(
+            schema.ForeignKeyConstraint(
                 columns=['specimen_type_id'],
                 refcolumns=['specimentype.id'],
                 name='fk_%s_specimentype_id' % cls.__tablename__,
                 ondelete='CASCADE',
                 ),
-            ForeignKeyConstraint(
+            schema.ForeignKeyConstraint(
                 columns=['patient_id'],
                 refcolumns=[Patient.id],
                 name='fk_%s_patient_id' % cls.__tablename__,
                 ondelete='CASCADE',
                 ),
-            ForeignKeyConstraint(
+            schema.ForeignKeyConstraint(
                 columns=['cycle_id'],
                 refcolumns=[Cycle.id],
                 name='fk_%s_cycle_id' % cls.__tablename__,
                 ondelete='SET NULL',
                 ),
-            ForeignKeyConstraint(
+            schema.ForeignKeyConstraint(
                 columns=['location_id'],
                 refcolumns=['location.id'],
                 name='fk_%s_location_id' % cls.__tablename__,
                 ondelete='SET NULL',
                 ),
-            ForeignKeyConstraint(
+            schema.ForeignKeyConstraint(
                 columns=['state_id'],
                 refcolumns=['specimenstate.id'],
                 name='fk_%s_specimenstate_id' % cls.__tablename__,
                 ondelete='SET NULL',
                 ),
-            # UniqueConstraint('patient_id', 'cycle_id', 'specimen_type_id'),
+            schema.Index('ix_%s_specimen_type_id' % cls.__tablename__, 'specimen_type_id'),
+            schema.Index('ix_%s_patient_id' % cls.__tablename__, 'patient_id'),
+            schema.Index('ix_%s_cycle_id' % cls.__tablename__, 'cycle_id'),
+            schema.Index('ix_%s_location_id' % cls.__tablename__, 'location_id'),
+            schema.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'),
             )
 
 class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
-    """ Specialized table for aliquot parts generated from a specimen.
-
-        Attributes:
-            id: (int) machine generated primary key
-            specimen_id: (int) the specimen this aliquot was generated from
-    """
     zope.interface.implements(interfaces.IAliquot)
 
-    specimen_id = Column(Integer, nullable=False)
+    __doc__ = interfaces.IAliquot.__doc__
 
-    specimen = Relationship(
+    specimen_id = schema.Column(types.Integer, nullable=False)
+
+    specimen = orm.relationship(
             Specimen,
-            backref=backref(
+            backref=orm.backref(
                 name='aliquot',
                 primaryjoin='Specimen.id == Aliquot.specimen_id',
                 cascade='all, delete, delete-orphan',
@@ -361,11 +324,11 @@ class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             primaryjoin=(specimen_id == Specimen.id)
             )
 
-    aliquot_type_id = Column(Integer, nullable=False)
+    aliquot_type_id = schema.Column(types.Integer, nullable=False)
 
-    aliquot_type = Relationship(
+    aliquot_type = orm.relationship(
             AliquotType,
-            backref=backref(
+            backref=orm.backref(
                 name='aliquot',
                 primaryjoin='AliquotType.id == Aliquot.aliquot_type_id',
                 cascade='all, delete, delete-orphan',
@@ -373,56 +336,56 @@ class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             primaryjoin=(aliquot_type_id == AliquotType.id)
             )
 
-    state_id = Column(
-            Integer,
+    state_id = schema.Column(
+            types.Integer,
             nullable=False
             )
 
-    state = Relationship(
+    state = orm.relationship(
             AliquotState,
             primaryjoin=(state_id==AliquotState.id)
             )
 
-    labbook = Column(Unicode)
+    labbook = schema.Column(types.Unicode)
 
-    volume = Column(Float)
+    volume = schema.Column(types.Float)
 
-    cell_amount = Column(Float)
+    cell_amount = schema.Column(types.Float)
 
-    store_date = Column(Date)
+    store_date = schema.Column(types.Date)
 
-    freezer = Column(Unicode)
+    freezer = schema.Column(types.Unicode)
 
-    rack = Column(Unicode)
+    rack = schema.Column(types.Unicode)
 
-    box = Column(Unicode)
+    box = schema.Column(types.Unicode)
 
-    location_id = Column(Integer)
+    location_id = schema.Column(types.Integer)
 
-    location = Relationship(
+    location = orm.relationship(
             Location,
-            backref=backref(
+            backref=orm.backref(
                 name='aliquot',
                 primaryjoin='Aliquot.location_id == Location.id',
                 ),
             primaryjoin=(location_id==Location.id)
             )
 
-    thawed_num = Column(Integer)
+    thawed_num = schema.Column(types.Integer)
 
-    inventory_date = Column(Date)
+    inventory_date = schema.Column(types.Date)
 
-    sent_date = Column(Date)
+    sent_date = schema.Column(types.Date)
 
-    sent_name = Column(Unicode)
+    sent_name = schema.Column(types.Unicode)
 
-    sent_notes = Column(Unicode)
+    sent_notes = schema.Column(types.Unicode)
 
-    notes = Column(Unicode)
+    notes = schema.Column(types.Unicode)
 
-    special_instruction_id = Column(Integer)
+    special_instruction_id = schema.Column(types.Integer)
 
-    special_instruction = Relationship(
+    special_instruction = orm.relationship(
             SpecialInstruction,
             primaryjoin=(special_instruction_id == SpecialInstruction.id)
             )
@@ -431,39 +394,43 @@ class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
     @declared_attr
     def __table_args__(cls):
         return (
-            ForeignKeyConstraint(
+            schema.ForeignKeyConstraint(
                 columns=['specimen_id'],
                 refcolumns=['specimen.id'],
                 name='fk_%s_specimen_id' % cls.__tablename__,
                 ondelete='CASCADE',
                 ),
 
-            ForeignKeyConstraint(
+            schema.ForeignKeyConstraint(
                 columns=['aliquot_type_id'],
                 refcolumns=['aliquottype.id'],
                 name='fk_%s_aliquottype_id' % cls.__tablename__,
                 ondelete='CASCADE',
                 ),
 
-            ForeignKeyConstraint(
+            schema.ForeignKeyConstraint(
                 columns=['location_id'],
                 refcolumns=['location.id'],
                 name='fk_%s_location_id' % cls.__tablename__,
                 ondelete='SET NULL',
                 ),
 
-            ForeignKeyConstraint(
+            schema.ForeignKeyConstraint(
                 columns=['special_instruction_id'],
                 refcolumns=['specialinstruction.id'],
                 name='fk_%s_specialinstruction_id' % cls.__tablename__,
                 ondelete='SET NULL',
                 ),
-            ForeignKeyConstraint(
+            schema.ForeignKeyConstraint(
                 columns=['state_id'],
                 refcolumns=['aliquotstate.id'],
                 name='fk_%s_aliquotstate_id' % cls.__tablename__,
                 ondelete='SET NULL',
                 ),
+            schema.Index('ix_%s_specimen_id' % cls.__tablename__, 'specimen_id'),
+            schema.Index('ix_%s_aliquot_type_id' % cls.__tablename__, 'aliquot_type_id'),
+            schema.Index('ix_%s_location_id' % cls.__tablename__, 'location_id'),
+            schema.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'),
             )
 
 if __name__ == '__main__': # pragma: no cover
