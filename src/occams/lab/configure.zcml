@@ -76,7 +76,7 @@
       />
 
   <plone:behavior
-      title="Lab Location"
+      title="OCCAMS: Lab Location"
       description="Provide a lab location."
       provides="occams.lab.interfaces.ILabLocation"
       factory="occams.lab.behaviors.LabLocation"
