@@ -16,7 +16,6 @@ from occams.datastore.model.metadata import Referenceable
 from occams.datastore.model.metadata import Modifiable
 from occams.datastore.model.auditing import Auditable
 
-
 from avrc.aeh.model import *
 
 LabModel = ModelClass(u'LabModel')
@@ -79,10 +78,8 @@ site_lab_location_table = schema.Table('site_lab_location', LabModel.metadata,
         'location_id',
         types.Integer,
         schema.ForeignKey('location.id', name='fk_site_lab_location_location_id', ondelete='CASCADE',),
-        primary_key=True
         ),
     )
-
 
 class SpecimenState(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
     """
@@ -116,6 +113,15 @@ class Location(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
     Right now we just need a vocabulary
     """
     zope.interface.implements(interfaces.IOccamsVocabulary)
+
+    sites = orm.relationship(
+        Site,
+        secondary=site_lab_location_table,
+        backref=orm.backref(
+            name='lab_location',
+            uselist=False
+            ),
+        )
 
     @declared_attr
     def __table_args__(cls):

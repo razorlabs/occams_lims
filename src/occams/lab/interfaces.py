@@ -244,8 +244,9 @@ class IAliquot(IReferenceable, IModifiable):
         required=False
         )
 
-
-
+# -----------------------------------------------------------------------------
+# Viewing and processing interfaces
+# -----------------------------------------------------------------------------
 class IAddableSpecimen(form.Schema):
     """
     Interface for adding more specimen
@@ -253,7 +254,6 @@ class IAddableSpecimen(form.Schema):
     specimen_patient_our = zope.schema.TextLine(
         title=_(u'Patient Key'),
         description=_(u''),
-    #        vocabulary="avrc.aeh.patients",
         required=True
         )
 
@@ -343,8 +343,6 @@ class IViewableSpecimen(form.Schema):
         required=False
         )
 
-
-
 class IAliquotGenerator(form.Schema):
     """
     Count for number of aliquot duplicates to create
@@ -417,6 +415,10 @@ class IViewableAliquot(form.Schema):
         description=_(u"Special Instructions for the aliquot"),
         readonly=True,
         )
+
+# -----------------------------------------------------------------------------
+# Searching interfaces
+# -----------------------------------------------------------------------------
 
 class IFilterForm(form.Schema):
     """
@@ -497,6 +499,22 @@ class IInventoryFilterForm(IAliquotFilterForm):
         required=False
         )
 
+
+# -----------------------------------------------------------------------------
+# Behavior interfaces
+# -----------------------------------------------------------------------------
+
+class ILabLocation(form.Schema):
+
+    lab_location = zope.schema.Choice(
+        title=_(u"Default Lab Location"),
+        description=_(u"The Default Clinical Lab"),
+        vocabulary="occams.lab.locationvocabulary",
+        required=True
+        )
+
+zope.interface.alsoProvides(ILabLocation, form.IFormFieldProvider)
+
 class IAvailableSpecimen(form.Schema):
     """
     """
@@ -553,6 +571,11 @@ class IRequestedSpecimen(form.Schema):
         Function that provides specimen associated with the object
         """
 zope.interface.alsoProvides(IRequestedSpecimen, form.IFormFieldProvider)
+
+
+# -----------------------------------------------------------------------------
+# Labelling interfaces
+# -----------------------------------------------------------------------------
 
 class ILabelSheet(form.Schema):
     """
@@ -695,20 +718,45 @@ class IChecklistSupport(zope.interface.Interface):
     Marker interface to search for aliquot associated with a specific item
     """
 
+# -----------------------------------------------------------------------------
+# Lab and object interfaces
+# -----------------------------------------------------------------------------
+
 class ILab(form.Schema, IContainsSpecimen):
     """
     An Interface for the Labs
     """
+
+    location = zope.schema.Choice(
+        title=_(u"Lab Location"),
+        description=_(u"The Location of this lab"),
+        vocabulary="occams.lab.locationstringvocabulary",
+        required=True
+        )
 
 class IClinicalLab(ILab):
     """
     An Interface for the Labs
     """
 
+    processing_location = zope.schema.Choice(
+        title=_(u"Processing Location"),
+        description=_(u"The Location where specimen will be processed"),
+        vocabulary="occams.lab.locationstringvocabulary",
+        required=True
+        )
+
 class IResearchLab(ILab, IChecklistSupport):
     """
     An Interface for the Labs
     """
+
+    storage_location = zope.schema.Choice(
+        title=_(u"Storage Location"),
+        description=_(u"The Location where specimen will be stored"),
+        vocabulary="occams.lab.locationstringvocabulary",
+        required=True
+        )
 
 class ISpecimenContext(zope.interface.Interface):
     """

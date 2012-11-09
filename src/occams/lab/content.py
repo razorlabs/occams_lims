@@ -9,6 +9,9 @@ from sqlalchemy.orm import object_session
 
 from occams.lab import interfaces
 from occams.lab import model
+from plone.memoize import ram
+from avrc.aeh import interfaces as clinical
+
 
 class SpecimenContext(traversal.DataBaseItemContext):
     """
@@ -80,8 +83,6 @@ class ViewableSpecimen(grok.Adapter):
 
     @property
     def cycle_title(self):
-        if self.context.study_cycle_label:
-            return self.context.study_cycle_label
         return "%s - %s" %(self.context.cycle.study.short_title, self.context.cycle.week)
 
     @property
@@ -102,14 +103,9 @@ class ViewableSpecimen(grok.Adapter):
     def specimen_type_name(self):
         return self.context.specimen_type.name
 
-    # @property
-    # def state(self):
-    #     return self.context.state.name
-
     @property
     def tube_type(self):
         return self.context.specimen_type.tube_type
-
 
 class AliquotGenerator(grok.Adapter):
     grok.context(interfaces.IAliquot)
@@ -118,8 +114,6 @@ class AliquotGenerator(grok.Adapter):
     @property
     def count(self):
         return None
-
-from plone.memoize import ram
 
 def _render_specimen_cachekey(method, self, context):
     return context.specimen_id
@@ -144,10 +138,6 @@ class ViewableAliquot(grok.Adapter):
         return self.context.state.title
 
     @property
-    def location_title(self):
-        return self.context.location.title
-
-    @property
     def patient_our(self):
         return self.getPatientOur(self.context)
 
@@ -169,8 +159,6 @@ class ViewableAliquot(grok.Adapter):
 
     @ram.cache(_render_specimen_cachekey)
     def getCycleTitle(self, context):
-        if context.specimen.study_cycle_label:
-            return context.specimen.study_cycle_label
         return "%s - %s" %(context.specimen.cycle.study.short_title, context.specimen.cycle.week)
 
 
@@ -204,3 +192,5 @@ class ViewableAliquot(grok.Adapter):
             return 0
         else:
             return self.context.thawed_num
+
+
