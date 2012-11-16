@@ -9,23 +9,23 @@
     i18n:translate="">A Clinical Laboratory for Collection of Specimen</property>
   <property name="content_icon">++resource++occams.lab/images/nurse-icon.png</property> <!-- navigation_icon.png</property>-->
   <property name="global_allow">True</property>
-  <property name="filter_content_types">False</property>  
+  <property name="filter_content_types">False</property>
   <property name="allowed_content_types" />
   <property name="allow_discussion">False</property>
 
  <!-- schema interface -->
- <property name="schema">occams.lab.interfaces.IClinicalLab</property> 
+ <property name="schema">occams.lab.interfaces.IClinicalLab</property>
 
  <!-- class used for content items -->
  <property name="klass">plone.dexterity.content.Container</property>
 
  <property name="add_permission">occams.lab.AddLab</property>
- 
+
  <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
      <element value="plone.app.dexterity.behaviors.metadata.IBasic"/>
      <element value="occams.lab.interfaces.ILabelSheet"/>
- 
+
  </property>
 
   <!-- View information -->
@@ -54,19 +54,5 @@
     url_expr="string:${object_url}/edit" visible="True">
     <permission value="occams: Modify Lab" />
   </action>
-
-  <action title="Batched" action_id="batched" category="object" condition_expr=""
-    url_expr="string:${object_url}/batched" visible="True">
-    <permission value="occams: Manage Specimen" />
-  </action>
-
-  <action title="Postponed" action_id="postponed" category="object" condition_expr=""
-    url_expr="string:${object_url}/postponed" visible="True">
-    <permission value="occams: Manage Specimen" />
-  </action>
-
-  <action title="Completed Today" action_id="completed" category="object" condition_expr=""
-    url_expr="string:${object_url}/complete" visible="True">
-    <permission value="occams: Manage Specimen" />
   </action>
 </object>

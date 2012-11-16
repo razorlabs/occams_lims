@@ -14,6 +14,7 @@ def upgrade(migrate_engine):
     specimen_type_table = Table(u'specimentype', metadata, autoload=True)
     aliquot_type_table = Table(u'aliquottype', metadata, autoload=True)
     specimen_table = Table(u'specimen', metadata, autoload=True)
+    specimen_audit_table = Table(u'specimen_audit', metadata, autoload=True)
     aliquot_table = Table(u'aliquot', metadata, autoload=True)
 
     site_lab_location_table = Table('site_lab_location', metadata,
@@ -32,11 +33,22 @@ def upgrade(migrate_engine):
         primary_key=True
         ),
     )
+    processing_location = Column('processing_location_id', Integer,
+                                            ForeignKey(
+                                                    location_table.c.id,
+                                                    name='fk_specimen_processing_location_id',
+                                                    ondelete='SET NULL'
+                                                    )
+                                            )
+
+    processing_location.create(specimen_table)
+    processing_location.create(specimen_audit_table)
 
     ix_specimen_specimen_type_index = Index('ix_specimen_specimen_type_id', specimen_table.c.specimen_type_id)
     ix_specimen_patient_index = Index('ix_specimen_patient_id', specimen_table.c.patient_id)
     ix_specimen_cycle_index = Index('ix_specimen_cycle_id', specimen_table.c.cycle_id)
     ix_specimen_location_index = Index('ix_specimen_location_id', specimen_table.c.location_id)
+    ix_specimen_processing_location_index = Index('ix_specimen_processing_location_id', specimen_table.c.processing_location_id)
     ix_specimen_state_index = Index('ix_specimen_state_id', specimen_table.c.state_id)
 
     ix_aliquot_specimen_index = Index('ix_aliquot_specimen_id', aliquot_table.c.specimen_id)
@@ -45,28 +57,13 @@ def upgrade(migrate_engine):
     ix_aliquot_state_index = Index('ix_aliquot_state_id', aliquot_table.c.state_id)
 
     site_lab_location_table.create(migrate_engine)
-    specimen_type_table.c.location_id.drop()
-    aliquot_type_table.c.location_id.drop()
-    specimen_table.c.study_cycle_label.drop()
-
-
-    ix_specimen_specimen_type_index.drop()
-    ix_specimen_patient_index.drop()
-    ix_specimen_cycle_index.drop()
-    ix_specimen_location_index.drop()
-    ix_specimen_state_index.drop()
-
-    ix_aliquot_specimen_index.drop()
-    ix_aliquot_aliquot_type_index.drop()
-    ix_aliquot_location_index.drop()
-    ix_aliquot_state_index.drop()
 
     ix_specimen_specimen_type_index.create()
     ix_specimen_patient_index.create()
     ix_specimen_cycle_index.create()
     ix_specimen_location_index.create()
     ix_specimen_state_index.create()
-
+    ix_specimen_processing_location_index.create()
     ix_aliquot_specimen_index.create()
     ix_aliquot_aliquot_type_index.create()
     ix_aliquot_location_index.create()
@@ -83,6 +80,7 @@ def downgrade(migrate_engine):
     aliquot_table = Table(u'aliquot', metadata, autoload=True)
 
     location_column = Column('location_id', Integer)
+    specimen_table.c.processing_location_id.drop()
 
     site_location_table.drop()
     location_column.create(specimen_type_table)

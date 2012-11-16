@@ -110,6 +110,13 @@ class ISpecimen(IReferenceable, IModifiable):
         title=_(u"Location"),
         description=_(u"The location of the specimen"),
         vocabulary="occams.lab.locationvocabulary",
+        required=True
+        )
+
+    processing_location =  zope.schema.Choice(
+        title=_(u"Processing Location"),
+        description=_(u"The processing location for the specimen"),
+        vocabulary="occams.lab.locationvocabulary",
         required=False
         )
 
@@ -253,20 +260,22 @@ class IAddableSpecimen(form.Schema):
     """
     specimen_patient_our = zope.schema.TextLine(
         title=_(u'Patient Key'),
-        description=_(u''),
+        description=_(u'Enter the Patient\'s OUR Number'),
         required=True
         )
 
     specimen_cycle = zope.schema.Choice(
         title=_(u'Cycle'),
-        description=_(u'The Cycles for this Visit.'),
-        source="avrc.aeh.Cycles"
+        description=_(u'Select the cycle for which this specimen will be collected.'),
+        source="avrc.aeh.Cycles",
+        required=True
         )
 
     specimen_type = zope.schema.Choice(
         title=_(u"Specimen Type"),
-        description=_(u"The Type specimen"),
+        description=_(u"The Type of specimen to be added."),
         vocabulary="occams.lab.specimentypevocabulary",
+        required=True
         )
 
 class IViewableSpecimen(form.Schema):
@@ -423,6 +432,45 @@ class IViewableAliquot(form.Schema):
 class IFilterForm(form.Schema):
     """
     """
+
+
+class ISpecimenFilterForm(form.Schema):
+    """
+    """
+    patient = zope.schema.TextLine(
+        title=_(u"Patient id"),
+        description=_(u"Patient OUR#, Legacy AEH ID, or Masterbook Number"),
+        required=False
+        )
+
+    after_date = zope.schema.Date(
+        title=_(u"Sample Date"),
+        description=_(u"Samples on this date. If Limit Date is set as well, will show samples between those dates"),
+        required=False
+        )
+
+    before_date = zope.schema.Date(
+        title=_(u"Sample Limit Date"),
+        description=_(u"Samples before this date. Only applies if Sample Date is also set"),
+        required=False
+        )
+
+    specimen_type = zope.schema.Choice(
+        title=u"Type of Sample",
+        vocabulary='occams.lab.specimentypevocabulary',
+        required=False
+        )
+
+    show_all = zope.schema.Bool(
+        title=_(u"Show all Samples"),
+        description=_(u"Show all samples, including pending draw, never drawn, completed, etc"),
+        required=False
+        )
+
+
+class IAliquotFilterForm(IFilterForm):
+    """
+    """
     patient = zope.schema.TextLine(
         title=_(u"Patient id"),
         description=_(u"Patient OUR#, Legacy AEH ID, or Masterbook Number"),
@@ -447,28 +495,6 @@ class IFilterForm(form.Schema):
         description=_(u"Show all samples, including missing, never drawn, checked out, etc"),
         required=False
         )
-
-class ISpecimenFilterForm(IFilterForm):
-    """
-    """
-    specimen_type = zope.schema.Choice(
-        title=u"Type of Sample",
-        vocabulary='occams.lab.specimentypevocabulary',
-        required=False
-        )
-
-    state = zope.schema.List(
-        title=_(u'State'),
-        description = _(u""),
-        value_type = zope.schema.Choice(
-            title=u"state choice",
-            vocabulary="occams.lab.specimenstatevocabulary",
-            )
-        )
-
-class IAliquotFilterForm(IFilterForm):
-    """
-    """
     aliquot_type = zope.schema.Choice(
         title=u"Type of Sample",
         vocabulary='occams.lab.aliquottypevocabulary',

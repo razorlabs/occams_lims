@@ -269,6 +269,17 @@ class Specimen(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             primaryjoin=(location_id==Location.id)
             )
 
+    processing_location_id = schema.Column(types.Integer)
+
+    processing_location = orm.relationship(
+            Location,
+            backref=orm.backref(
+                name='processable_specimen',
+                primaryjoin='Location.id==Specimen.processing_location_id',
+                ),
+            primaryjoin=(processing_location_id==Location.id)
+            )
+
     tubes = schema.Column(types.Integer)
 
     notes = schema.Column(types.Unicode)
@@ -300,6 +311,12 @@ class Specimen(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
                 name='fk_%s_location_id' % cls.__tablename__,
                 ondelete='SET NULL',
                 ),
+           schema.ForeignKeyConstraint(
+                columns=['processing_location_id'],
+                refcolumns=['location.id'],
+                name='fk_%s_processing_location_id' % cls.__tablename__,
+                ondelete='SET NULL',
+                ),
             schema.ForeignKeyConstraint(
                 columns=['state_id'],
                 refcolumns=['specimenstate.id'],
@@ -310,6 +327,7 @@ class Specimen(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             schema.Index('ix_%s_patient_id' % cls.__tablename__, 'patient_id'),
             schema.Index('ix_%s_cycle_id' % cls.__tablename__, 'cycle_id'),
             schema.Index('ix_%s_location_id' % cls.__tablename__, 'location_id'),
+            schema.Index('ix_%s_processing_location_id' % cls.__tablename__, 'processing_location_id'),
             schema.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'),
             )
 

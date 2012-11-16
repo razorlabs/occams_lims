@@ -34,9 +34,10 @@ class LabeledSpecimen(grok.Adapter):
 
     @property
     def cycle_title(self):
-        if self.context.study_cycle_label:
-            return self.context.study_cycle_label
-        return "%s - %s" %(self.context.cycle.study.short_title, self.context.cycle.week)
+        if self.context.cycle.week is not None:
+            return "%s - %s" %(self.context.cycle.study.short_title, self.context.cycle.week)
+        else:
+            return "%s - %s" %(self.context.cycle.study.short_title, self.context.cycle.title)
 
     @property
     def sample_date(self):
@@ -48,7 +49,7 @@ class LabeledSpecimen(grok.Adapter):
     @property
     def sample_type(self):
         return self.context.specimen_type.name
-        
+
     @property
     def barcodeline(self):
         return - 1
@@ -140,7 +141,7 @@ class LabelFromBrain(grok.Adapter):
     @property
     def sample_type(self):
         return self.context['sample_type']
-        
+
     @property
     def barcodeline(self):
         return self.context['barcodeline']
@@ -181,7 +182,7 @@ to a file at that path).
 '''
 
 class LabelGenerator(object):
-#    def setup(self, settings, filename, doDrawGrid = False):    
+#    def setup(self, settings, filename, doDrawGrid = False):
     def __init__(self, context, filename=None):
         '''
         set up the default label drawing canvas
@@ -202,10 +203,10 @@ class LabelGenerator(object):
         self.label_round = float(self.context.label_round)
         self.no_across = int(self.context.no_across)
         self.no_down = int(self.context.no_down)
-        
+
         self.font_face = 'Helvetica'
         self.canvas = self.createCanvas(filename)
-        
+
         self.grid = self.drawGrid()
         self.row = 0
         self.column = -1
@@ -232,7 +233,7 @@ class LabelGenerator(object):
         newcanvas.setLineWidth(0.1) # line width = 0.5 pts
         newcanvas.setFont(self.font_face, 12)
         return newcanvas
-        
+
     def drawGrid (self):
         '''
         compute the grid of printable labels boxes
@@ -264,7 +265,7 @@ class LabelGenerator(object):
             for aBox in aColumn:
                 self.canvas.roundRect(aBox[0], aBox[1], aBox[2], aBox[3], self.label_round * inch)
         return self.grid
-        
+
     def getNextBox(self, startcol=None, startrow=None):
         ''' adjust self.row and self.column to the next available label
             make a new page if necessary '''

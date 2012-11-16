@@ -8,32 +8,35 @@
       lang="en">
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
-        <tal:data define="form view/getCrudForm">
-            <tal:hasdata tal:condition="form">
-                <p>Specimen To Be Processed</p>
-                <tal:crud replace="structure form" />
-                <a href="#" name="" style="display:none"></a>
-                <br class="visualClear" />
+         <h3>
+          <a id="specimenfilter" href="./specimenfilter">
+            <img alt="Apply a filter" title="Apply a filter" src="/++resource++occams.lab/images/filter-icon.png" />
+          Current filter
+          </a>
+        </h3>
+          <ul tal:define="filters view/currentFilter">
+            <li tal:repeat="filter filters"><strong tal:content="python:filter[0]" />: <span tal:replace="python:filter[1]" /></li>
+          </ul>
+          <br />
+                <p><a id="addspecimen" href="./addspecimen"><img title="Add more specimen" src="/++resource++occams.lab/images/syringe-icon.png"> <strong>Add more specimen...</strong></a></p>
+                <tal:hascontent condition="view/entry_count">
+                   <tal:formcontents replace="structure view/crudForm/render" />
+                <h4>Instructions</h4>
                 <ul>
-                    <li><b>Print Selected:</b> Saves all specimens and generates labels for selected specimens.</li>
-                    <li><b>Save All Changes:</b> Saves all changes to specimens.</li>
-                    <li><b><a href="./complete">Complete Selected</a>:</b> Marks selected specimens as processed and ready for aliquot. If you complete a specimen by accident, you can <a href="./complete">recover it</a>.</li>
-                    <li><b><a href="./batched">Batch Selected</a>:</b> Moves selected specimens to the <a href="./batched">batch stage</a> (for grouped processing at a later date).</li>
-                    <li><b><a href="./postponed">Postpone Selected</a>:</b> Moves selected specimens to the <a href="./postponed">postpone stage</a> (for optional processing at a later date).</li>
-                    <li><b>Mark Selected Undrawn:</b> Marks selected specimens as undrawn (never to be processed).If you complete a specimen by accident, you can <a href="./complete">recover it</a>.</li>
+                    <li><b>Select All:</b> Selects all of the specimen.</li>
+                    <li><b>Print Selected:</b> Saves all specimens (both selected and unselected) and generates labels for selected specimens.</li>
+                    <li><b>Save All Changes:</b> Saves all changes to specimens (both selected and unselected) .</li>
+                    <li><b>Complete Selected:</b> Saves all changes to specimens (both selected and unselected), and marks selected specimens as drawn and ready to be processed. If you complete a specimen by accident, you can use the Filter:  select "show all samples" to recover it.</li>
+                    <li><b>Mark Selected Undrawn:</b> Saves all changes to specimens  (both selected and unselected) and marks selected specimens as undrawn (never to be processed).If you mark a specimen by accident, you can use the Filter:  select "show all samples" to recover it.</li>
                 </ul>
-            </tal:hasdata>
-            <tal:nodata tal:condition="not:form">
-                <p>There are no specimen currently scheduled for draw.</p>
-                <br />
-                <b>Other Views</b>
-                <ul><li><a href="./batched">Batched</a></li>
-                <li><a href="./postponed">Postponed</a></li>
-                <li><a href="./complete">Completed today</a></li>
-                </ul>
-                <p>If you feel that this is in error, contact the <a href="" tal:attributes="href string:mailto:${context/email_from_address}">site administrator</a>.</p>
-            </tal:nodata>
-        </tal:data>
-    </metal:content-core>
+               </tal:hascontent>
+                  <tal:nocontent tal:condition="not:view/entry_count">
+                <p>There are no specimen currently scheduled for draw. If this is unexpected, check your filter:</p>
+                <h4> Current Filter</h4>
+                  <ul tal:define="filters view/currentFilter">
+                    <li tal:repeat="filter filters"><strong tal:content="python:filter[0]" />: <span tal:replace="python:filter[1]" /></li>
+                  </ul>
+                </tal:nocontent>
+     </metal:content-core>
   </metal:content-core>
 </html>
