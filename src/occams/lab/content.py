@@ -67,7 +67,7 @@ class AliquotContext(traversal.DataBaseItemContext):
             mapping = IFullMapping(self.item)
             mapping['collect_date'] = self.item.collect_date
             self._data = mapping
-        return self._dat
+        return self._data
 
 class ViewableSpecimen(grok.Adapter):
     grok.context(interfaces.ISpecimen)
@@ -128,6 +128,12 @@ class ViewableAliquot(grok.Adapter):
     @property
     def aliquot_id(self):
         return str(self.context.id)
+
+    @property
+    def label_queue(self):
+        # Label Queue is dynamically manipulated from the crud form
+        # and should not be set here.
+        return None
 
     @property
     def aliquot_type_title(self):

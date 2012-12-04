@@ -4,6 +4,24 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="occams.lab">
 
+<!-- Filter Page -->
+  <browser:page
+      for="occams.lab.interfaces.ILabObject"
+      name="filtersuccess"
+     class=".labcrud.FilterSuccessView"
+      template="labcrud_templates/filtersuccess.pt"
+      permission="occams.lab.ViewSpecimen"
+     />
+
+   <browser:page
+      for="occams.lab.interfaces.ILabObject"
+     name="labfilter"
+     class=".labcrud.LabFilterForm"
+      permission="occams.lab.ViewSpecimen"
+     />
+
+
+<!-- Clinical Lab Pages -->
   <browser:page
       for="occams.lab.interfaces.IClinicalLab"
       name="view"
@@ -17,19 +35,20 @@
      name="view"
      />
 
-   <browser:page
-      for="occams.lab.interfaces.IClinicalLab"
+<!--    <browser:page
+      for="occams.lab.interfaces.ILab"
      name="specimenfilter"
      class=".clinicallab.SpecimenFilterForm"
       permission="occams.lab.ViewSpecimen"
-     />
+     /> -->
 
    <browser:page
       for="occams.lab.interfaces.IClinicalLab"
      name="addspecimen"
-     class=".clinicallab.AddSpecimen"
+     class=".clinicallab.AddSpecimenForm"
       permission="occams.lab.ViewSpecimen"
      />
+
   <adapter factory=".clinicallab.overrideCycleChoicePrompt" name="prompt" />
   <adapter factory=".clinicallab.overrideTypeChoicePrompt" name="prompt" />
 
@@ -38,6 +57,99 @@
       name="cycle_by_patient_json"
       class=".clinicallab.CycleByPatientJsonView"
       permission="occams.lab.ViewSpecimen"
+      />
+
+<!-- Research Lab Pages -->
+
+
+
+   <browser:page
+      for="occams.lab.interfaces.ILab"
+     name="aliquotfilter"
+     class=".researchlab.AliquotFilterForm"
+      permission="occams.lab.ViewAliquot"
+     />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="view"
+      class=".researchlab.ResearchLabView"
+      template="researchlab_templates/view.pt"
+      permission="occams.lab.AliquotSpecimen"
+      />
+
+   <browser:defaultView
+     for="occams.lab.interfaces.IResearchLab"
+     name="view"
+     />
+
+  <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="ready"
+      class=".researchlab.AliquotSpecimenView"
+      template="researchlab_templates/aliquotspecimen.pt"
+      permission="occams.lab.AliquotSpecimen"
+      />
+
+    <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+     name="printaliquotlabelform"
+     class=".researchlab.AliquotLabelForm"
+      permission="occams.lab.AliquotSpecimen"
+     />
+
+
+<!--   <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+      name="checkout"
+      class=".researchlab.AliquotCheckoutView"
+      template="aliquotlab_templates/checkout.pt"
+      permission="occams.lab.CheckoutAliquot"
+      /> -->
+
+<!-- Specimen Context -->
+
+  <browser:page
+      for="occams.lab.interfaces.ISpecimenContext"
+      name="view"
+      class=".specimen.SpecimenView"
+      template="specimen_templates/specimenview.pt"
+      permission="occams.lab.ManageSpecimen"
+      />
+
+   <browser:defaultView
+     for="occams.lab.interfaces.ISpecimenContext"
+     name="view"
+     />
+
+<!-- Aliquot Context -->
+
+   <browser:page
+      for="occams.lab.interfaces.IAliquotContext"
+     name="aliquotfilter"
+     class=".researchlab.AliquotFilterForm"
+      permission="occams.lab.ViewAliquot"
+     />
+
+  <browser:page
+      for="occams.lab.interfaces.IAliquotContext"
+      name="view"
+      class=".aliquot.AliquotView"
+      template="aliquot_templates/aliquotview.pt"
+      permission="occams.lab.ViewAliquot"
+      />
+
+   <browser:defaultView
+     for="occams.lab.interfaces.IAliquotContext"
+     name="view"
+     />
+
+  <browser:page
+      for="occams.lab.interfaces.IAliquotContext"
+      name="edit"
+      class=".aliquot.EditAliquotView"
+      template="aliquot_templates/editaliquotview.pt"
+      permission="occams.lab.ModifyAliquot"
       />
 
 </configure>

@@ -14,13 +14,13 @@
           Current filter
           </a>
         </h3>
-          <ul tal:define="filters view/currentFilter">
+          <ul tal:define="filters view/current_filter">
             <li tal:repeat="filter filters"><strong tal:content="python:filter[0]" />: <span tal:replace="python:filter[1]" /></li>
           </ul>
-          <br />
+          <br  class="visualClear" />
                 <p><a id="addspecimen" href="./addspecimen"><img title="Add more specimen" src="/++resource++occams.lab/images/syringe-icon.png"> <strong>Add more specimen...</strong></a></p>
                 <tal:hascontent condition="view/entry_count">
-                   <tal:formcontents replace="structure view/crudForm/render" />
+                   <tal:formcontents replace="structure view/crud_form/render" />
                 <h4>Instructions</h4>
                 <ul>
                     <li><b>Select All:</b> Selects all of the specimen.</li>
@@ -33,7 +33,7 @@
                   <tal:nocontent tal:condition="not:view/entry_count">
                 <p>There are no specimen currently scheduled for draw. If this is unexpected, check your filter:</p>
                 <h4> Current Filter</h4>
-                  <ul tal:define="filters view/currentFilter">
+                  <ul tal:define="filters view/current_filter">
                     <li tal:repeat="filter filters"><strong tal:content="python:filter[0]" />: <span tal:replace="python:filter[1]" /></li>
                   </ul>
                 </tal:nocontent>

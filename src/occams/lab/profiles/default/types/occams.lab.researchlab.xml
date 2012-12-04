@@ -9,25 +9,25 @@
     i18n:translate="">A Research Laboratory for Inventory of Specimen Aliquot</property>
   <property name="content_icon">++resource++occams.lab/images/microscope-icon.png</property> <!-- navigation_icon.png</property>-->
   <property name="global_allow">False</property>
-  <property name="filter_content_types">True</property>  
+  <property name="filter_content_types">True</property>
   <property name="allowed_content_types">
       <element value="occams.lab.specimenblueprint" />
   </property>
   <property name="allow_discussion">False</property>
 
  <!-- schema interface -->
- <property name="schema">occams.lab.interfaces.IResearchLab</property> 
+ <property name="schema">occams.lab.interfaces.IResearchLab</property>
 
  <!-- class used for content items -->
  <property name="klass">plone.dexterity.content.Container</property>
 
  <property name="add_permission">occams.lab.AddLab</property>
- 
+
  <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
      <element value="plone.app.dexterity.behaviors.metadata.IBasic"/>
      <element value="occams.lab.interfaces.ILabelSheet"/>
- 
+
  </property>
 
   <!-- View information -->
@@ -43,9 +43,11 @@
   <alias from="view" to="@@view" />
   <alias from="ready" to="@@ready" />
 
-  <alias from="prepared" to="@@prepared" />
-  <alias from="checkedin" to="@@checkedin" />
-  <alias from="edit-aliquot" to="@@edit-aliquot" />
+<!--   <alias from="prepared" to="@@prepared" />
+ -->
+<!--    <alias from="checkedin" to="@@checkedin" />
+ -->
+   <alias from="edit-aliquot" to="@@edit-aliquot" />
   <alias from="checkout" to="@@checkout" />
   <alias from="checkin" to="@@checkin" />
     <alias from="inventory" to="@@inventory" />
@@ -55,7 +57,7 @@
     url_expr="string:${object_url}/" visible="True">
     <permission value="occams: Aliquot Specimen" />
   </action>
-  
+
   <action title="Edit" action_id="edit" category="object" condition_expr=""
     url_expr="string:${object_url}/edit" visible="True">
     <permission value="occams: Modify Lab" />
@@ -64,22 +66,6 @@
   <action title="Ready to Aliquot" action_id="ready" category="object" condition_expr=""
     url_expr="string:${object_url}/ready" visible="True">
     <permission value="occams: Aliquot Specimen" />
-  </action>
-
- 
-  <action title="Prepared" action_id="prepared" category="object" condition_expr=""
-    url_expr="string:${object_url}/prepared" visible="True">
-    <permission value="occams: Manage Aliquot" />
-  </action>
-
-  <action title="Completed Today" action_id="checkedin" category="object" condition_expr=""
-    url_expr="string:${object_url}/checkedin" visible="True">
-    <permission value="occams: Manage Aliquot" />
-  </action>
-
-  <action title="Edit Aliquot" action_id="editaliquot" category="object" condition_expr=""
-    url_expr="string:${object_url}/edit-aliquot" visible="True">
-    <permission value="occams: Modify Aliquot" />
   </action>
 
   <action title="Checkout Queue" action_id="checkout" category="object" condition_expr=""
@@ -91,10 +77,5 @@
     url_expr="string:${object_url}/checkin" visible="True">
     <permission value="occams: Check In Aliquot" />
   </action>
-  <action title="Inventory" action_id="inventory" category="object" condition_expr=""
-    url_expr="string:${object_url}/inventory" visible="True">
-    <permission value="occams: Modify Aliquot" />
-  </action>
-
 
 </object>

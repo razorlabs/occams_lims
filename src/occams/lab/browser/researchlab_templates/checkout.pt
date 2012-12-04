@@ -1,0 +1,54 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="hive.lab"
+      xml:lang="en"
+      lang="en">
+  <metal:content-core fill-slot="content-core">
+    <metal:content-core define-macro="content-core">
+          <h3> View Stored Aliquot </h3>
+          <tal:data define="list view/listAliquotTypes">
+                  <table class="listing">
+                    <tr >
+                      <td tal:repeat="aliquot list">
+                        <a href="" tal:attributes="href aliquot/url">
+                             <img src="/++resource++occams.lab/images/allergy-vials-icon.png" />
+                            <span tal:content="aliquot/title" />
+                          </a>
+                      </td>
+                    </tr>
+                  </table>
+          </tal:data>
+   <h3>
+          <a id="aliquotfilter" href="./aliquotfilter">
+            <img alt="Apply a filter" title="Apply a filter" src="/++resource++occams.lab/images/filter-icon.png" />
+          Current filter
+          </a>
+        </h3>
+          <ul tal:define="filters view/current_filter">
+            <li tal:repeat="filter filters"><strong tal:content="python:filter[0]" />: <span tal:replace="python:filter[1]" /></li>
+          </ul>
+          <br class="visualClear" />
+        <tal:hascontent condition="view/aliquot_entry_count">
+           <tal:formcontents replace="structure view/aliquot_crud_form/render" tal:on-error="string:"  />
+<!--        <h2 tal:condition="view/print_queue">There are currently <strong tal:content="view/print_queue">17</strong> Aliquot in the print queue. <a id="aliquotlabelprinter" href="./printaliquotlabelform">Print or manage the queue</a></h2>
+ -->       <h4>Instructions</h4>
+                <ul>
+                    <li><b>Save All Changes:</b> Saves all changes to aliquot.</li>
+                    <li><b>Print Selected:</b> Saves all aliquot changes and generates labels for selected aliquot.</li>
+                    <li><b>Check In Aliquot:</b>  Marks selected aliquot as processed and ready for storage. If you complete a aliquot by accident, you can recover it by Viewing Stored Aliquot (see top of the page).</li>
+                    <li><b>Mark Aliquot Unused:</b> Marks selected aliquot entries as unused (likely because too many labels were created).If you delete an aliquot by accident, use the specimen template at the top of the page to create a new one.
+                    </li>
+                </ul>
+        </tal:hascontent>
+        <tal:nocontent tal:condition="not:view/aliquot_entry_count">
+          <br class="visualClear" />
+                 <p>No aliquot are currently prepared. Use the Aliquot Templates above to create Aliquot.</p>
+                <div tal:condition="view/current_filter" class="crud-form"><div class="portalMessage">You Currently have a Filter selected! This may be hiding aliquot from your view.</div></div>
+
+       </tal:nocontent>
+    </metal:content-core>
+  </metal:content-core>
+</html>

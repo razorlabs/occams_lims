@@ -10,6 +10,7 @@ from avrc.aeh.interfaces import ICycleModel
 from avrc.aeh.interfaces import IVisitModel
 from occams.lab import MessageFactory as _
 
+
 # -----------------------------------------------------------------------------
 # Model Interfaces
 # -----------------------------------------------------------------------------
@@ -202,8 +203,15 @@ class IAliquot(IReferenceable, IModifiable):
         )
 
     location =  zope.schema.Choice(
-        title=_(u"Location"),
-        description=_(u"The location of the specimen"),
+        title=_(u"Lab Location"),
+        description=_(u"The location of the aliquot"),
+        vocabulary="occams.lab.locationvocabulary",
+        required=False
+        )
+
+    storage_location =  zope.schema.Choice(
+        title=_(u"Storage Location"),
+        description=_(u"The location of the aliquot"),
         vocabulary="occams.lab.locationvocabulary",
         required=False
         )
@@ -370,6 +378,11 @@ class IViewableAliquot(form.Schema):
         description=_(u""),
         readonly=True,
         )
+    label_queue = zope.schema.Int(
+        title=_(u"Label Queue"),
+        description=_(u"The Aliquot is in the label queue"),
+        readonly=True,
+    )
     aliquot_type_title = zope.schema.TextLine(
         title=_(u'Type'),
         description=_(u"The type of aliquot"),
@@ -432,11 +445,6 @@ class IViewableAliquot(form.Schema):
 class IFilterForm(form.Schema):
     """
     """
-
-
-class ISpecimenFilterForm(form.Schema):
-    """
-    """
     patient = zope.schema.TextLine(
         title=_(u"Patient id"),
         description=_(u"Patient OUR#, Legacy AEH ID, or Masterbook Number"),
@@ -461,49 +469,18 @@ class ISpecimenFilterForm(form.Schema):
         required=False
         )
 
-    show_all = zope.schema.Bool(
-        title=_(u"Show all Samples"),
-        description=_(u"Show all samples, including pending draw, never drawn, completed, etc"),
-        required=False
-        )
-
-
-class IAliquotFilterForm(IFilterForm):
-    """
-    """
-    patient = zope.schema.TextLine(
-        title=_(u"Patient id"),
-        description=_(u"Patient OUR#, Legacy AEH ID, or Masterbook Number"),
-        required=False
-        )
-
-    after_date = zope.schema.Date(
-        title=_(u"Sample Date"),
-        description=_(u"Samples on this date. If Limit Date is set as well, will show samples between those dates"),
-        required=False
-
-        )
-
-    before_date = zope.schema.Date(
-        title=_(u"Sample Limit Date"),
-        description=_(u"Samples before this date. Only applies if Sample Date is also set"),
-        required=False
-        )
-
-    show_all = zope.schema.Bool(
-        title=_(u"Show all Samples"),
-        description=_(u"Show all samples, including missing, never drawn, checked out, etc"),
-        required=False
-        )
     aliquot_type = zope.schema.Choice(
         title=u"Type of Sample",
         vocabulary='occams.lab.aliquottypevocabulary',
         required=False
         )
 
-class IInventoryFilterForm(IAliquotFilterForm):
-    """
-    """
+    show_all = zope.schema.Bool(
+        title=_(u"Show all Samples"),
+        description=_(u"Show all samples, including pending draw, never drawn, completed, etc"),
+        required=False
+        )
+
     freezer = zope.schema.TextLine(
         title=_(u'Freezer'),
         required=False,
@@ -519,12 +496,36 @@ class IInventoryFilterForm(IAliquotFilterForm):
         required=False,
         )
 
-    inventory_date = zope.schema.Date(
-        title=_(u"'Not Inventoried Since'"),
-        description=_(u"Show samples that have not been inventoried since this date"),
-        required=False
-        )
+class IFilter(zope.interface.Interface):
+    """
+    Adaptable filter function that allows control over how filters are applied based on
+    where in the site you are
+    """
 
+    def getQuery():
+        """
+        returns a query object with lab items filtered appropriately for the context
+        """
+
+    def getFilterFields():
+        """
+        returns the appropriate fields for filtering in the specific context
+        """
+
+    def getFilterValues():
+        """
+        returns the appropriate filter values for the specific context
+        """
+
+class ISpecimenFilter(IFilter):
+    """
+    A filter for specimen
+    """
+
+class IAliquotFilter(IFilter):
+    """
+    A Filter for Aliquot
+    """
 
 # -----------------------------------------------------------------------------
 # Behavior interfaces
@@ -712,11 +713,20 @@ class ILabel(zope.interface.Interface):
         readonly=True
         )
 
-class ILabelPrinter(zope.interface.Interface):
+class ILabelPrinter(form.Schema):
     """
     parts needed for label printing to work
     """
-
+    startcol = zope.schema.Int(
+        title=_(u"Starting Column"),
+        description=_(u"Starting column position"),
+        default=1,
+        )
+    startrow = zope.schema.Int(
+        title=_(u"Starting Row"),
+        description=_(u"Starting row positison"),
+        default=1,
+        )
     def getLabelQueue():
         """
         """
@@ -734,9 +744,9 @@ class ILabelPrinter(zope.interface.Interface):
         """
         pass
 
-class IContainsSpecimen(zope.interface.Interface):
+class ILabObject(zope.interface.Interface):
     """
-    Marker interface for items that contain Specimen Blueprints
+    Marker interface for items that have Lab Data
     """
 
 class IChecklistSupport(zope.interface.Interface):
@@ -748,7 +758,7 @@ class IChecklistSupport(zope.interface.Interface):
 # Lab and object interfaces
 # -----------------------------------------------------------------------------
 
-class ILab(form.Schema, IContainsSpecimen):
+class ILab(form.Schema, ILabObject):
     """
     An Interface for the Labs
     """
@@ -784,7 +794,7 @@ class IResearchLab(ILab, IChecklistSupport):
         required=True
         )
 
-class ISpecimenContext(zope.interface.Interface):
+class ISpecimenContext(ILabObject):
     """
     A wrapper context for DataStore entries so they are traversable.
     This allows a wrapped entry to comply with the Acquisition machinery
@@ -803,7 +813,7 @@ class ISpecimenContext(zope.interface.Interface):
         readonly=True
         )
 
-class IAliquotContext(zope.interface.Interface):
+class IAliquotContext(ILabObject):
     """
     A wrapper context for DataStore entries so they are traversable.
     This allows a wrapped entry to comply with the Acquisition machinery
@@ -821,3 +831,4 @@ class IAliquotContext(zope.interface.Interface):
         schema=IAliquotType,
         readonly=True
         )
+

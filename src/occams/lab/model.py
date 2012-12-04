@@ -395,6 +395,17 @@ class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             primaryjoin=(location_id==Location.id)
             )
 
+    storage_location_id = schema.Column(types.Integer)
+
+    storage_location = orm.relationship(
+            Location,
+            backref=orm.backref(
+                name='stored_aliquot',
+                primaryjoin='Aliquot.storage_location_id == Location.id',
+                ),
+            primaryjoin=(storage_location_id==Location.id)
+            )
+
     thawed_num = schema.Column(types.Integer)
 
     inventory_date = schema.Column(types.Date)
@@ -439,6 +450,14 @@ class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
                 ondelete='SET NULL',
                 ),
 
+
+            schema.ForeignKeyConstraint(
+                columns=['storage_location_id'],
+                refcolumns=['location.id'],
+                name='fk_%s_storage_location_id' % cls.__tablename__,
+                ondelete='SET NULL',
+                ),
+
             schema.ForeignKeyConstraint(
                 columns=['special_instruction_id'],
                 refcolumns=['specialinstruction.id'],
@@ -454,6 +473,7 @@ class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             schema.Index('ix_%s_specimen_id' % cls.__tablename__, 'specimen_id'),
             schema.Index('ix_%s_aliquot_type_id' % cls.__tablename__, 'aliquot_type_id'),
             schema.Index('ix_%s_location_id' % cls.__tablename__, 'location_id'),
+            schema.Index('ix_%s_storage_location_id' % cls.__tablename__, 'storage_location_id'),
             schema.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'),
             )
 
