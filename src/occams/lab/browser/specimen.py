@@ -1,13 +1,12 @@
 
-from occams.lab import MessageFactory as _, \
-                     SCOPED_SESSION_KEY
+from occams.lab import MessageFactory as _
+
 # from occams.lab.browser import crud
 from z3c.form.interfaces import DISPLAY_MODE
 
 from z3c.form import button, field, form as z3cform
 from Products.Five.browser import BrowserView
 
-from z3c.saconfig import named_scoped_session
 from occams.lab import interfaces
 from occams.lab import model
 import zope.schema
@@ -15,13 +14,11 @@ import zope.schema
 from Products.CMFCore.utils import getToolByName
 from plone.z3cform import layout
 from beast.browser import widgets
-from zope.app.intid.interfaces import IIntIds
+
 from occams.lab.browser import base
 from beast.browser.crud import NestedFormView
-from zope.security import checkPermission
 from Products.statusmessages.interfaces import IStatusMessage
-from occams.lab import vocabularies
-from sqlalchemy import or_, and_
+from sqlalchemy import or_
 from collective.beaker.interfaces import ISession
 from zope.schema.vocabulary import SimpleTerm, \
                                    SimpleVocabulary
@@ -29,6 +26,9 @@ import os
 from avrc.aeh import model as clinical
 
 from sqlalchemy.orm import object_session
+from occams.lab import Session
+from avrc.aeh.interfaces import IClinicalObject
+
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
 NO_CHANGES = _(u"No changes made.")
@@ -137,9 +137,8 @@ class SpecimenCoreForm(base.CoreForm):
 
     def link(self, item, field):
         if field == 'patient_our' and getattr(item.patient, 'zid', None):
-            intids = zope.component.getUtility(IIntIds)
             try:
-                patient = intids.getObject(item.patient.zid)
+                patient = IClinicalObject(item.patient)
             except KeyError:
                 return None
             url = '%s/specimen' % patient.absolute_url()
@@ -147,7 +146,6 @@ class SpecimenCoreForm(base.CoreForm):
 
         elif field == 'cycle_title':
             try:
-                intids = zope.component.getUtility(IIntIds)
                 patient = item.patient
                 # this might be slow, but it's the only fix we have available
                 session = object_session(patient)
@@ -159,7 +157,7 @@ class SpecimenCoreForm(base.CoreForm):
                 visit_entries = visit_query.all()
                 if len(visit_entries) == 1:
                     visit_entry = visit_entries[0]
-                    visit = intids.getObject(visit_entry.zid)
+                    visit = IClinicalObject(visit_entry)
                     url = '%s/aliquot' % visit.absolute_url()
                 else:
                     url = None
@@ -176,9 +174,8 @@ class SpecimenCoreForm(base.CoreForm):
 
     def get_query(self):
         #makes testing a LOT easier
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
-            session.query(model.Specimen)
+            Session.query(model.Specimen)
                 .join(model.Patient)
                 .join(model.Cycle)
                 .join(model.SpecimenType)
@@ -210,9 +207,8 @@ class SpecimenForm(SpecimenCoreForm):
 
     def get_query(self):
         #makes testing a LOT easier
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
-            session.query(model.Specimen)
+            Session.query(model.Specimen)
                 .join(model.Patient)
                 .join(model.Cycle)
                 .join(model.SpecimenType)
@@ -284,8 +280,7 @@ class SpecimenAddForm(z3cform.Form):
                 type='error'
                 )
             return
-        session = named_scoped_session(SCOPED_SESSION_KEY)
-        drawstate = session.query(model.SpecimenState).filter_by(name=u'pending-draw').one()
+        drawstate = Session.query(model.SpecimenState).filter_by(name=u'pending-draw').one()
         visitSQL = self.context.getSQLObj()
         for cycle, specimen_type in data['request_specimen']:
             newSpecimen = model.Specimen(
@@ -297,8 +292,8 @@ class SpecimenAddForm(z3cform.Form):
                     location_id = specimen_type.location_id,
                     tubes = specimen_type.default_tubes
                 )
-            session.add(newSpecimen)
-            session.flush()
+            Session.add(newSpecimen)
+            Session.flush()
         return self.request.response.redirect(os.path.join(self.context.absolute_url(), '@@specimen'))
 
 class SpecimenTypeForm(SpecimenCoreForm):

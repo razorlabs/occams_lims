@@ -1,17 +1,15 @@
 
-from occams.lab import MessageFactory as _, \
-                     SCOPED_SESSION_KEY
+from occams.lab import MessageFactory as _
+from occams.lab import Session
+
 from z3c.form.interfaces import DISPLAY_MODE
 
-from z3c.saconfig import named_scoped_session
 from z3c.form import button, field, form as z3cform
 from beast.browser.crud import NestedFormView
 
 from occams.lab import model
 from Products.Five.browser import BrowserView
-from datetime import date
 from occams.lab import interfaces
-from zope.app.intid.interfaces import IIntIds
 import zope.component
 from beast.browser import widgets
 from occams.lab.browser import base
@@ -20,9 +18,8 @@ from AccessControl import getSecurityManager
 from occams.datastore import model as dsmodel
 import sys
 from Products.CMFCore.utils import getToolByName
-from sqlalchemy.orm import object_session
 from sqlalchemy import or_
-from avrc.aeh import model as clinical
+from avrc.aeh.interfaces import IClinicalObject, IClinicalModel
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -94,27 +91,24 @@ class AliquotCoreForm(base.CoreForm):
     def link(self, item, field):
         if field == 'patient_our':
             try:
-                intids = zope.component.getUtility(IIntIds)
-                patient = intids.getObject(item.specimen.patient.zid)
+                patient = IClinicalObject(item.specimen.patient)
                 url = '%s/aliquot' % patient.absolute_url()
                 return url
             except KeyError:
                 return None
         elif field == 'cycle_title':
             try:
-                intids = zope.component.getUtility(IIntIds)
                 patient = item.specimen.patient
                 # this might be slow, but it's the only fix we have available
-                session = object_session(patient)
                 visit_query = (
-                    session.query(model.Visit)
+                    Session.query(model.Visit)
                     .filter(model.Visit.patient == patient)
                     .filter(model.Visit.cycles.any(id=item.specimen.cycle.id))
                     )
                 visit_entries = visit_query.all()
                 if len(visit_entries) == 1:
                     visit_entry = visit_entries[0]
-                    visit = intids.getObject(visit_entry.zid)
+                    visit = IClinicalObject(visit_entry)
                     url = '%s/aliquot' % visit.absolute_url()
                 else:
                     url = None
@@ -139,9 +133,8 @@ class AliquotCoreForm(base.CoreForm):
                 self.update_schema['thawed_num'].widgetFactory = widgets.StorageFieldWidget
 
     def get_query(self):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
-            session.query(model.Aliquot)
+            Session.query(model.Aliquot)
             .join(model.Aliquot.state)
             .join(model.Aliquot.aliquot_type)
             .join(model.Aliquot.specimen)
@@ -161,9 +154,8 @@ class AliquotCoreForm(base.CoreForm):
 class AliquotLimitForm(AliquotCoreForm):
 
     def get_query(self):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
         query = (
-            session.query(model.Aliquot)
+            Session.query(model.Aliquot)
             .select_from(model.Aliquot)
             .join(model.Aliquot.state)
             .join(model.Aliquot.aliquot_type)
@@ -344,8 +336,7 @@ class AliquotQueueForm(AliquotCoreForm):
         return (u"queued",)
 
     def get_query(self):
-        session = named_scoped_session(SCOPED_SESSION_KEY)
-        current_user = session.query(dsmodel.User).filter_by(key = getSecurityManager().getUser().getId()).one()
+        current_user = Session.query(dsmodel.User).filter_by(key = getSecurityManager().getUser().getId()).one()
         query = super(AliquotQueueForm, self).get_query()
         query = query.filter(model.Aliquot.modify_user_id == current_user.id)
         query = (
@@ -402,6 +393,7 @@ class AliquotView(BrowserView):
         return view
 
     def labUrl(self):
+        #TODO: make this site specific
         url = './'
         catalog = getToolByName(self.context, 'portal_catalog')
         brains = catalog.search({'portal_type':'occams.lab.researchlab'})
@@ -432,7 +424,7 @@ class AliquotPatientForm(AliquotForm):
 
     def get_query(self):
         query = super(AliquotPatientForm, self).get_query()
-        patient = self.context.getSQLObj()
+        patient = zope.component.getMultiAdapter((self.context, Session), IClinicalModel)
         query = query.filter(model.Specimen.patient == patient)
         return query
 
@@ -482,6 +474,7 @@ class AliquotPatientView(BrowserView):
         return view
 
     def labUrl(self):
+        #TODO: Make this site specific
         url = './'
         catalog = getToolByName(self.context, 'portal_catalog')
         brains = catalog.search({'portal_type':'occams.lab.researchlab'})
@@ -498,7 +491,7 @@ class AliquotVisitForm(AliquotForm):
 
     def get_query(self):
         query = super(AliquotVisitForm, self).get_query()
-        visit = self.context.getSQLObj()
+        visit = zope.component.getMultiAdapter((self.context, Session), IClinicalModel)
         query = query.filter(model.Specimen.patient == visit.patient)
         query = query.join(model.Specimen.cycle).filter(model.Cycle.id.in_([cycle.id for cycle in visit.cycles]))
         return query
@@ -551,6 +544,7 @@ class AliquotVisitView(BrowserView):
         return view
 
     def labUrl(self):
+        #TODO: Make site specific
         url = './'
         catalog = getToolByName(self.context, 'portal_catalog')
         brains = catalog.search({'portal_type':'occams.lab.researchlab'})
@@ -585,6 +579,7 @@ class AliquotChecklist(BrowserView):
             yield ret
 
     def labUrl(self):
+        #TODO: Make site specific
         url = './'
         catalog = getToolByName(self.context, 'portal_catalog')
         brains = catalog.search({'portal_type':'occams.lab.researchlab'})
