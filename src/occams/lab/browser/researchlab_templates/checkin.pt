@@ -7,7 +7,7 @@
       xml:lang="en"
       lang="en">
   <metal:content-core fill-slot="content-core">
-  <metal:content-core define-macro="content-core">
+    <metal:content-core define-macro="content-core">
           <h3> View Stored Aliquot </h3>
           <tal:data define="list view/listAliquotTypes">
                   <table class="listing">
@@ -21,6 +21,12 @@
                     </tr>
                   </table>
           </tal:data>
+        <tal:hasfilter condition="not:view/has_filter">
+            <h3> Aliquot Filter</h3>
+           <tal:formcontents replace="structure view/aliquot_filter_form/contents" tal:on-error="string:"  />
+        </tal:hasfilter>
+
+        <tal:hasfilter condition="view/has_filter">
          <h3>
           <a id="aliquotfilter" href="./aliquotfilter" tal:attributes="href string:${here/absolute_url}/aliquotfilter">
             <img alt="Apply a filter" title="Apply a filter" src="/++resource++occams.lab/images/filter-icon.png" />
@@ -31,25 +37,24 @@
             <li tal:repeat="filter filters"><strong tal:content="python:filter[0]" />: <span tal:replace="python:filter[1]" /></li>
           </ul>
           <br class="visualClear" />
-
         <tal:hascontent condition="view/aliquot_entry_count">
-           <tal:formcontents replace="structure view/aliquot_crud_form/render" tal:on-error="string:"  />
-<!--
-       <h4>Instructions</h4>
+           <tal:formcontents replace="structure view/aliquot_crud_form/render"   />
+          <h4>Instructions</h4>
                 <ul>
                     <li><b>Save All Changes:</b> Saves all changes to aliquot.</li>
                     <li><b>Print Selected:</b> Saves all aliquot changes and generates labels for selected aliquot.</li>
                     <li><b>Check In Aliquot:</b>  Marks selected aliquot as processed and ready for storage. If you complete a aliquot by accident, you can recover it by Viewing Stored Aliquot (see top of the page).</li>
-                    <li><b>Mark Aliquot Unused:</b> Marks selected aliquot entries as unused (likely because too many labels were created).If you delete an aliquot by accident, use the specimen template at the top of the page to create a new one.
-                    </li>
-                </ul> -->
+                </ul>
         </tal:hascontent>
-        <tal:nocontent tal:condition="not:view/aliquot_entry_count">
+<!--         <tal:nocontent tal:condition="not:view/aliquot_entry_count">
           <br class="visualClear" />
-                 <p>No aliquot match the current criteria.</p>
-                <div tal:condition="python:view.aliquot_entry_count == 0" class="crud-form"><div class="portalMessage">You Currently have a Filter selected! This may be hiding aliquot from your view.</div></div>
-                <div tal:condition="python:view.aliquot_entry_count == None" class="crud-form"><div class="portalMessage">You Currently have no Filter selected! Please select a filter to show aliquot.</div></div>
+                 <p>No aliquot are currently queued for checkout.</p>
+                <div tal:condition="view/current_filter" class="crud-form"><div class="portalMessage">You Currently have a Filter selected! This may be hiding aliquot from your view.</div></div>
 
-       </tal:nocontent>    </metal:content-core>
+       </tal:nocontent>
+ -->
+        </tal:hasfilter>
+
+    </metal:content-core>
   </metal:content-core>
 </html>

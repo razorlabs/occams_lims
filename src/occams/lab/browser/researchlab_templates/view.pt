@@ -86,7 +86,7 @@
         </tal:hascontent>
         <tal:nocontent tal:condition="not:view/entry_count">
                 <p>No specimen are currently on their way. Check the <a href="./ready">readied specimen</a></p>
-              <div tal:condition="view/currentFilter" class="crud-form"><div class="portalMessage">You Currently have a Filter selected! This may be hiding specimen from your view.</div></div>
+              <div tal:condition="view/current_filter" class="crud-form"><div class="portalMessage">You Currently have a Filter selected! This may be hiding specimen from your view.</div></div>
 
          </tal:nocontent>
     </metal:content-core>

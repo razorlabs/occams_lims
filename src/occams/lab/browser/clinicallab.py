@@ -1,94 +1,40 @@
 from Products.Five.browser import BrowserView
 from collective.beaker.interfaces import ISession
 import z3c.form
-import datetime
 from beast.browser import widgets
-from sqlalchemy import or_
-from Products.statusmessages.interfaces import IStatusMessage
 
 from plone.z3cform.crud import crud
-from occams.datastore.batch import SqlBatch
-from avrc.aeh import interfaces as clinical
-import os
+
 import  zope.component
 from occams.lab import interfaces
 from occams.lab import Session
 from occams.lab import model
 from occams.lab import MessageFactory as _
-from occams.lab.browser import labcrud
+from occams.lab.browser import common
 import json
 
 # Override the choices in the addSpcimen view to not display a default value even though the fields are required.
 overrideCycleChoicePrompt = z3c.form.widget.StaticWidgetAttribute(value=True, field=interfaces.IAddableSpecimen['specimen_cycle'])
 overrideTypeChoicePrompt = z3c.form.widget.StaticWidgetAttribute(value=True, field=interfaces.IAddableSpecimen['specimen_type'])
 
-
-class SpecimenFilterForm(z3c.form.form.Form):
+class SpecimenFilterForm(common.LabFilterForm):
     """
     Specimen Filter form. This form presents itself as an overlay on the Primary
     Clinical Lab view as a way to filter specimen.
     """
-    ignoreContext = True
+
     label = u"Filter Specimen"
-    description = _(u"Please enter filter criteria. You may filter by any or all options. "
-                           u" Specimen are, by default, filtered by state (pending-draw). "
-                           u"The filter will persist while you are logged in. ")
 
     @property
     def fields(self):
-        specimenfilter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.ISpecimenFilter)
-        return specimenfilter.getFilterFields()
-
-    def updateWidgets(self):
-        """
-        Apply The information in the browser request as values to this form
-        """
-        z3c.form.form.Form.updateWidgets(self)
-        browser_session = ISession(self.request)
-        if 'occams.lab.filter' in browser_session:
-            specimenfilter = browser_session['occams.lab.filter']
-            for key, widget in self.widgets.items():
-                if key in specimenfilter:
-                    value = specimenfilter[key]
-                    if type(value) == datetime.date:
-                        widget.value = (unicode(value.year), unicode(value.month), unicode(value.day))
-                    elif type(value) == bool and value:
-                        widget.value = ['selected']
-                    elif hasattr(widget, 'terms'):
-                        widget.value = [value]
-                    else:
-                        widget.value = value
-                    widget.update()
-
-    @z3c.form.button.buttonAndHandler(u'Filter')
-    def handleFilter(self, action):
-        data, errors = self.extractData()
-        messages = IStatusMessage(self.request)
-        if errors:
-            messages.addStatusMessage(
-                _(u'There was an error with your request.'),
-                type=u'error'
-                )
-            return
-        browser_session = ISession(self.request)
-        browser_session['occams.lab.filter'] = {}
-        for key, value in data.items():
-            if value is not None:
-                if getattr(value, 'name', False):
-                    browser_session['occams.lab.filter'][key] = value.name
-                else:
-                    browser_session['occams.lab.filter'][key] = value
-        browser_session.save()
-        messages.addStatusMessage(_(u"Your Filter has been applied"), type=u'info')
-        return self.request.response.redirect("%s/filtersuccess" % self.context.absolute_url())
-
-    @z3c.form.button.buttonAndHandler(u'Remove Filter')
-    def handleClearFilter(self, action):
-        browser_session = ISession(self.request)
-        browser_session['occams.lab.filter'] = {}
-        messages = IStatusMessage(self.request)
-        messages.addStatusMessage(_(u"Your Filter has been cleared"), type=u'info')
-        return self.request.response.redirect("%s/filtersuccess" % self.context.absolute_url())
+        specimenfilter =  zope.component.getMultiAdapter((self.context, self.request), interfaces.ISpecimenFilter)
+        omitable = []
+        if 'omit' in self.request:
+            if type(self.request['omit']) == list:
+                omitable = self.request['omit']
+            else:
+                omitable =  [self.request['omit'],]
+        return specimenfilter.getFilterFields(omitable=omitable)
 
 # from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 class AddSpecimenForm(z3c.form.form.AddForm):
@@ -175,10 +121,10 @@ class ClinicalLabSubForm(crud.EditSubForm):
         """
         super(ClinicalLabSubForm, self).updateWidgets()
         context = self.context.context.context
-        if 'processing_location' in self.widgets and not self.widgets['processing_location'].value :
-            self.widgets['processing_location'].value = [context.processing_location]
+        if 'location' in self.widgets and self.widgets['location'].value == context.location:
+            self.widgets['location'].value = [context.processing_location]
 
-class ClinicalLabEditForm(labcrud.OccamsCrudEditForm):
+class ClinicalLabEditForm(common.OccamsCrudEditForm):
     label = _(u"Specimen to be processed")
 
     editsubform_factory = ClinicalLabSubForm
@@ -202,7 +148,6 @@ class ClinicalLabEditForm(labcrud.OccamsCrudEditForm):
         else:
             self.status = _(u"Please select Specimen")
             # messages.addStatusMessage(status, type=u'error')
-
 
     @z3c.form.button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
@@ -248,21 +193,15 @@ class ClinicalLabEditForm(labcrud.OccamsCrudEditForm):
         self.changeState(action, 'cancel-draw', 'canceled')
         return self.status
 
-class ClinicalLabViewForm(crud.CrudForm):
+class ClinicalLabViewForm(common.OccamsCrudForm):
     """
     Primary view for a clinical lab object.
     """
     label = _(u"Specimen for Processing")
-    description = _(u"")
 
-    ignoreContext = True
     batch_size = 10
 
-    addform_factory = crud.NullForm
-
     editform_factory =  ClinicalLabEditForm
-
-    add_schema = z3c.form.field.Fields(interfaces.IAddableSpecimen)
 
     @property
     def edit_schema(self):
@@ -281,16 +220,10 @@ class ClinicalLabViewForm(crud.CrudForm):
                              'tubes',
                              'collect_date',
                              'collect_time',
-                             'processing_location',
+                             'location',
                              'notes'
                              )
         return fields
-
-    def update(self):
-        self.update_schema = self.edit_schema
-        self.query = self._getQuery()
-        self.count = self.query.count()
-        super(ClinicalLabViewForm, self).update()
 
     def updateWidgets(self):
         if self.update_schema is not None:
@@ -299,34 +232,15 @@ class ClinicalLabViewForm(crud.CrudForm):
             if 'tubes' in self.update_schema.keys():
                 self.update_schema['tubes'].widgetFactory = widgets.StorageFieldWidget
 
-    def link(self, item, field):
-        if not hasattr(self, '_v_patient_dict'):
-            self._v_patient_dict={}
-        if field == 'patient_our' and getattr(item.patient, 'zid', None):
-            if self._v_patient_dict.has_key(item.patient.id):
-                return self._v_patient_dict[item.patient.id]
-            try:
-                patient = clinical.IClinicalObject(item.patient)
-            except KeyError:
-                return None
-            else:
-                self._v_patient_dict[item.patient.id] = '%s/specimen' % patient.absolute_url()
-                return self._v_patient_dict[item.patient.id]
 
-    def get_items(self):
-        """
-        Use a special ``get_item`` method to return a query instead for batching
-        """
-        if getattr(self, '_v_sqlBatch', None) is None:
-            self._v_sqlBatch = SqlBatch(self.query)
-        return self._v_sqlBatch
+    def before_update(self, content, data):
+        location = Session.query(model.Location).filter_by(name = self.context.location).one()
+        data['previous_location'] = location
 
     def _getQuery(self):
-        if hasattr(self, '_v_query'):
-            return self._v_query
+        # multiadapter defined in filters.py
         specimenfilter = zope.component.getMultiAdapter((self.context, self.request),interfaces.ISpecimenFilter)
-        self._v_query = specimenfilter.getQuery(default_state='pending-draw')
-        return self._v_query
+        return specimenfilter.getQuery(default_state='pending-draw')
 
 class ClinicalLabView(BrowserView):
     """
@@ -335,12 +249,17 @@ class ClinicalLabView(BrowserView):
 
     def current_filter(self):
         specimenfilter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.ISpecimenFilter)
-        return specimenfilter.getFilterValues()
+        filter =  specimenfilter.getFilterValues()
+        if 'Specimen State' not in filter:
+            filter['Specimen State'] = u"Pending Draw"
+        return filter.iteritems()
 
     @property
     def entry_count(self):
-        specimenfilter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.ISpecimenFilter)
-        return specimenfilter.getCount()
+        if not hasattr(self, '_v_crud_form'):
+            self._v_crud_form = ClinicalLabViewForm(self.context, self.request)
+            self._v_crud_form.update()
+        return self._v_crud_form.count
 
     @property
     def crud_form(self):

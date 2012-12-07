@@ -6,6 +6,7 @@ from sqlalchemy import types
 from sqlalchemy import schema
 from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy import event
 
 import zope.interface
 from occams.lab import interfaces
@@ -269,15 +270,15 @@ class Specimen(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             primaryjoin=(location_id==Location.id)
             )
 
-    processing_location_id = schema.Column(types.Integer)
+    previous_location_id = schema.Column(types.Integer)
 
-    processing_location = orm.relationship(
+    previous_location = orm.relationship(
             Location,
             backref=orm.backref(
-                name='processable_specimen',
-                primaryjoin='Location.id==Specimen.processing_location_id',
+                name='previous_specimen',
+                primaryjoin='Location.id==Specimen.previous_location_id',
                 ),
-            primaryjoin=(processing_location_id==Location.id)
+            primaryjoin=(previous_location_id==Location.id)
             )
 
     tubes = schema.Column(types.Integer)
@@ -312,9 +313,9 @@ class Specimen(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
                 ondelete='SET NULL',
                 ),
            schema.ForeignKeyConstraint(
-                columns=['processing_location_id'],
+                columns=['previous_location_id'],
                 refcolumns=['location.id'],
-                name='fk_%s_processing_location_id' % cls.__tablename__,
+                name='fk_%s_previous_location_id' % cls.__tablename__,
                 ondelete='SET NULL',
                 ),
             schema.ForeignKeyConstraint(
@@ -327,9 +328,16 @@ class Specimen(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             schema.Index('ix_%s_patient_id' % cls.__tablename__, 'patient_id'),
             schema.Index('ix_%s_cycle_id' % cls.__tablename__, 'cycle_id'),
             schema.Index('ix_%s_location_id' % cls.__tablename__, 'location_id'),
-            schema.Index('ix_%s_processing_location_id' % cls.__tablename__, 'processing_location_id'),
+            schema.Index('ix_%s_previous_location_id' % cls.__tablename__, 'previous_location_id'),
             schema.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'),
             )
+
+
+# event.listen(
+#     Specimen.location_id,
+#     'set',
+#     lambda t, v, o, i: setattr(t, 'previous_location_id', o)
+#     )
 
 class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
     zope.interface.implements(interfaces.IAliquot)
@@ -395,15 +403,15 @@ class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             primaryjoin=(location_id==Location.id)
             )
 
-    storage_location_id = schema.Column(types.Integer)
+    previous_location_id = schema.Column(types.Integer)
 
-    storage_location = orm.relationship(
+    previous_location = orm.relationship(
             Location,
             backref=orm.backref(
                 name='stored_aliquot',
-                primaryjoin='Aliquot.storage_location_id == Location.id',
+                primaryjoin='Aliquot.previous_location_id == Location.id',
                 ),
-            primaryjoin=(storage_location_id==Location.id)
+            primaryjoin=(previous_location_id==Location.id)
             )
 
     thawed_num = schema.Column(types.Integer)
@@ -452,9 +460,9 @@ class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
 
 
             schema.ForeignKeyConstraint(
-                columns=['storage_location_id'],
+                columns=['previous_location_id'],
                 refcolumns=['location.id'],
-                name='fk_%s_storage_location_id' % cls.__tablename__,
+                name='fk_%s_previous_location_id' % cls.__tablename__,
                 ondelete='SET NULL',
                 ),
 
@@ -473,9 +481,15 @@ class Aliquot(LabModel, AutoNamed, Referenceable, Auditable, Modifiable):
             schema.Index('ix_%s_specimen_id' % cls.__tablename__, 'specimen_id'),
             schema.Index('ix_%s_aliquot_type_id' % cls.__tablename__, 'aliquot_type_id'),
             schema.Index('ix_%s_location_id' % cls.__tablename__, 'location_id'),
-            schema.Index('ix_%s_storage_location_id' % cls.__tablename__, 'storage_location_id'),
+            schema.Index('ix_%s_previous_location_id' % cls.__tablename__, 'previous_location_id'),
             schema.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'),
             )
+
+# event.listen(
+#     Aliquot.location_id,
+#     'set',
+#     lambda t, v, o, i: setattr(t, 'previous_location_id', o)
+#     )
 
 if __name__ == '__main__': # pragma: no cover
     import sqlalchemy

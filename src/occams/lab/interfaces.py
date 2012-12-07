@@ -8,6 +8,7 @@ from plone.directives import form
 from avrc.aeh.interfaces import IPatientModel
 from avrc.aeh.interfaces import ICycleModel
 from avrc.aeh.interfaces import IVisitModel
+from avrc.aeh.interfaces import IClinicalMarker
 from occams.lab import MessageFactory as _
 
 
@@ -114,8 +115,8 @@ class ISpecimen(IReferenceable, IModifiable):
         required=True
         )
 
-    processing_location =  zope.schema.Choice(
-        title=_(u"Processing Location"),
+    previous_location =  zope.schema.Choice(
+        title=_(u"Previous Location"),
         description=_(u"The processing location for the specimen"),
         vocabulary="occams.lab.locationvocabulary",
         required=False
@@ -203,14 +204,14 @@ class IAliquot(IReferenceable, IModifiable):
         )
 
     location =  zope.schema.Choice(
-        title=_(u"Lab Location"),
+        title=_(u"Location"),
         description=_(u"The location of the aliquot"),
         vocabulary="occams.lab.locationvocabulary",
         required=False
         )
 
-    storage_location =  zope.schema.Choice(
-        title=_(u"Storage Location"),
+    previous_location =  zope.schema.Choice(
+        title=_(u"Previous Location"),
         description=_(u"The location of the aliquot"),
         vocabulary="occams.lab.locationvocabulary",
         required=False
@@ -262,6 +263,40 @@ class IAliquot(IReferenceable, IModifiable):
 # -----------------------------------------------------------------------------
 # Viewing and processing interfaces
 # -----------------------------------------------------------------------------
+class IAliquotCheckout(form.Schema):
+    """
+    """
+    thawed_num = zope.schema.Int(
+        title=_(u"Thawed"),
+        description=_(u"Number of times thawed"),
+        default=0
+        )
+
+    location =  zope.schema.Choice(
+        title=_(u"Lab Location"),
+        description=_(u"The location of the aliquot"),
+        vocabulary="occams.lab.locationvocabulary",
+        required=False
+        )
+
+    sent_date =  zope.schema.Date(
+        title=_(u'Sent Date'),
+        description=_(u"Date sent for analysis."),
+        required=False,
+        )
+
+    sent_name = zope.schema.TextLine(
+        title=_(u"Sent Name"),
+        description=_(u"The name of the aliquot's receiver."),
+        required=False,
+        )
+
+    sent_notes = zope.schema.Text(
+        title=_(u"Sent Notes"),
+        description=_("Notes about this aliquot's destination"),
+        required=False
+        )
+
 class IAddableSpecimen(form.Schema):
     """
     Interface for adding more specimen
@@ -437,6 +472,7 @@ class IViewableAliquot(form.Schema):
         description=_(u"Special Instructions for the aliquot"),
         readonly=True,
         )
+
 
 # -----------------------------------------------------------------------------
 # Searching interfaces
@@ -744,7 +780,7 @@ class ILabelPrinter(form.Schema):
         """
         pass
 
-class ILabObject(zope.interface.Interface):
+class ILabObject(IClinicalMarker):
     """
     Marker interface for items that have Lab Data
     """

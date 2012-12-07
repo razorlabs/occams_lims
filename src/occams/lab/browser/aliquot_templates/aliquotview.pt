@@ -21,6 +21,13 @@
                     </tr>
                   </table>
           </tal:data>
+        <tal:hasfilter condition="not:view/has_filter">
+            <h3> Aliquot Filter</h3>
+           <tal:formcontents replace="structure view/aliquot_filter_form/contents" tal:on-error="string:"  />
+        </tal:hasfilter>
+
+        <tal:hasfilter condition="view/has_filter">
+
          <h3>
           <a id="aliquotfilter" href="./aliquotfilter" tal:attributes="href string:${here/absolute_url}/aliquotfilter">
             <img alt="Apply a filter" title="Apply a filter" src="/++resource++occams.lab/images/filter-icon.png" />
@@ -31,9 +38,8 @@
             <li tal:repeat="filter filters"><strong tal:content="python:filter[0]" />: <span tal:replace="python:filter[1]" /></li>
           </ul>
           <br class="visualClear" />
-
-        <tal:hascontent condition="view/aliquot_entry_count">
-           <tal:formcontents replace="structure view/aliquot_crud_form/render" tal:on-error="string:"  />
+        <tal:hascontent condition="view/aliquot_edit_entry_count">
+           <tal:formcontents replace="structure view/aliquot_edit_crud_form/render"  />
 <!--
        <h4>Instructions</h4>
                 <ul>
@@ -44,13 +50,8 @@
                     </li>
                 </ul> -->
         </tal:hascontent>
-        <tal:nocontent tal:condition="not:view/aliquot_entry_count">
-          <br class="visualClear" />
-                 <p>No aliquot match the current criteria.</p>
-                <div tal:condition="python:view.aliquot_entry_count == 0" class="crud-form"><div class="portalMessage">You Currently have a Filter selected! This may be hiding aliquot from your view.</div></div>
-                <div tal:condition="python:view.aliquot_entry_count == None" class="crud-form"><div class="portalMessage">You Currently have no Filter selected! Please select a filter to show aliquot.</div></div>
+        </tal:hasfilter>
 
-       </tal:nocontent>
     </metal:content-core>
   </metal:content-core>
 </html>

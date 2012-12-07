@@ -58,7 +58,20 @@ jQuery(function($){
                formselector: '#content-core>#form',
                noform: 'reload',
                //redirect: function() {return location.href;},
-               closeselector: '[name=form.buttons.cancel]'
+               closeselector: '[name=form.buttons.close]'
+            });
+       }
+
+       if (!jQuery.browser.msie ||
+           parseInt(jQuery.browser.version, 10) >= 7) {
+           // Set up overlays
+           $("a#batchcheckout").prepOverlay({
+               subtype: 'ajax',
+               filter: common_content_filter,
+               formselector: '#content-core>#form',
+               noform: 'reload',
+               //redirect: function() {return location.href;},
+               closeselector: '[name=form.buttons.close]'
             });
        }
 

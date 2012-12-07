@@ -22,7 +22,7 @@
                   </table>
           </tal:data>
    <h3>
-          <a id="specimenfilter" href="./specimenfilter">
+          <a id="specimenfilter" href="./specimenfilter?omit=show_all">
             <img alt="Apply a filter" title="Apply a filter" src="/++resource++occams.lab/images/filter-icon.png" />
           Current filter
           </a>
@@ -33,7 +33,7 @@
           <br class="visualClear" />
 
         <tal:hascontent condition="view/specimen_entry_count">
-           <tal:formcontents replace="structure view/specimen_crud_form/render" tal:on-error="string:"  />
+           <tal:formcontents replace="structure view/specimen_crud_form/render"   />
           <ul><li>
              <strong>Create Aliquot:</strong> Using the selected template, create COUNT aliquot, and place them in the queue below.
            </li>
@@ -49,10 +49,11 @@
          <p>No specimen templates are currently available.  Check the <a href="./view">arriving specimen</a></p>
               <div tal:condition="view/current_filter" class="crud-form"><div class="portalMessage">You Currently have a Filter selected! This may be hiding aliquot templates from your view.</div></div>
         </tal:nocontent>
+
          <hr />
         <tal:hascontent condition="view/aliquot_entry_count">
             <h3>There are <span tal:replace="view/aliquot_entry_count" /> Aliquot to process</h3>
-           <tal:formcontents replace="structure view/aliquot_crud_form/render" tal:on-error="string:"  />
+           <tal:formcontents replace="structure view/aliquot_crud_form/render" />
        <h2 tal:condition="view/print_queue">There are currently <strong tal:content="view/print_queue">17</strong> Aliquot in the print queue. <a id="aliquotlabelprinter" href="./printaliquotlabelform">Print or manage the queue</a></h2>
        <h4>Instructions</h4>
                 <ul>
@@ -70,12 +71,6 @@
 
        </tal:nocontent>
 
-       <!--
-            <tal:formcontents condition="view/print_queue">
-              <p>Select the starting row and column for printing a sheet of labels.</p>
-              <span tal:replace="structure view/aliquot_printForm/contents" />
-           </tal:formcontents>
-          -->
     </metal:content-core>
   </metal:content-core>
 </html>

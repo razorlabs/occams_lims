@@ -3,30 +3,121 @@ from collective.beaker.interfaces import ISession
 import z3c.form
 import datetime
 from beast.browser import widgets
-from sqlalchemy import or_
 from Products.statusmessages.interfaces import IStatusMessage
-
 from plone.z3cform.crud import crud
-from occams.datastore.batch import SqlBatch
-from avrc.aeh import interfaces as clinical
-import os
-
+from plone.z3cform import layout
 from occams.lab import interfaces
 from occams.lab import Session
 from occams.lab import model
 from occams.lab import MessageFactory as _
-from occams.lab.browser import labcrud
-import json
-from z3c.form.interfaces import DISPLAY_MODE
-
-import z3c.form
+from occams.lab.browser import common
+from z3c.form.interfaces import DISPLAY_MODE, INPUT_MODE
+import zope.component
 from occams.form.traversal import closest
+from occams.lab import FILTER_KEY
+
+EDIT_ALIQUOT_KEY = "occams.lab.editaliquot"
+
+class AliquotFilterForm(common.LabFilterForm):
+    """
+    Specimen Filter form. This form presents itself as an overlay on the Primary
+    Clinical Lab view as a way to filter specimen.
+    """
+    label = u"Filter Aliquot"
+
+    @property
+    def fields(self):
+        aliquotfilter =  zope.component.getMultiAdapter((self.context, self.request), interfaces.IAliquotFilter)
+        return aliquotfilter.getFilterFields(omitable=['aliquot_type',])
+
+class EmbeddedAliquotFilterForm(common.LabFilterForm):
+    """
+    Specimen Filter form. This form presents itself as an overlay on the Primary
+    Clinical Lab view as a way to filter specimen.
+    """
+    label = u"Filter Aliquot"
+
+    @property
+    def fields(self):
+        aliquotfilter =  zope.component.getMultiAdapter((self.context, self.request), interfaces.IAliquotFilter)
+        return aliquotfilter.getFilterFields(omitable=['aliquot_type',])
+
+    @z3c.form.button.buttonAndHandler(u'Filter')
+    def handleFilter(self, action):
+        data, errors = self.extractData()
+        messages = IStatusMessage(self.request)
+        if errors:
+            messages.addStatusMessage(
+                _(u'There was an error with your request.'),
+                type=u'error'
+                )
+            return
+        browser_session = ISession(self.request)
+        browser_session[FILTER_KEY] = {}
+        for key, value in data.items():
+            if value is not None:
+                if getattr(value, 'name', False):
+                    browser_session[FILTER_KEY][key] = value.name
+                else:
+                    browser_session[FILTER_KEY][key] = value
+        browser_session.save()
+        messages.addStatusMessage(_(u"Your Filter has been applied"), type=u'info')
+        return self.request.response.redirect("%s" % self.action)
+
+AliquotFilterFormView = layout.wrap_form(EmbeddedAliquotFilterForm)
+
+class EditAliquotSubForm(crud.EditSubForm):
+    """
+    Individual row sub forms for the specimen crud form.
+    """
+
+    @property
+    def fields(self):
+        browser_session = ISession(self.request)
+        if EDIT_ALIQUOT_KEY not in browser_session:
+            browser_session[EDIT_ALIQUOT_KEY] = set()
+        fields = z3c.form.field.Fields(self._select_field())
+        crud_form = self.context.context
+        view_schema = crud_form.view_schema
+        if view_schema is not None:
+            view_fields = z3c.form.field.Fields(view_schema)
+            for f in view_fields.values():
+                f.mode = DISPLAY_MODE
+                # This is to allow a field to appear in both view
+                # and edit mode at the same time:
+                if not f.__name__.startswith('view_'):
+                    f.__name__ = 'view_' + f.__name__
+            fields += view_fields
+        update_schema = crud_form.update_schema
+        if update_schema is not None:
+            update_fields =  z3c.form.field.Fields(update_schema)
+            if self.content.id in browser_session[EDIT_ALIQUOT_KEY]:
+                for f in update_fields.values():
+                    f.mode = INPUT_MODE
+            else:
+                for f in update_fields.values():
+                    f.mode = DISPLAY_MODE
+            fields += update_fields
+        return fields
+
+    def updateWidgets(self):
+        """
+        Set the default processing location based on the property of the Clinical Lab of that same name
+        """
+        super(EditAliquotSubForm, self).updateWidgets()
+        if 'inventory_date' in self.widgets and self.widgets['inventory_date'].value == ('','','') and self.widgets['inventory_date'].mode == INPUT_MODE:
+            today = datetime.date.today()
+            self.widgets['inventory_date'].value = (today.year, today.month, today.day)
 
 
-class AliquotEditForm(labcrud.OccamsCrudEditForm):
-    label = _(u"Stored Aliquot")
+class EditAliquotEditForm(common.OccamsCrudEditForm):
+    @property
+    def label(self):
+        return _(u"Editable %s" % self.context.context.item.title)
 
-    prefix = 'aliquot'
+    editsubform_factory = EditAliquotSubForm
+
+    prefix = 'edit-aliquot'
 
     # editsubform_factory = AliquotPreparedSubForm
 
@@ -53,36 +144,61 @@ class AliquotEditForm(labcrud.OccamsCrudEditForm):
     def handleSelectAll(self, action):
         pass
 
-    # @z3c.form.button.buttonAndHandler(_('Print Listing'), name='print')
-    # def handleQueue(self, action):
-    #     return self.request.response.redirect('%s/%s' % (self.context.context.absolute_url(), 'checklist'))
+    @z3c.form.button.buttonAndHandler(_('Save All Changes'), name='updated')
+    def handleUpdate(self, action):
+        self.saveChanges(action)
+        browser_session = ISession(self.request)
+        if EDIT_ALIQUOT_KEY not in browser_session:
+            browser_session[EDIT_ALIQUOT_KEY] = set()
+        for subform in self.subforms:
+            browser_session[EDIT_ALIQUOT_KEY].discard(subform.content_id)
+        return self.request.response.redirect("%s" % self.action)
+
 
     @z3c.form.button.buttonAndHandler(_('Edit Aliquot'), name='incorrect')
     def handleInaccurate(self, action):
-        self.changeState(action, 'incorrect', 'incorrect')
+        browser_session = ISession(self.request)
+        if EDIT_ALIQUOT_KEY not in browser_session:
+            browser_session[EDIT_ALIQUOT_KEY] = set()
+        selected = self.selected_items()
+        if selected:
+            number_aliquot = len(selected)
+            for id, data in selected:
+                browser_session[EDIT_ALIQUOT_KEY].add(id)
+            self.status = _(u"%d Aliquot have been added to the edit queue." % (number_aliquot))
+        else:
+            self.status = _(u"Please select Aliquot")
+        browser_session.save()
+        self._update_subforms()
 
-    @z3c.form.button.buttonAndHandler(_('Mark Missing'), name='missin')
+
+    @z3c.form.button.buttonAndHandler(_('Discard Changes'), name='correct')
+    def handleCheckin(self, action):
+        browser_session = ISession(self.request)
+        browser_session[EDIT_ALIQUOT_KEY] = set()
+        browser_session.save()
+        self.status = _(u"Changes have been discarded")
+        return self.request.response.redirect("%s" % self.action)
+
+    @z3c.form.button.buttonAndHandler(_('Mark Missing'), name='missing')
     def handleCheckinAliquot(self, action):
+        self.saveChanges(action)
         self.changeState(action, 'missing', 'Missing')
         return self.status
 
     @z3c.form.button.buttonAndHandler(_('Check Out'), name='checkout')
     def handleCheckout(self, action):
+        self.saveChanges(action)
         self.changeState(action, 'pending-checkout', 'Pending Check Out')
         return self.status
 
-class AliquotForm(crud.CrudForm):
+
+class EditAliquotForm(common.OccamsCrudForm):
     """
     Primary view for a clinical lab object.
     """
-    label = u""
-    description = _(u"")
-
-    ignoreContext = True
-    editform_factory = AliquotEditForm
-    addform_factory = crud.NullForm
+    editform_factory = EditAliquotEditForm
     batch_size = 20
-
 
     @property
     def view_schema(self):
@@ -94,189 +210,11 @@ class AliquotForm(crud.CrudForm):
                      'cycle_title',
                      'aliquot_type_title'
                      )
-
-        fields += z3c.form.field.Fields(interfaces.IAliquot).\
-            select(
-                     'store_date',
-                     'inventory_date',
-                     )
-        fields += z3c.form.field.Fields(interfaces.IViewableAliquot).\
-            select(
-                    'location_title',
-                     'vol_count',
-                     'frb',
-                     'thawed_num',
-                     )
-
-        fields += z3c.form.field.Fields(interfaces.IAliquot).\
-            select( 'special_instruction',
-                      'notes',
-                     )
         return fields
-
-    def update(self):
-        self.query = self._getQuery()
-        self.count = self.query.count()
-        super(AliquotForm, self).update()
-
-    def get_items(self):
-        """
-        Use a special ``get_item`` method to return a query instead for batching
-        """
-        if getattr(self, '_sqlBatch', None) is None:
-            self._sqlBatch = SqlBatch(self._getQuery())
-        return self._sqlBatch
-
-    def link(self, item, field):
-        if field == 'patient_our':
-            if not hasattr(self, '_v_patient_urls'):
-                self._v_patient_urls = {}
-            if not self._v_patient_urls.has_key(item.specimen.patient.id):
-                try:
-                    patient = clinical.IClinicalObject(item.specimen.patient)
-                    self._v_patient_urls[item.specimen.patient.id] = '%s/aliquot' % patient.absolute_url()
-                except KeyError:
-                     self._v_patient_urls[item.specimen.patient.id] = None
-            return self._v_patient_urls[item.specimen.patient.id]
-
-    # def updateWidgets(self):
-    #     super(AliquotPreparedForm, self).updateWidgets()
-    #     if self.update_schema is not None:
-    #         if 'volume' in self.update_schema.keys():
-    #             self.update_schema['volume'].widgetFactory = widgets.AmountFieldWidget
-    #         if 'cell_amount' in self.update_schema.keys():
-    #             self.update_schema['cell_amount'].widgetFactory = widgets.AmountFieldWidget
-    #         if 'freezer' in self.update_schema.keys():
-    #             self.update_schema['freezer'].widgetFactory = widgets.StorageFieldWidget
-    #         if 'rack' in self.update_schema.keys():
-    #             self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
-    #         if 'box' in self.update_schema.keys():
-    #             self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
-    #         if 'thawed_num' in self.update_schema.keys():
-    #             self.update_schema['thawed_num'].widgetFactory = widgets.StorageFieldWidget
-
-
-    def _getQuery(self):
-        if not hasattr(self, '_v_query'):
-            query = (
-                Session.query(model.Aliquot)
-                .join(model.Aliquot.specimen)
-                .join(model.Specimen.patient)
-                )
-            browser_session  = ISession(self.request)
-            if 'aliquotfilter' in browser_session:
-                aliquotfilter = browser_session['aliquotfilter']
-            else:
-                aliquotfilter = {}
-            query = query.filter(model.Aliquot.aliquot_type.has(id = self.context.item.id))
-            if 'patient' in aliquotfilter:
-                query = query.filter(or_(
-                                     model.Patient.our == aliquotfilter['patient'],
-                                     model.Patient.legacy_number == aliquotfilter['patient'],
-                                     model.Patient.reference_numbers.any(reference_number = aliquotfilter['patient'])
-                                     )
-                            )
-            if 'after_date' in aliquotfilter:
-                if 'before_date' in aliquotfilter:
-                    query = query.filter(model.Aliquot.store_date >= aliquotfilter['after_date'])
-                    query = query.filter(model.Aliquot.store_date <= aliquotfilter['before_date'])
-                else:
-                    query = query.filter(model.Aliquot.store_date == aliquotfilter['after_date'])
-            if 'freezer' in aliquotfilter:
-                query = query.filter(model.Aliquot.freezer == aliquotfilter['freezer'])
-            if 'rack' in aliquotfilter:
-                query = query.filter(model.Aliquot.rack == aliquotfilter['rack'])
-            if 'box' in aliquotfilter:
-                query = query.filter(model.Aliquot.box == aliquotfilter['box'])
-            if "show_all" not in aliquotfilter or not aliquotfilter['show_all']:
-                query = query.filter(model.Aliquot.state.has(name = 'checked-in'))
-            query = query.order_by(model.Aliquot.id.desc())
-            self._v_query = query
-        return self._v_query
-
-
-
-class AliquotView(BrowserView):
-    """
-    View of a specimen type. Allows editing of
-    """
-
-    def listAliquotTypes(self):
-        query = (
-            Session.query(model.AliquotType)
-            .order_by(model.AliquotType.title.asc())
-            )
-        for aliquot_type in iter(query):
-            url = "%s/%s/%s" %(closest(self.context, interfaces.ILab).absolute_url(), aliquot_type.specimen_type.name, aliquot_type.name)
-            yield {'url': url, 'title': aliquot_type.title}
-
-
-    def current_filter(self):
-        browser_session = ISession(self.request)
-        if 'aliquotfilter' in browser_session:
-            aliquotfilter = browser_session['aliquotfilter']
-            for name, filter in aliquotfilter.iteritems():
-                if name in interfaces.IAliquotFilterForm and name != 'show_all':
-                    yield(interfaces.IAliquotFilterForm[name].title, filter)
-            if 'show_all' in aliquotfilter and aliquotfilter['show_all']:
-                yield (u'Aliquot State', u'Checked In, Checked Out, Missing')
-            else:
-                yield('Aliquot State', 'Checked In')
-        else:
-            yield('Aliquot State', 'Checked In')
-
-    @property
-    def aliquot_entry_count(self):
-        browser_session = ISession(self.request)
-        filter = False
-        if 'aliquotfilter' in browser_session:
-            aliquotfilter = browser_session['aliquotfilter']
-            for name, filter in aliquotfilter.iteritems():
-                if name in interfaces.IAliquotFilterForm and name != 'show_all':
-                    filter = True
-                    break
-        if not filter:
-            return None
-        if not hasattr(self, '_v_aliquot_crud_form'):
-            self._v_aliquot_crud_form = AliquotForm(self.context, self.request)
-            self._v_aliquot_crud_form.update()
-        return self._v_aliquot_crud_form.count
-
-    @property
-    def aliquot_crud_form(self):
-        if not hasattr(self, '_v_aliquot_crud_form'):
-            self._v_aliquot_crud_form = AliquotForm(self.context, self.request)
-            self._v_aliquot_crud_form.update()
-        return self._v_aliquot_crud_form
-
-
-
-
-class EditAliquotForm(crud.CrudForm):
-    """
-    Primary view for a clinical lab object.
-    """
-    label = u""
-    description = _(u"")
-
-    ignoreContext = True
-    editform_factory = AliquotEditForm
-    addform_factory = crud.NullForm
-    batch_size = 20
-
 
     @property
     def edit_schema(self):
-        fields = z3c.form.field.Fields(interfaces.IViewableAliquot, mode=DISPLAY_MODE).\
-            select('aliquot_id',
-                     'state_title',
-                     'patient_our',
-                     'patient_legacy_number',
-                     'cycle_title',
-                     'aliquot_type_title'
-                     )
-
-        fields += z3c.form.field.Fields(interfaces.IAliquot).\
+        fields = z3c.form.field.Fields(interfaces.IAliquot, mode=DISPLAY_MODE).\
             select('volume',
                    'cell_amount',
                    'store_date',
@@ -285,57 +223,15 @@ class EditAliquotForm(crud.CrudForm):
                    'box',
                    'inventory_date',
                    'location',
-                   'storage_location',
                    'notes',
                    'special_instruction',
                    'thawed_num',
                    'sent_date',
                    'sent_name',
                    'sent_notes',)
-        #.\
-        #     select(
-        #              'store_date',
-        #              'inventory_date',
-        #              )
-        # fields += z3c.form.field.Fields(interfaces.IViewableAliquot).\
-        #     select(
-        #             'location_title',
-        #              'vol_count',
-        #              'frb',
-        #              'thawed_num',
-        #              )
 
-        # fields += z3c.form.field.Fields(interfaces.IAliquot).\
-        #     select( 'special_instruction',
-        #               'notes',
-        #              )
+
         return fields
-
-    def update(self):
-        self.update_schema = self.edit_schema
-        self.query = self._getQuery()
-        self.count = self.query.count()
-        super(EditAliquotForm, self).update()
-
-    def get_items(self):
-        """
-        Use a special ``get_item`` method to return a query instead for batching
-        """
-        if getattr(self, '_sqlBatch', None) is None:
-            self._sqlBatch = SqlBatch(self._getQuery())
-        return self._sqlBatch
-
-    def link(self, item, field):
-        if field == 'patient_our':
-            if not hasattr(self, '_v_patient_urls'):
-                self._v_patient_urls = {}
-            if not self._v_patient_urls.has_key(item.specimen.patient.id):
-                try:
-                    patient = clinical.IClinicalObject(item.specimen.patient)
-                    self._v_patient_urls[item.specimen.patient.id] = '%s/aliquot' % patient.absolute_url()
-                except KeyError:
-                     self._v_patient_urls[item.specimen.patient.id] = None
-            return self._v_patient_urls[item.specimen.patient.id]
 
     def updateWidgets(self):
         super(EditAliquotForm, self).updateWidgets()
@@ -356,44 +252,11 @@ class EditAliquotForm(crud.CrudForm):
 
     def _getQuery(self):
         if not hasattr(self, '_v_query'):
-            query = (
-                Session.query(model.Aliquot)
-                .join(model.Aliquot.specimen)
-                .join(model.Specimen.patient)
-                )
-            browser_session  = ISession(self.request)
-            if 'aliquotfilter' in browser_session:
-                aliquotfilter = browser_session['aliquotfilter']
-            else:
-                aliquotfilter = {}
-            query = query.filter(model.Aliquot.aliquot_type.has(id = self.context.item.id))
-            if 'patient' in aliquotfilter:
-                query = query.filter(or_(
-                                     model.Patient.our == aliquotfilter['patient'],
-                                     model.Patient.legacy_number == aliquotfilter['patient'],
-                                     model.Patient.reference_numbers.any(reference_number = aliquotfilter['patient'])
-                                     )
-                            )
-            if 'after_date' in aliquotfilter:
-                if 'before_date' in aliquotfilter:
-                    query = query.filter(model.Aliquot.store_date >= aliquotfilter['after_date'])
-                    query = query.filter(model.Aliquot.store_date <= aliquotfilter['before_date'])
-                else:
-                    query = query.filter(model.Aliquot.store_date == aliquotfilter['after_date'])
-            if 'freezer' in aliquotfilter:
-                query = query.filter(model.Aliquot.freezer == aliquotfilter['freezer'])
-            if 'rack' in aliquotfilter:
-                query = query.filter(model.Aliquot.rack == aliquotfilter['rack'])
-            if 'box' in aliquotfilter:
-                query = query.filter(model.Aliquot.box == aliquotfilter['box'])
-            if "show_all" not in aliquotfilter or not aliquotfilter['show_all']:
-                query = query.filter(model.Aliquot.state.has(name = 'checked-in'))
-            query = query.order_by(model.Aliquot.id.desc())
-            self._v_query = query
+            aliquotfilter = zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
+            self._v_query = aliquotfilter.getQuery(default_state='checked-in')
         return self._v_query
 
-
-class EditAliquotView(BrowserView):
+class AliquotView(BrowserView):
     """
     View of a specimen type. Allows editing of
     """
@@ -409,40 +272,95 @@ class EditAliquotView(BrowserView):
 
 
     def current_filter(self):
-        browser_session = ISession(self.request)
-        if 'aliquotfilter' in browser_session:
-            aliquotfilter = browser_session['aliquotfilter']
-            for name, filter in aliquotfilter.iteritems():
-                if name in interfaces.IAliquotFilterForm and name != 'show_all':
-                    yield(interfaces.IAliquotFilterForm[name].title, filter)
-            if 'show_all' in aliquotfilter and aliquotfilter['show_all']:
-                yield (u'Aliquot State', u'Checked In, Checked Out, Missing')
-            else:
-                yield('Aliquot State', 'Checked In')
-        else:
-            yield('Aliquot State', 'Checked In')
+        aliquotfilter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
+        filter =  aliquotfilter.getFilterValues()
+        if 'Aliquot State' not in filter:
+            filter['Aliquot State'] = u"Checked In"
+        return filter.iteritems()
+
+    def has_filter(self):
+        aliquotfilter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
+        filter =  aliquotfilter.getFilterValues()
+        if filter:
+            return True
+        return False
 
     @property
-    def aliquot_entry_count(self):
-        return 4
-        browser_session = ISession(self.request)
-        filter = False
-        if 'aliquotfilter' in browser_session:
-            aliquotfilter = browser_session['aliquotfilter']
-            for name, filter in aliquotfilter.iteritems():
-                if name in interfaces.IAliquotFilterForm and name != 'show_all':
-                    filter = True
-                    break
-        if not filter:
-            return None
-        if not hasattr(self, '_v_aliquot_crud_form'):
-            self._v_aliquot_crud_form = EditAliquotForm(self.context, self.request)
-            self._v_aliquot_crud_form.update()
-        return self._v_aliquot_crud_form.count
+    def aliquot_edit_entry_count(self):
+        if not hasattr(self, '_v_aliquot_edit_form'):
+            self._v_aliquot_edit_form = EditAliquotForm(self.context, self.request)
+            self._v_aliquot_edit_form.update()
+        return self._v_aliquot_edit_form.count
 
     @property
-    def aliquot_crud_form(self):
-        if not hasattr(self, '_v_aliquot_crud_form'):
-            self._v_aliquot_crud_form = EditAliquotForm(self.context, self.request)
-            self._v_aliquot_crud_form.update()
-        return self._v_aliquot_crud_form
+    def aliquot_edit_crud_form(self):
+        if not hasattr(self, '_v_aliquot_edit_form'):
+            self._v_aliquot_edit_form = EditAliquotForm(self.context, self.request)
+            self._v_aliquot_edit_form.update()
+        return self._v_aliquot_edit_form
+
+
+    @property
+    def aliquot_filter_form(self):
+        if not hasattr(self, '_v_aliquot_filter_form'):
+            self._v_aliquot_filter_form = AliquotFilterFormView(self.context, self.request)
+            self._v_aliquot_filter_form.update()
+        return self._v_aliquot_filter_form
+
+
+
+
+
+# class EditAliquotView(BrowserView):
+#     """
+#     View of a specimen type. Allows editing of
+#     """
+
+#     def listAliquotTypes(self):
+#         query = (
+#             Session.query(model.AliquotType)
+#             .order_by(model.AliquotType.title.asc())
+#             )
+#         for aliquot_type in iter(query):
+#             url = "%s/%s/%s" %(closest(self.context, interfaces.ILab).absolute_url(), aliquot_type.specimen_type.name, aliquot_type.name)
+#             yield {'url': url, 'title': aliquot_type.title}
+
+
+#     def current_filter(self):
+#         browser_session = ISession(self.request)
+#         if 'aliquotfilter' in browser_session:
+#             aliquotfilter = browser_session['aliquotfilter']
+#             for name, filter in aliquotfilter.iteritems():
+#                 if name in interfaces.IAliquotFilterForm and name != 'show_all':
+#                     yield(interfaces.IAliquotFilterForm[name].title, filter)
+#             if 'show_all' in aliquotfilter and aliquotfilter['show_all']:
+#                 yield (u'Aliquot State', u'Checked In, Checked Out, Missing')
+#             else:
+#                 yield('Aliquot State', 'Checked In')
+#         else:
+#             yield('Aliquot State', 'Checked In')
+
+#     @property
+#     def aliquot_entry_count(self):
+#         return 4
+#         browser_session = ISession(self.request)
+#         filter = False
+#         if 'aliquotfilter' in browser_session:
+#             aliquotfilter = browser_session['aliquotfilter']
+#             for name, filter in aliquotfilter.iteritems():
+#                 if name in interfaces.IAliquotFilterForm and name != 'show_all':
+#                     filter = True
+#                     break
+#         if not filter:
+#             return None
+#         if not hasattr(self, '_v_aliquot_crud_form'):
+#             self._v_aliquot_crud_form = EditAliquotForm(self.context, self.request)
+#             self._v_aliquot_crud_form.update()
+#         return self._v_aliquot_crud_form.count
+
+#     @property
+#     def aliquot_crud_form(self):
+#         if not hasattr(self, '_v_aliquot_crud_form'):
+#             self._v_aliquot_crud_form = EditAliquotForm(self.context, self.request)
+#             self._v_aliquot_crud_form.update()
+#         return self._v_aliquot_crud_form

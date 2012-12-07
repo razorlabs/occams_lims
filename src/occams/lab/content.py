@@ -168,6 +168,10 @@ class ViewableAliquot(grok.Adapter):
         return "%s - %s" %(context.specimen.cycle.study.short_title, context.specimen.cycle.week)
 
 
+    @property
+    def location_title(self):
+        return self.context.location.title
+
     ##  For the checkout display
     @property
     def vol_count(self):
