@@ -1,0 +1,24 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="occams.lab"
+      xml:lang="en"
+      lang="en">
+  <metal:content-core fill-slot="content-core">
+    <metal:content-core define-macro="content-core">
+      <metal:content-core use-macro="context/labview/macros/content-core">
+        <metal:link fill-slot="filter_link">
+        <a class="lab_filter" href="./labfilter" tal:attributes="href string:${context/absolute_url}/aliquotfilter?omit=freezer&omit=rack&omit=box">
+          <img alt="Apply a filter" title="Apply a filter" src="/++resource++occams.lab/images/filter-icon.png" />
+        Apply a Filter
+        </a>
+      </metal:link>
+      <metal:crud_header fill-slot="crud_header">
+         <h3><span tal:replace="view/entry_count" /> Aliquot Pending Checkout</h3>
+        </metal:crud_header>
+     </metal:content-core>
+     </metal:content-core>
+  </metal:content-core>
+</html>

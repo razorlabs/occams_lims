@@ -14,7 +14,7 @@ from occams.lab import interfaces
 from occams.lab import Session
 from occams.lab import content
 
-@grok.adapter(interfaces.IResearchLab, IHTTPRequest)
+@grok.adapter(interfaces.ILab, IHTTPRequest)
 @grok.implementer(IBrowserPublisher)
 class SpecimenTraverse(ExtendedTraversal):
     """

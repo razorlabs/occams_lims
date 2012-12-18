@@ -5,5 +5,13 @@
     i18n_domain="occams.lab">
 
   <!-- Upgrade registrations. -->
+  <genericsetup:upgradeStep
+      title="OCCAMS Lab Version 1"
+      description="Adds site support"
+      source="000"
+      destination="001"
+      handler=".handlers.to_001.import_"
+      profile="occams.lab:default"
+      />
 
 </configure>

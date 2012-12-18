@@ -1,7 +1,3 @@
-"""
-Data entry functionality
-"""
-
 import zope.component
 import zope.interface
 from five import grok
@@ -13,9 +9,37 @@ from occams.lab import interfaces
 from occams.lab import model
 from occams.lab import Session
 
+class LabLocation(object):
+    __doc__ = interfaces.ILabLocation.__doc__
+
+    zope.interface.implements(interfaces.ILabLocation)
+    zope.component.adapts(clinical.ISite)
+
+    def __init__(self, context):
+        self.context = context
+
+    @getproperty
+    def lab_location(self):
+        try:
+            modelObj = zope.component.getMultiAdapter((self.context, Session), clinical.IClinicalModel)
+            return modelObj.lab_location
+        except KeyError:
+            return self.context._v_addArgs.get('lab_location')
+
+    @setproperty
+    def lab_location(self, value):
+        try:
+            modelObj = zope.component.getMultiAdapter((self.context, Session), clinical.IClinicalModel)
+            modelObj.lab_location = value
+            Session.flush()
+        except KeyError:
+            # The zid is not set. annotate the object for now
+            self.context._v_addArgs['lab_location'] = value
+
+
 class AvailableSpecimen(object):
-    """
-    """
+    __doc__ = interfaces.IAvailableSpecimen.__doc__
+
     zope.interface.implements(interfaces.IAvailableSpecimen)
     zope.component.adapts(clinical.IStudy)
 
@@ -44,7 +68,6 @@ class AvailableSpecimen(object):
         except KeyError:
             # The zid is not set. annotate the object for now
             self.context._v_addArgs['specimen_types'] = set(value)
-
 
 class RequiredSpecimen(object):
     """
@@ -81,8 +104,8 @@ class RequiredSpecimen(object):
 @grok.subscribe(interfaces.IRequestedSpecimen, IObjectAddedEvent)
 def handleRequestedSpecimenAdded(visit, event):
     """
-When a visit is added, automatically add the requested specimen
-"""
+    When a visit is added, automatically add the requested specimen
+    """
     # The behavior will not inject the property if it is created through
     # Python via createContent, so we must double check here so that
     # an AttributeError is not raised.
@@ -90,6 +113,7 @@ When a visit is added, automatically add the requested specimen
     if getattr(visit, check, interfaces.IRequestedSpecimen[check].default):
         visit_entity = zope.component.getMultiAdapter((visit, Session), clinical.IClinicalModel)
         drawstate = Session.query(model.SpecimenState).filter_by(name=u'pending-draw').one()
+        location_id = visit_entity.patient.site.lab_location.id
         for cycle in visit.cycles:
             for specimen_type in cycle.specimen_types:
                 newSpecimen = model.Specimen(
@@ -98,7 +122,7 @@ When a visit is added, automatically add the requested specimen
                         specimen_type = specimen_type,
                         state=drawstate,
                         collect_date = visit.visit_date,
-                        location_id = specimen_type.location_id,
+                        location_id = location_id,
                         tubes = specimen_type.default_tubes
                     )
                 Session.add(newSpecimen)

@@ -52,6 +52,23 @@ class LocationVocabulary(OccamsVocabulary):
 
     _modelKlass=model.Location
 
+    def getTerms(self, context):
+        query = (
+            Session.query(self._modelKlass)
+            .filter_by(active=True)
+            .order_by(self._modelKlass.title.asc())
+            )
+        terms=[]
+        for term in iter(query):
+            terms.append(
+                SimpleTerm(
+                    title=term.title,
+                    token=str(term.name),
+                    value=term)
+                )
+        return terms
+
+
 grok.global_utility(LocationVocabulary, name=u"occams.lab.locationvocabulary")
 
 class SpecialInstructionVocabulary(OccamsVocabulary):
@@ -102,3 +119,28 @@ class AvailableSpecimenVocabulary(object):
         return SimpleVocabulary(terms=self.getTerms(context))
 grok.global_utility(AvailableSpecimenVocabulary, name=u"occams.lab.availablespecimenvocabulary")
 
+
+class LocationStringVocabulary(object):
+    grok.implements(IVocabularyFactory)
+
+    _modelKlass=model.Location
+
+    def getTerms(self, context):
+        query = (
+            Session.query(self._modelKlass)
+            .order_by(self._modelKlass.title.asc())
+            )
+        terms=[]
+        for term in iter(query):
+            terms.append(
+                SimpleTerm(
+                    title=term.title,
+                    token=str(term.name),
+                    value=term.name)
+                )
+        return terms
+
+    def __call__(self, context):
+        return SimpleVocabulary(terms=self.getTerms(context))
+
+grok.global_utility(LocationStringVocabulary, name=u"occams.lab.locationstringvocabulary")
