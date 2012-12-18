@@ -74,6 +74,12 @@ class ViewableSpecimen(grok.Adapter):
     grok.provides(interfaces.IViewableSpecimen)
 
     @property
+    def label_queue(self):
+        # Label Queue is dynamically manipulated from the crud form
+        # and should not be set here.
+        return None
+
+    @property
     def patient_our(self):
         return self.context.patient.our
 
@@ -202,5 +208,29 @@ class ViewableAliquot(grok.Adapter):
             return 0
         else:
             return self.context.thawed_num
+
+
+class ViewableLocation(grok.Adapter):
+    grok.context(interfaces.ILocation)
+    grok.provides(interfaces.IViewableLocation)
+
+    @property
+    def edit_link(self):
+        return "Edit"
+
+    @property
+    def lab_title(self):
+        return self.context.title
+
+    @property
+    def full_address(self):
+        lines = self.context.long_title1 and "%s\n" % self.context.long_title1 or '\n"'
+        lines+= self.context.long_title2 and "%s\n" % self.context.long_title2 or "\n"
+        lines+= self.context.address_street and "%s\n" % self.context.address_street or "\n"
+        lines+= self.context.address_city and "%s\n" % self.context.address_city or "\n"
+        lines+= self.context.address_state and "%s\n" % self.context.address_state or "\n"
+        lines+= self.context.address_zip and "%s" % self.context.address_zip or ""
+        return lines
+
 
 

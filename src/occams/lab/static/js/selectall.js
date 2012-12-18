@@ -23,11 +23,16 @@ jQuery(function($){
         });
    });
 
+    $(document).ready(function(){
+        $("#receiptprinter").printPage();
+      });
+    $("input[id='aliquot-checkout-buttons-printreceipt']").wrap('<a id="receiptprinter" href="./receipt" target="_new" />')
+
        // No overlays for IE6
        if (!jQuery.browser.msie ||
            parseInt(jQuery.browser.version, 10) >= 7) {
            // Set up overlays
-           $("a#specimenfilter").prepOverlay({
+           $("a.lab_filter").prepOverlay({
                subtype: 'ajax',
                filter: common_content_filter,
                formselector: '#content-core>#form',
@@ -35,20 +40,24 @@ jQuery(function($){
                //redirect: function() {return location.href;},
             });
        }
-
-       // No overlays for IE6
+    $(document).ready(function(){
+        $("input[id='crud-edit-form-buttons-print']").wrap('<a id="specimenlabelprinter" href="./printspecimenlabelform" />')
+        });
        if (!jQuery.browser.msie ||
            parseInt(jQuery.browser.version, 10) >= 7) {
            // Set up overlays
-           $("a#aliquotfilter").prepOverlay({
+           $("a#specimenlabelprinter").prepOverlay({
                subtype: 'ajax',
                filter: common_content_filter,
                formselector: '#content-core>#form',
                noform: 'reload',
                //redirect: function() {return location.href;},
+               closeselector: '[name=form.buttons.close]'
             });
        }
-
+    $(document).ready(function(){
+        $("input[id='aliquot-prepared-buttons-print']").wrap('<a id="aliquotlabelprinter" href="./printaliquotlabelform" />')
+        });
        if (!jQuery.browser.msie ||
            parseInt(jQuery.browser.version, 10) >= 7) {
            // Set up overlays
@@ -61,11 +70,13 @@ jQuery(function($){
                closeselector: '[name=form.buttons.close]'
             });
        }
-
+    $(document).ready(function(){
+        $("input[id='aliquot-checkout-buttons-batchupdate']").wrap('<a class="batchcheckout" href="./batchcheckoutform" />')
+        });
        if (!jQuery.browser.msie ||
            parseInt(jQuery.browser.version, 10) >= 7) {
            // Set up overlays
-           $("a#batchcheckout").prepOverlay({
+           $("a.batchcheckout").prepOverlay({
                subtype: 'ajax',
                filter: common_content_filter,
                formselector: '#content-core>#form',
@@ -123,13 +134,14 @@ jQuery(function($){
         };
 
          initializeSpecimenAdd();
-
-
+    $(document).ready(function(){
+        $("input[id='crud-edit-form-buttons-addspecimen']").wrap('<a class="addspecimen" href="./addspecimen" />')
+        });
        // No overlays for IE6
        if (!jQuery.browser.msie ||
            parseInt(jQuery.browser.version, 10) >= 7) {
            // Set up overlays
-           $("a#addspecimen").prepOverlay({
+           $("a#addspecimen, a.addspecimen").prepOverlay({
                subtype: 'ajax',
                config: {onLoad: function() {initializeSpecimenAdd();}},
                filter: common_content_filter,

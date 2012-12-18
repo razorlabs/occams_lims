@@ -42,15 +42,8 @@
   <alias from="sharing" to="@@sharing" />
   <alias from="view" to="@@view" />
   <alias from="ready" to="@@ready" />
-
-<!--   <alias from="prepared" to="@@prepared" />
- -->
-<!--    <alias from="checkedin" to="@@checkedin" />
- -->
-   <alias from="edit-aliquot" to="@@edit-aliquot" />
   <alias from="checkout" to="@@checkout" />
   <alias from="checkin" to="@@checkin" />
-    <alias from="inventory" to="@@inventory" />
 
   <!-- Actions -->
   <action title="View" action_id="view" category="object" condition_expr=""

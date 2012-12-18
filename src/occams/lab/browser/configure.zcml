@@ -8,8 +8,14 @@
   <browser:page
       for="avrc.aeh.interfaces.IClinicalMarker"
       name="filtersuccess"
-     class=".common.FilterSuccessView"
       template="common_templates/filtersuccess.pt"
+      permission="occams.lab.ViewSpecimen"
+     />
+
+  <browser:page
+      for="avrc.aeh.interfaces.IClinicalMarker"
+      name="labview"
+      template="common_templates/labview.pt"
       permission="occams.lab.ViewSpecimen"
      />
 
@@ -49,6 +55,12 @@
       permission="occams.lab.ViewSpecimen"
      />
 
+    <browser:page
+      for="occams.lab.interfaces.IClinicalLab"
+     name="printspecimenlabelform"
+     class=".clinicallab.SpecimenLabelForm"
+      permission="occams.lab.ViewSpecimen"
+     />
   <adapter factory=".clinicallab.overrideCycleChoicePrompt" name="prompt" />
   <adapter factory=".clinicallab.overrideTypeChoicePrompt" name="prompt" />
 
@@ -57,6 +69,15 @@
       name="cycle_by_patient_json"
       class=".clinicallab.CycleByPatientJsonView"
       permission="occams.lab.ViewSpecimen"
+      />
+
+
+  <browser:page
+      for="occams.lab.interfaces.IClinicalLab"
+      name="batch"
+      class=".researchlab.ResearchLabView"
+      template="clinicallab_templates/batch.pt"
+      permission="occams.lab.AliquotSpecimen"
       />
 
 <!-- Research Lab Pages -->
@@ -68,6 +89,13 @@
      name="aliquotfilter"
      class=".researchlab.AliquotFilterForm"
       permission="occams.lab.ViewAliquot"
+     />
+
+   <browser:page
+      for="occams.lab.interfaces.IResearchLab"
+     name="addspecimen"
+     class=".researchlab.AddSpecimenForm"
+      permission="occams.lab.ViewSpecimen"
      />
 
   <browser:page
@@ -84,7 +112,7 @@
      />
 
   <browser:page
-      for="occams.lab.interfaces.IResearchLab"
+      for="occams.lab.interfaces.ILab"
       name="ready"
       class=".researchlab.AliquotSpecimenView"
       template="researchlab_templates/aliquotspecimen.pt"
@@ -92,14 +120,14 @@
       />
 
     <browser:page
-      for="occams.lab.interfaces.IResearchLab"
+      for="occams.lab.interfaces.ILab"
      name="printaliquotlabelform"
      class=".researchlab.AliquotLabelForm"
       permission="occams.lab.AliquotSpecimen"
      />
 
   <browser:page
-      for="occams.lab.interfaces.IResearchLab"
+      for="occams.lab.interfaces.ILab"
       name="checkout"
       class=".researchlab.AliquotCheckoutView"
       template="researchlab_templates/checkout.pt"
@@ -107,7 +135,7 @@
       />
 
   <browser:page
-      for="occams.lab.interfaces.IResearchLab"
+      for="occams.lab.interfaces.ILab"
       name="checkin"
       class=".researchlab.AliquotCheckInView"
       template="researchlab_templates/checkin.pt"
@@ -115,14 +143,14 @@
       />
 
     <browser:page
-      for="occams.lab.interfaces.IResearchLab"
+      for="occams.lab.interfaces.ILab"
      name="batchcheckoutform"
      class=".researchlab.AliquotBatchCheckoutForm"
       permission="occams.lab.CheckoutAliquot"
      />
 
    <browser:page
-      for="occams.lab.interfaces.IResearchLab"
+      for="occams.lab.interfaces.ILab"
       name="receipt"
       class=".researchlab.AliquotReciept"
       template="researchlab_templates/receipt.pt"
@@ -130,11 +158,11 @@
       />
 
 <!-- Specimen Context -->
-<!--
+
   <browser:page
       for="occams.lab.interfaces.ISpecimenContext"
       name="view"
-      class=".specimen.SpecimenView"
+      class=".specimen.SpecimenEditView"
       template="specimen_templates/specimenview.pt"
       permission="occams.lab.ManageSpecimen"
       />
@@ -142,7 +170,7 @@
    <browser:defaultView
      for="occams.lab.interfaces.ISpecimenContext"
      name="view"
-     /> -->
+     />
 
 <!-- Aliquot Context -->
 
@@ -152,6 +180,7 @@
      class=".aliquot.AliquotFilterForm"
       permission="occams.lab.ViewAliquot"
      />
+
 
   <browser:page
       for="occams.lab.interfaces.IAliquotContext"
@@ -176,7 +205,28 @@
 
 
 
-<!-- Patient Context -->
+<!-- Occams Clinical Context -->
+ <browser:page
+      for="avrc.aeh.interfaces.IClinicalObject"
+      name="aliquot"
+      class=".aliquot.AliquotView"
+      template="aliquot_templates/clinicalview.pt"
+      permission="occams.lab.ViewAliquot"
+      />
 
+ <browser:page
+      for="avrc.aeh.interfaces.IVisit"
+      name="specimen"
+      class=".specimen.SpecimenView"
+      template="specimen_templates/view.pt"
+      permission="occams.lab.ViewSpecimen"
+      />
+
+ <browser:page
+      for="avrc.aeh.interfaces.IInstitute"
+      name="lablocations"
+      class=".institute.LabLocationView"
+      permission="avrc.aeh.ModifyInstitute"
+      />
 
 </configure>

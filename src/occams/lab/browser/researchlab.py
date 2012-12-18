@@ -23,6 +23,7 @@ from occams.form.traversal import closest
 from plone.z3cform import layout
 import zope.component
 from occams.lab import FILTER_KEY
+from sqlalchemy.orm import exc
 
 SUCCESS_MESSAGE = _(u"Successfully updated")
 PARTIAL_SUCCESS = _(u"Some of your changes could not be applied.")
@@ -40,8 +41,13 @@ class AliquotFilterForm(common.LabFilterForm):
     @property
     def fields(self):
         aliquotfilter =  zope.component.getMultiAdapter((self.context, self.request), interfaces.IAliquotFilter)
-        return aliquotfilter.getFilterFields(omitable=["show_all"])
-
+        omitable = ["show_all"]
+        if 'omit' in self.request:
+            if type(self.request['omit']) == list:
+                omitable.extend(self.request['omit'])
+            else:
+                omitable.append(self.request['omit'])
+        return aliquotfilter.getFilterFields(omitable=omitable)
 
 class EmbeddedAliquotFilterForm(common.LabFilterForm):
     """
@@ -78,6 +84,53 @@ class EmbeddedAliquotFilterForm(common.LabFilterForm):
         return self.request.response.redirect("%s" % self.action)
 
 AliquotFilterFormView = layout.wrap_form(EmbeddedAliquotFilterForm)
+
+class AddSpecimenForm(z3c.form.form.AddForm):
+    """
+    Specimen Add Form
+    """
+    label = _(u"Add More Specimen")
+    description= _(u"Please enter the patient our number, protocol cycle, and specimen type.")
+    ignoreContext = True
+    # template = ViewPageTemplateFile('clinicallab_templates/addspecimen.pt')
+    fields = z3c.form.field.Fields(interfaces.IAddableSpecimen)
+
+    def updateWidgets(self):
+        """
+        Apply The information in the browser request (from filtering) as values to this form
+        """
+        z3c.form.form.Form.updateWidgets(self)
+        browser_session = ISession(self.request)
+        if 'occams.lab.filter' in browser_session and 'patient' in browser_session['occams.lab.filter']:
+            self.widgets['specimen_patient_our'].value = browser_session['occams.lab.filter']['patient']
+
+    @z3c.form.button.buttonAndHandler(_('Request More Specimen'), name='requestSpecimen')
+    def requestSpecimen(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status =  _(u'There was an error with your request.')
+            return
+        drawstate = Session.query(model.SpecimenState).filter_by(name=u'complete').one()
+        patient = Session.query(model.Patient).filter_by(our=data['specimen_patient_our']).one()
+        location = Session.query(model.Location).filter_by(name = self.context.location).one()
+        visit_query = (
+            Session.query(model.Visit)
+            .filter(model.Visit.patient_id == patient.id)
+            .filter(model.Visit.cycles.any(id = data['specimen_cycle'].id)))
+        visit = visit_query.one()
+        newSpecimen = model.Specimen(
+                patient = patient,
+                cycle = data['specimen_cycle'],
+                specimen_type = data['specimen_type'],
+                state=drawstate,
+                collect_date = visit.visit_date,
+                location = location,
+                tubes = data['specimen_type'].default_tubes
+            )
+        Session.add(newSpecimen)
+        Session.flush()
+        self.status = _(u"Specimen added for %s" % data['specimen_patient_our'])
+        return self.request.response.redirect("%s/filtersuccess" % self.context.absolute_url())
 
 
 class ResearchLabEditForm(common.OccamsCrudEditForm):
@@ -121,6 +174,11 @@ class ResearchLabEditForm(common.OccamsCrudEditForm):
         self.changeState(action, 'cancel-draw', 'canceled')
         return self.status
 
+    @z3c.form.button.buttonAndHandler(_('Add Specimen'), name='addspecimen')
+    def handleAddSpecimen(self, action):
+        # trigger a javascript overlay that will allow adding of specimen
+        pass
+
 class ResearchLabViewForm(common.OccamsCrudForm):
     label = u"Specimen for Processing"
 
@@ -153,18 +211,18 @@ class ResearchLabViewForm(common.OccamsCrudForm):
         query =  specimenfilter.getQuery(default_state='complete')
         return query
 
-class ResearchLabView(BrowserView):
+class ResearchLabView(common.OccamsLabView):
     """
     Primary view for a clinical lab object.
     """
-    def listAliquotTypes(self):
-        query = (
-            Session.query(model.AliquotType)
-            .order_by(model.AliquotType.title.asc())
-            )
-        for aliquot_type in iter(query):
-            url = "%s/%s/%s" %(self.context.absolute_url(), aliquot_type.specimen_type.name, aliquot_type.name)
-            yield {'url': url, 'title': aliquot_type.title}
+    instructions = [
+        {'title':'Select All',
+        'description': 'Select or deselect all items displayed on the current page.'},
+        {'title':'Ready Selected',
+        'description': 'Moves the selected specimen to the next tab.'},
+        {'title':'Mark Selected Undrawn',
+        'description': 'Mark the selected specimen as cancelled.'},
+        ]
 
     def current_filter(self):
         specimenfilter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.ISpecimenFilter)
@@ -202,7 +260,7 @@ class ResearchLabView(BrowserView):
         return self._v_crud_form.count
 
     @property
-    def crudForm(self):
+    def crud_form(self):
         if not hasattr(self, '_v_crud_form'):
             self._v_crud_form = ResearchLabViewForm(self.context, self.request)
             self._v_crud_form.update()
@@ -257,6 +315,11 @@ class AliquotSpecimenEditForm(crud.EditForm):
             del data['select']
             changes = subform.applyChanges(data)
             if changes:
+                browser_session = ISession(self.request)
+                if ALIQUOT_LABEL_QUEUE in browser_session:
+                    label_queue = browser_session[ALIQUOT_LABEL_QUEUE]
+                else:
+                    browser_session[ALIQUOT_LABEL_QUEUE] = label_queue = set()
                 kwargs = subform.content
                 kwargs['state'] = state
                 kwargs['location'] = location
@@ -269,8 +332,11 @@ class AliquotSpecimenEditForm(crud.EditForm):
                 while count:
                     newAliquot = model.Aliquot(**kwargs)
                     Session.add(newAliquot)
+                    Session.flush()
+                    label_queue.add(newAliquot.id)
                     count = count -1
                     created = created + 1
+                browser_session.save()
             if status is no_changes:
                 status = success
         Session.flush()
@@ -384,7 +450,7 @@ class AliquotPreparedSubForm(crud.EditSubForm):
         browser_session = ISession(self.request)
         if ALIQUOT_LABEL_QUEUE in browser_session \
                 and 'label_queue' in self.widgets \
-                and self.content.id in browser_session['aliquot_label_queue']:
+                and self.content.id in browser_session[ALIQUOT_LABEL_QUEUE]:
             self.widgets['label_queue'].value = 1
 
 class AliquotPreparedEditForm(common.OccamsCrudEditForm):
@@ -414,12 +480,26 @@ class AliquotPreparedEditForm(common.OccamsCrudEditForm):
         else:
             self.status = _(u"Please select Aliquot")
 
+    def _updatePrintQueue(self, action):
+        selected = self.selected_items()
+        # messages = IStatusMessage(self.request)
+        if selected:
+            browser_session = ISession(self.request)
+            if ALIQUOT_LABEL_QUEUE in browser_session:
+                label_queue = browser_session[ALIQUOT_LABEL_QUEUE]
+            else:
+                browser_session[ALIQUOT_LABEL_QUEUE] = label_queue = set()
+            for id, data in selected:
+                if id in label_queue:
+                    label_queue.discard(id)
+            browser_session.save()
+            self._update_subforms()
 
     @z3c.form.button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
         pass
 
-    @z3c.form.button.buttonAndHandler(_('Toggle Print Queue'), name='print')
+    @z3c.form.button.buttonAndHandler(_('Toggle Print Queue'), name='queueprint')
     def handlePrintAliquot(self, action):
         self.saveChanges(action)
         selected = self.selected_items()
@@ -437,10 +517,20 @@ class AliquotPreparedEditForm(common.OccamsCrudEditForm):
                     label_queue.add(id)
             browser_session.save()
             self._update_subforms()
-            self.status = _(u"%d Aliquot have been added to the print queue." % (alquot_number))
+            self.status = _(u"%d Aliquot have been synced with the print queue." % (alquot_number))
         else:
             self.status = _(u"Please select Aliquot")
-        return self.status
+        return self.request.response.redirect(self.action)
+
+    def labelsinqueue(self):
+        browser_session = ISession(self.request)
+        if ALIQUOT_LABEL_QUEUE in browser_session:
+            return len(browser_session[ALIQUOT_LABEL_QUEUE])
+        return False
+
+    @z3c.form.button.buttonAndHandler(_('Print Labels'), name='print', condition=labelsinqueue)
+    def handlePrintLabels(self, action):
+        pass
 
     @z3c.form.button.buttonAndHandler(_('Save Changes'), name='save')
     def handleSaveChanges(self, action):
@@ -451,12 +541,14 @@ class AliquotPreparedEditForm(common.OccamsCrudEditForm):
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'checked-in', 'Checked In')
+        self._updatePrintQueue(action)
         return self.status
 
     @z3c.form.button.buttonAndHandler(_('Check out Aliquot'), name='checkout')
     def handleCheckoutAliquot(self, action):
         self.saveChanges(action)
         self.changeState(action, 'pending-checkout', 'Pending Check Out')
+        self._updatePrintQueue(action)
         return self.status
 
     @z3c.form.button.buttonAndHandler(_('Delete Unused Aliquot'), name='delete')
@@ -464,18 +556,12 @@ class AliquotPreparedEditForm(common.OccamsCrudEditForm):
         self.saveChanges(action)
         selected = self.selected_items()
         if selected:
-            browser_session = ISession(self.request)
-            if ALIQUOT_LABEL_QUEUE in browser_session:
-                label_queue = browser_session[ALIQUOT_LABEL_QUEUE]
-            else:
-                browser_session[ALIQUOT_LABEL_QUEUE] = label_queue = set()
             alquot_number = len(selected)
             for id, data in selected:
                 aliquot = Session.query(model.Aliquot).filter_by(id=id).one()
                 Session.delete(aliquot)
-                label_queue.discard(id)
-            browser_session.save()
             Session.flush()
+            self._updatePrintQueue(action)
             self._update_subforms()
             self.status = _(u"%d Aliquot have been deleted." % (alquot_number))
         else:
@@ -533,23 +619,41 @@ class AliquotPreparedForm(common.OccamsCrudForm):
         aliquotfilter = zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
         return aliquotfilter.getQuery(default_state='pending')
 
-class AliquotSpecimenView(BrowserView):
+class AliquotSpecimenView(common.OccamsLabView):
     """
     Primary view for a clinical lab object.
     """
+    instructions = [
+        {'title':'Select All',
+        'description': 'Select or deselect all items displayed on the current page.'},
+        {'title':'Toggle Print Queue',
+        'description': 'Saves all changes, and then adds the selected specimen to the print queue'},
+        {'title':'Print Labels',
+        'description': 'Prints labels for the specimen in the print queue'},
+        {'title':'Save All Changes',
+        'description': 'Saves all of the changes entered to the database. This applies ' \
+        'to all aliquot, not just selected aliquot.'},
+        {'title':'Check in Aliquot',
+        'description': 'Saves all of the changes entered to the database. Move the selected aliquot to a "checked in" state. '},
+        {'title':'Check out Aliquot',
+        'description': 'Saves all of the changes entered to the database. Move the selected aliquot to a "pending check out" state, ' \
+                            'and makes them available in the <a href="checkout">Check out</a> queue.'},
+        {'title':'Delete Unused Aliquot',
+        'description': 'Saves all of the changes entered to the database. Then *deletes* selected aliquot; this should only be used for ' \
+                            'aliquot  that were never created. '},
+        ]
+
     def current_filter(self):
-        specimenfilter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.ISpecimenFilter)
-        filter =  specimenfilter.getFilterValues()
+        filter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
+        filter =  filter.getFilterValues()
         return filter.iteritems()
 
-    def listAliquotTypes(self):
-        query = (
-            Session.query(model.AliquotType)
-            .order_by(model.AliquotType.title.asc())
-            )
-        for aliquot_type in iter(query):
-            url = "%s/%s/%s" %(closest(self.context, interfaces.ILab).absolute_url(), aliquot_type.specimen_type.name, aliquot_type.name)
-            yield {'url': url, 'title': aliquot_type.title}
+    def has_filter(self):
+        filter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
+        filter =  filter.getFilterValues()
+        if filter:
+            return True
+        return False
 
     @property
     def specimen_entry_count(self):
@@ -566,14 +670,14 @@ class AliquotSpecimenView(BrowserView):
         return self._v_specimen_crud_form
 
     @property
-    def aliquot_entry_count(self):
+    def entry_count(self):
         if not hasattr(self, '_v_aliquot_crud_form'):
             self._v_aliquot_crud_form = AliquotPreparedForm(self.context, self.request)
             self._v_aliquot_crud_form.update()
         return self._v_aliquot_crud_form.count
 
     @property
-    def aliquot_crud_form(self):
+    def crud_form(self):
         if not hasattr(self, '_v_aliquot_crud_form'):
             self._v_aliquot_crud_form = AliquotPreparedForm(self.context, self.request)
             self._v_aliquot_crud_form.update()
@@ -593,7 +697,7 @@ class AliquotLabelForm(z3c.form.form.Form):
     Clinical Lab view as a way to filter specimen.
     """
     # label = u"Label Aliquot"
-    description = _(u"Please enter the starting column and row for a partially used. ")
+    description = _(u"Please enter the starting column and row for a partially used label sheet. ")
 
     @property
     def label(self):
@@ -682,9 +786,25 @@ class AliquotCheckoutEditForm(common.OccamsCrudEditForm):
         self.saveChanges(action)
         return self.status
 
+    @z3c.form.button.buttonAndHandler(_('Batch Update'), name='batchupdate')
+    def handleBatchUpdate(self, action):
+        pass
+
+    @z3c.form.button.buttonAndHandler(_('Print Receipt'), name='printreceipt')
+    def handlePrintReceipt(self, action):
+        pass
+
     @z3c.form.button.buttonAndHandler(_('Return Aliquot'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
+        selected = self.selected_items()
+        # messages = IStatusMessage(self.request)
+        if selected:
+            location = Session.query(model.Location).filter_by(name = self.context.context.location).one()
+            for id, data in selected:
+                obj = Session.query(model.Aliquot).filter_by(id=id).one()
+                obj.location = location
+            Session.flush()
         self.changeState(action, 'checked-in', 'Checked In')
         return self.status
 
@@ -732,33 +852,46 @@ class AliquotCheckoutForm(common.OccamsCrudForm):
         aliquotfilter = zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
         return aliquotfilter.getQuery(default_state='pending-checkout')
 
-class AliquotCheckoutView(BrowserView):
+class AliquotCheckoutView(common.OccamsLabView):
     """
     Primary view for a clinical lab object.
     """
+    instructions = [
+        {'title':'Select All',
+        'description': 'Select or deselect all items displayed on the current page.'},
+        {'title':'Save All Changes',
+        'description': 'Saves all of the changes entered to the database. This applies ' \
+        'to all aliquot, not just selected aliquot.'},
+        {'title':'Batch Update',
+        'description': 'Opens a new window for updating *all* of the aliquot in the checkout queue. ' \
+        'NOTE: There may be more aliquot in the queue than you see on the screen '},
+        {'title':'Return Aliquot',
+        'description': 'Return the selected aliquot to a "checked in" state. This will reset the location to the current lab location.'},
+        {'title':'Complete Checkout',
+        'description': 'Finalize checkout for selected aliquot. These aliquot can be <a href="./checkin">checked back in</a>'},
+        ]
+
     def current_filter(self):
         aliquotfilter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
         filter =  aliquotfilter.getFilterValues()
         return filter.iteritems()
 
-    def listAliquotTypes(self):
-        query = (
-            Session.query(model.AliquotType)
-            .order_by(model.AliquotType.title.asc())
-            )
-        for aliquot_type in iter(query):
-            url = "%s/%s/%s" %(closest(self.context, interfaces.ILab).absolute_url(), aliquot_type.specimen_type.name, aliquot_type.name)
-            yield {'url': url, 'title': aliquot_type.title}
+    def has_filter(self):
+        filter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
+        filter =  filter.getFilterValues()
+        if filter:
+            return True
+        return False
 
     @property
-    def aliquot_entry_count(self):
+    def entry_count(self):
         if not hasattr(self, '_v_aliquot_crud_form'):
             self._v_aliquot_crud_form = AliquotCheckoutForm(self.context, self.request)
             self._v_aliquot_crud_form.update()
         return self._v_aliquot_crud_form.count
 
     @property
-    def aliquot_crud_form(self):
+    def crud_form(self):
         if not hasattr(self, '_v_aliquot_crud_form'):
             self._v_aliquot_crud_form = AliquotCheckoutForm(self.context, self.request)
             self._v_aliquot_crud_form.update()
@@ -773,7 +906,7 @@ class AliquotBatchCheckoutForm(z3c.form.form.Form):
     ignoreContext=True
     @property
     def label(self):
-        return u"Bulk Update %d Aliquot" % self._getQuery().count()
+        return u"Batch Update %d Aliquot" % self._getQuery().count()
 
     fields = z3c.form.field.Fields(interfaces.IAliquotCheckout)
 
@@ -781,17 +914,23 @@ class AliquotBatchCheckoutForm(z3c.form.form.Form):
         aliquotfilter = zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
         return aliquotfilter.getQuery(default_state='pending-checkout')
 
-    @z3c.form.button.buttonAndHandler(_('Update ALiquot'), name='update')
+    @z3c.form.button.buttonAndHandler(_('Update Aliquot'), name='update')
     def handleUpdateAliquot(self, action):
         data, errors = self.extractData()
         if errors:
             self.status = 'Please correct the indicated errors'
             return
+        location = getattr(self.context, 'location', None)
+        try:
+            previous_location = Session.query(model.Location).filter_by(name = location).one()
+        except exc.NoResultFound:
+            previous_location = None
         query = self._getQuery()
         for aliquot in iter(query):
             for key, value in data.iteritems():
                 if value:
                     setattr(aliquot, key, value)
+            aliquot.previous_location = previous_location
         Session.flush()
         return self.request.response.redirect("%s/filtersuccess" % self.context.absolute_url())
 
@@ -799,6 +938,7 @@ class AliquotBatchCheckoutForm(z3c.form.form.Form):
     def handleClose(self, action):
         pass
 
+from sqlalchemy import distinct
 class AliquotReciept(BrowserView):
     """
     """
@@ -806,6 +946,31 @@ class AliquotReciept(BrowserView):
     def _getQuery(self):
         aliquotfilter = zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
         return aliquotfilter.getQuery(default_state='pending-checkout')
+
+    def location(self):
+        query = self._getQuery().subquery()
+        sentQuery = Session.query(distinct(model.Aliquot.sent_name)).select_from(query)
+        locationQuery = Session.query(model.Location).join(query, model.Location.aliquot)
+        try:
+            sent_name = sentQuery.one()
+            location = locationQuery.one()
+        except exc.NoResultFound:
+            return None
+        except exc.MultipleResultsFound:
+            return None
+        else:
+            ret = {}
+            ret['sent_name'] = sent_name[0]
+            ret['sent_location'] = location.title
+            ret['sent_location_title_1'] = location.long_title1
+            ret['sent_location_title_2'] = location.long_title2
+            ret['sent_address'] = location.address_street
+            ret['sent_address_city'] = location.address_city
+            ret['sent_address_state'] = location.address_state
+            ret['sent_address_zip'] = location.address_zip
+            ret['sent_phone'] = location.phone_number
+            ret['sent_fax'] = location.fax_number
+            return ret
 
     def getQueueItems(self):
         """
@@ -822,17 +987,10 @@ class AliquotReciept(BrowserView):
             ret['store_date'] = aliquot.store_date
             ret['aliquot_type_title'] = viewableAliquot.aliquot_type_title
             ret['vol_count'] = viewableAliquot.vol_count
-            ret['special_instruction_title'] = aliquot.special_instruction.title
+            ret['special_instruction_title'] = aliquot.special_instruction and aliquot.special_instruction.title or ''
             ret['notes'] = aliquot.notes
             ret['sent_notes'] = aliquot.sent_notes
-
-
             yield ret
-
-
-
-
-
 
 
 class AliquotCheckInEditForm(common.OccamsCrudEditForm):
@@ -841,8 +999,6 @@ class AliquotCheckInEditForm(common.OccamsCrudEditForm):
     label = _(u"Aliquot to be Checked In")
 
     prefix = 'aliquot-checkin'
-
-    # editsubform_factory = AliquotPreparedSubForm
 
     def changeState(self, action, state, acttitle):
         """
@@ -875,6 +1031,14 @@ class AliquotCheckInEditForm(common.OccamsCrudEditForm):
     @z3c.form.button.buttonAndHandler(_('Check In Aliquot'), name='checkin')
     def handleCheckinAliquot(self, action):
         self.saveChanges(action)
+        selected = self.selected_items()
+        # messages = IStatusMessage(self.request)
+        if selected:
+            location = Session.query(model.Location).filter_by(name = self.context.context.location).one()
+            for id, data in selected:
+                obj = Session.query(model.Aliquot).filter_by(id=id).one()
+                obj.location = location
+            Session.flush()
         self.changeState(action, 'checked-in', 'Checked In')
         return self.status
 
@@ -902,6 +1066,8 @@ class AliquotCheckInForm(common.OccamsCrudForm):
                     )
         fields += z3c.form.field.Fields(interfaces.IAliquot).\
             select(
+                   'volume',
+                   'cell_amount',
                    'freezer',
                    'rack',
                    'box',
@@ -937,14 +1103,19 @@ class AliquotCheckInForm(common.OccamsCrudForm):
         aliquotfilter = zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
         return aliquotfilter.getQuery(default_state='checked-out')
 
-
-
-
-
-class AliquotCheckInView(BrowserView):
+class AliquotCheckInView(common.OccamsLabView):
     """
     Primary view for a clinical lab object.
     """
+    instructions = [
+        {'title':'Select All',
+        'description': 'Select or deselect all items displayed on the current page.'},
+        {'title':'Save All Changes',
+        'description': 'Saves all of the changes entered to the database. This applies ' \
+        'to all aliquot, not just selected aliquot.'},
+        {'title':'Check In Aliquot',
+        'description': 'Return the selected aliquot to a "checked in" state. This will reset the location to the current lab location.'},
+        ]
 
     def current_filter(self):
         aliquotfilter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
@@ -954,38 +1125,29 @@ class AliquotCheckInView(BrowserView):
         return filter.iteritems()
 
     def has_filter(self):
-        aliquotfilter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
-        filter =  aliquotfilter.getFilterValues()
+        filter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.IAliquotFilter)
+        filter =  filter.getFilterValues()
         if filter:
             return True
         return False
 
-    def listAliquotTypes(self):
-        query = (
-            Session.query(model.AliquotType)
-            .order_by(model.AliquotType.title.asc())
-            )
-        for aliquot_type in iter(query):
-            url = "%s/%s/%s" %(closest(self.context, interfaces.ILab).absolute_url(), aliquot_type.specimen_type.name, aliquot_type.name)
-            yield {'url': url, 'title': aliquot_type.title}
-
     @property
-    def aliquot_entry_count(self):
+    def entry_count(self):
         if not hasattr(self, '_v_aliquot_crud_form'):
             self._v_aliquot_crud_form = AliquotCheckInForm(self.context, self.request)
             self._v_aliquot_crud_form.update()
         return self._v_aliquot_crud_form.count
 
     @property
-    def aliquot_crud_form(self):
+    def crud_form(self):
         if not hasattr(self, '_v_aliquot_crud_form'):
             self._v_aliquot_crud_form = AliquotCheckInForm(self.context, self.request)
             self._v_aliquot_crud_form.update()
         return self._v_aliquot_crud_form
 
     @property
-    def aliquot_filter_form(self):
-        if not hasattr(self, '_v_aliquot_filter_form'):
-            self._v_aliquot_filter_form = AliquotFilterFormView(self.context, self.request)
-            self._v_aliquot_filter_form.update()
-        return self._v_aliquot_filter_form
+    def filter_form(self):
+        if not hasattr(self, '_v_filter_form'):
+            self._v_filter_form = AliquotFilterFormView(self.context, self.request)
+            self._v_filter_form.update()
+        return self._v_filter_form

@@ -9,7 +9,6 @@ from occams.lab import interfaces
 from occams.lab import model
 from occams.lab import Session
 
-
 class LabLocation(object):
     __doc__ = interfaces.ILabLocation.__doc__
 
@@ -114,6 +113,7 @@ def handleRequestedSpecimenAdded(visit, event):
     if getattr(visit, check, interfaces.IRequestedSpecimen[check].default):
         visit_entity = zope.component.getMultiAdapter((visit, Session), clinical.IClinicalModel)
         drawstate = Session.query(model.SpecimenState).filter_by(name=u'pending-draw').one()
+        location_id = visit_entity.patient.site.lab_location.id
         for cycle in visit.cycles:
             for specimen_type in cycle.specimen_types:
                 newSpecimen = model.Specimen(
@@ -122,7 +122,7 @@ def handleRequestedSpecimenAdded(visit, event):
                         specimen_type = specimen_type,
                         state=drawstate,
                         collect_date = visit.visit_date,
-                        location_id = specimen_type.location_id,
+                        location_id = location_id,
                         tubes = specimen_type.default_tubes
                     )
                 Session.add(newSpecimen)

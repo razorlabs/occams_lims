@@ -52,6 +52,23 @@ class LocationVocabulary(OccamsVocabulary):
 
     _modelKlass=model.Location
 
+    def getTerms(self, context):
+        query = (
+            Session.query(self._modelKlass)
+            .filter_by(active=True)
+            .order_by(self._modelKlass.title.asc())
+            )
+        terms=[]
+        for term in iter(query):
+            terms.append(
+                SimpleTerm(
+                    title=term.title,
+                    token=str(term.name),
+                    value=term)
+                )
+        return terms
+
+
 grok.global_utility(LocationVocabulary, name=u"occams.lab.locationvocabulary")
 
 class SpecialInstructionVocabulary(OccamsVocabulary):

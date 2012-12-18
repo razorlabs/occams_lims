@@ -25,20 +25,35 @@
     <metal:baseslot >
       <base tal:attributes="href plone_view/renderBase" /><!--[if lt IE 7]></base><![endif]-->
     </metal:baseslot>
-
     <tal:notajax tal:condition="not:ajax_load">
         <div tal:replace="structure provider:plone.htmlhead" />
         <link tal:replace="structure provider:plone.htmlhead.links" />
         <!-- Disable IE6 image toolbar -->
         <meta http-equiv="imagetoolbar" content="no" />
     </tal:notajax>
+<!--           <script type="text/javascript">
+             $(document).ready(function () { window.print(); });
+            </script> -->
+
   </head>
 
   <body>
-        <h1
-          class="documentFirstHeading">Aliquot Reciept</h1>
-
-        <table class="listing">
+        <tal:location define="location view/location">
+            <tal:haslocation condition="location">
+              <p style="font-size:10pt">Send To:<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;<b tal:content="location/sent_name" /><br />
+                <span tal:condition="not:location/sent_location_title_1" >&nbsp;&nbsp;&nbsp;&nbsp;<span tal:condition="not:location/sent_location_title_1" tal:replace="location/sent_location" /><br tal:condition="not:location/sent_location_title_1" /></span>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span tal:replace="location/sent_location_title_1" /><br  tal:condition="location/sent_location_title_1" />
+                &nbsp;&nbsp;&nbsp;&nbsp;<span tal:replace="location/sent_location_title_2" /><br tal:condition="location/sent_location_title_2" />
+                <span  tal:condition="location/sent_address">&nbsp;&nbsp;&nbsp;&nbsp;<span tal:replace="location/sent_address" /><br /> &nbsp;&nbsp;&nbsp;&nbsp;<span tal:replace="location/sent_address_city" />, <span tal:replace="location/sent_address_state" />&nbsp;&nbsp;<span tal:replace="location/sent_address_zip" /><br /></span>
+                &nbsp;&nbsp;&nbsp;&nbsp;Phone: <span tal:replace="location/sent_phone" /><br />
+                &nbsp;&nbsp;&nbsp;&nbsp;Fax: <span tal:replace="location/sent_fax" /><br />
+            </tal:haslocation>
+            <tal:haslocation condition="not:location">
+                <p>Multiple send locations were found. Please update your aliquot, or change your filter.</p>
+            </tal:haslocation>
+        </tal:location>
+        <table class="listing" style="font-size: 6pt">
             <tr>
                 <th>
                     Aliquot ID
@@ -75,18 +90,18 @@
                     <td tal:content="aliquot/aliquot_type_title" />
                     <td tal:content="aliquot/vol_count" />
                     <td >
-                        <span tal:condition="python:hasattr(aliquot, 'special_instruction_title') and aliquot.special_instruction_title" tal:omit-tag="">
+<!--                         <span tal:condition="aliquot/special_instruction_title|nothing" tal:omit-tag="">
                             <span tal:replace="aliquot/special_instruction_title" />
                             <br />
-                        </span>
-                        <span tal:condition="python:hasattr(aliquot, 'notes') and aliquot.notes" tal:omit-tag="">
+                        </span> -->
+                        <span tal:condition="aliquot/notes|nothing" tal:omit-tag="">
                             <span tal:replace="aliquot/notes" />
                             <br />
                         </span>
-                        <span tal:condition="python:hasattr(aliquot, 'sent_notes') and aliquot.sent_notes" tal:omit-tag="">
-                            <span tal:replace="aliquot/sent_notes" />
+                         <span tal:condition="aliquot/sent_notes|nothing" tal:omit-tag="">
+                             <span tal:replace="aliquot/sent_notes" />
                             <br />
-                        </span>
+                         </span>
                     </td>
 
                 </tr>

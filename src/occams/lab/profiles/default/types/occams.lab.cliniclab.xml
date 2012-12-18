@@ -38,10 +38,9 @@
   <alias from="(Default)" to="@@view" />
   <alias from="view" to="@@view" />
   <alias from="edit" to="@@edit" />
-  <alias from="sharing" to="@@sharing" />
-  <alias from="batched" to="@@batched" />
-  <alias from="postponed" to="@@postponed" />
-  <alias from="completed" to="@@complete" />
+  <alias from="ready" to="@@ready" />
+  <alias from="checkout" to="@@checkout" />
+  <alias from="checkin" to="@@checkin" />
 
 
   <!-- Actions -->
@@ -54,5 +53,19 @@
     url_expr="string:${object_url}/edit" visible="True">
     <permission value="occams: Modify Lab" />
   </action>
+
+  <action title="Ready to Aliquot" action_id="ready" category="object" condition_expr=""
+    url_expr="string:${object_url}/ready" visible="True">
+    <permission value="occams: Aliquot Specimen" />
+  </action>
+
+  <action title="Checkout Queue" action_id="checkout" category="object" condition_expr=""
+    url_expr="string:${object_url}/checkout" visible="True">
+    <permission value="occams: Check Out Aliquot" />
+  </action>
+
+  <action title="Checkin" action_id="checkin" category="object" condition_expr=""
+    url_expr="string:${object_url}/checkin" visible="True">
+    <permission value="occams: Check In Aliquot" />
   </action>
 </object>

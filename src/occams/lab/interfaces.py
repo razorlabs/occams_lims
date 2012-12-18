@@ -43,6 +43,70 @@ class IAliquotType(IDescribeable, IReferenceable, IModifiable):
         schema= ISpecimenType
         )
 
+class ILocation(IOccamsVocabulary):
+
+    active = zope.schema.Bool(
+                title=_(u"Active Location"),
+                description=_(u"This location is active.")
+                )
+
+    long_title1 =  zope.schema.TextLine(
+        title=_(u"Address Line 1"),
+        description=_(u""),
+        required=False,
+        )
+
+    long_title2 =  zope.schema.TextLine(
+        title=_(u"Address Line 2"),
+        description=_(u""),
+        required=False,
+        )
+    address_street =  zope.schema.TextLine(
+        title=_(u"Street"),
+        description=_(u""),
+        required=False,
+        )
+
+    address_city =  zope.schema.TextLine(
+        title=_(u"City"),
+        description=_(u""),
+        required=False,
+        )
+    address_state =  zope.schema.TextLine(
+        title=_(u"State"),
+        description=_(u""),
+        required=False,
+        )
+    address_zip =  zope.schema.TextLine(
+        title=_(u"Zip Code"),
+        description=_(u""),
+        required=False,
+        )
+    phone_number =  zope.schema.TextLine(
+        title=_(u"Phone Number"),
+        description=_(u""),
+        required=False,
+        )
+    fax_number = zope.schema.TextLine(
+        title=_(u"Fax Number"),
+        description=_(u""),
+        required=False,
+        )
+
+class IViewableLocation(form.Schema):
+
+    edit_link = zope.schema.TextLine(
+            title= _(u"Edit")
+            )
+    lab_title = zope.schema.TextLine(
+            title= _(u"Title")
+            )
+
+    full_address = zope.schema.Text(
+            title = _(u"Full Address")
+            )
+
+
 class ISpecimen(IReferenceable, IModifiable):
     """ Speccialized table for specimen data. Note that only one specimen can be
         drawn from a patient/protocol/type.
@@ -266,12 +330,6 @@ class IAliquot(IReferenceable, IModifiable):
 class IAliquotCheckout(form.Schema):
     """
     """
-    thawed_num = zope.schema.Int(
-        title=_(u"Thawed"),
-        description=_(u"Number of times thawed"),
-        default=0
-        )
-
     location =  zope.schema.Choice(
         title=_(u"Lab Location"),
         description=_(u"The location of the aliquot"),
@@ -324,7 +382,11 @@ class IAddableSpecimen(form.Schema):
 class IViewableSpecimen(form.Schema):
     """
     """
-
+    label_queue = zope.schema.Int(
+        title=_(u"Label Queue"),
+        description=_(u"The Specimen is in the label queue"),
+        readonly=True,
+    )
     patient_our = zope.schema.TextLine(
         title=_(u"Patient OUR#"),
         description=_(u"The source patient our #"),

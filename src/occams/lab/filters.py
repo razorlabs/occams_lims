@@ -63,7 +63,7 @@ class SpecimenLabFilter(grok.MultiAdapter):
             else:
                 query = query.filter(model.Specimen.collect_date == self.filter['before_date'])
         if self.filter.get('show_all', False) and 'show_all' not in omitable:
-            query = query.join(model.SpecimenState).filter(model.SpecimenState.name.in_(['pending-draw', 'complete', 'cancel-draw']))
+            query = query.join(model.SpecimenState).filter(model.SpecimenState.name.in_(['pending-draw', 'complete', 'cancel-draw', 'prepared']))
         elif default_state:
             query = query.filter(model.Specimen.state.has(name = default_state))
         # query = query.order_by(model.Specimen.id.desc())
@@ -297,14 +297,14 @@ class AliquotPatientFilter(grok.MultiAdapter):
             query = query.join(model.AliquotState).filter(model.AliquotState.name.in_(['checked-in','missing','pending-checkout', 'checked-out']))
         elif default_state:
             query = query.filter(model.Aliquot.state.has(name = default_state))
-        query = query.order_by(model.Specimen.patient_id, model.Aliquot.id)
+        query = query.order_by(model.Aliquot.aliquot_type_id, model.Aliquot.id)
         return query
 
     def getFilterFields(self, omitable=[]):
         """
         returns the appropriate fields for filtering in the specific context
         """
-        selectable=['aliquot_type', 'after_date','before_date', 'show_all']
+        selectable=['aliquot_type',  'after_date','before_date','show_all']
         for omitted in omitable:
             if omitted in selectable:
                 selectable.remove(omitted)
@@ -315,7 +315,7 @@ class AliquotPatientFilter(grok.MultiAdapter):
         """
         returns the appropriate filter values for the specific context
         """
-        retval = {}
+        retval = {'Patient': self.context.getId()}
         if self.filter:
             fields = self.getFilterFields()
             for name, filter in self.filter.iteritems():
@@ -324,6 +324,133 @@ class AliquotPatientFilter(grok.MultiAdapter):
             if 'show_all' in self.filter and self.filter['show_all']:
                 retval[u'Aliquot State']= u'Showing All Aliquot'
         return retval
+
+class AliquotVisitFilter(grok.MultiAdapter):
+    grok.provides(interfaces.IAliquotFilter)
+    grok.adapts(clinical.IVisit, IHTTPRequest)
+
+    def __init__(self, context, request):
+        self.context = context
+        browser_session = ISession(request)
+        if  FILTER_KEY in browser_session:
+            self.filter = browser_session[FILTER_KEY]
+        else:
+            self.filter = {}
+
+    def getQuery(self,  default_state=None, omitable=[]):
+        visit = zope.component.getMultiAdapter((self.context, Session), clinical.IClinicalModel)
+        query = (
+            Session.query(model.Aliquot)
+            .join(model.Aliquot.specimen)
+            .filter(model.Specimen.patient_id == visit.patient.id)
+            .filter(model.Specimen.cycle_id.in_([cycle.id for cycle in visit.cycles]))
+            )
+        if 'aliquot_type' in self.filter and 'aliquot_type' not in omitable:
+            query = query.filter(model.Aliquot.aliquot_type.has(name = self.filter['aliquot_type']))
+        if 'after_date' in self.filter and 'after_date' not in omitable:
+            if 'before_date' in self.filter and 'before_date' not in omitable:
+                query = query.filter(model.Aliquot.store_date >= self.filter['after_date'])
+                query = query.filter(model.Aliquot.store_date <= self.filter['before_date'])
+            else:
+                query = query.filter(model.Aliquot.store_date == self.filter['after_date'])
+        if 'freezer' in self.filter and 'freezer' not in omitable:
+            query = query.filter(model.Aliquot.freezer == self.filter['freezer'])
+        if 'rack' in self.filter and 'rack' not in omitable:
+            query = query.filter(model.Aliquot.rack == self.filter['rack'])
+        if 'box' in self.filter and 'box' not in omitable:
+            query = query.filter(model.Aliquot.box == self.filter['box'])
+        if self.filter.get('show_all', False) and 'show_all' not in omitable:
+            query = query.join(model.AliquotState).filter(model.AliquotState.name.in_(['checked-in','missing','pending-checkout', 'checked-out']))
+        elif default_state:
+            query = query.filter(model.Aliquot.state.has(name = default_state))
+        query = query.order_by(model.Aliquot.aliquot_type_id, model.Aliquot.id)
+        return query
+
+    def getFilterFields(self, omitable=[]):
+        """
+        returns the appropriate fields for filtering in the specific context
+        """
+        selectable=['aliquot_type', 'show_all']
+        for omitted in omitable:
+            if omitted in selectable:
+                selectable.remove(omitted)
+        return z3c.form.field.Fields(interfaces.IFilterForm).select(*selectable)
+
+
+    def getFilterValues(self):
+        """
+        returns the appropriate filter values for the specific context
+        """
+        cycletext = ''
+        for cycle in self.context.cycles:
+            cycletext += '%s, ' % cycle.title
+        retval = {'Patient': self.context.aq_parent.getId(), 'Cycles': cycletext}
+        if self.filter:
+            fields = self.getFilterFields()
+            for name, filter in self.filter.iteritems():
+                if name in fields and name != 'show_all':
+                    retval[fields[name].field.title]= filter
+            if 'show_all' in self.filter and self.filter['show_all']:
+                retval[u'Aliquot State']= u'Showing All Aliquot'
+        return retval
+
+
+
+
+
+
+
+class SpecimenVisitFilter(grok.MultiAdapter):
+    grok.provides(interfaces.ISpecimenFilter)
+    grok.adapts(clinical.IVisit, IHTTPRequest)
+
+    def __init__(self, context, request):
+        self.context = context
+        browser_session = ISession(request)
+        if  FILTER_KEY in browser_session:
+            self.filter = browser_session[FILTER_KEY]
+        else:
+            self.filter = {}
+
+    def getQuery(self,  default_state=None, omitable=[]):
+        visit = zope.component.getMultiAdapter((self.context, Session), clinical.IClinicalModel)
+        query = (
+            Session.query(model.Specimen)
+            .filter(model.Specimen.patient_id == visit.patient.id)
+            .filter(model.Specimen.cycle_id.in_([cycle.id for cycle in visit.cycles]))
+            )
+        query = query.order_by(model.Specimen.specimen_type_id, model.Specimen.id.desc())
+        return query
+
+    def getFilterFields(self, omitable=[]):
+        """
+        returns the appropriate fields for filtering in the specific context
+        """
+        selectable=['specimen_type', 'show_all']
+        for omitted in omitable:
+            if omitted in selectable:
+                selectable.remove(omitted)
+        return z3c.form.field.Fields(interfaces.IFilterForm).select(*selectable)
+
+
+    def getFilterValues(self):
+        """
+        returns the appropriate filter values for the specific context
+        """
+        cycletext = ''
+        for cycle in self.context.cycles:
+            cycletext += '%s, ' % cycle.title
+        retval = {'Patient': self.context.aq_parent.getId(), 'Cycles': cycletext}
+        if self.filter:
+            fields = self.getFilterFields()
+            for name, filter in self.filter.iteritems():
+                if name in fields and name != 'show_all':
+                    retval[fields[name].field.title]= filter
+            if 'show_all' in self.filter and self.filter['show_all']:
+                retval[u'Aliquot State']= u'Showing All Aliquot'
+        return retval
+
+
 
 # class SpecimenVisitFilter(object):
 #     """

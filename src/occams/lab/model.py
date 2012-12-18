@@ -113,7 +113,7 @@ class Location(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
     We may wish to add information here about the destination, such as address, contact info, etc.
     Right now we just need a vocabulary
     """
-    zope.interface.implements(interfaces.IOccamsVocabulary)
+    zope.interface.implements(interfaces.ILocation)
 
     sites = orm.relationship(
         Site,
@@ -124,10 +124,31 @@ class Location(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
             ),
         )
 
+    active = schema.Column(types.Boolean)
+
+    long_title1 = schema.Column(types.Unicode)
+
+    long_title2 = schema.Column(types.Unicode)
+
+    address_street = schema.Column(types.Unicode)
+
+    address_city = schema.Column(types.Unicode)
+
+    address_state = schema.Column(types.Unicode)
+
+    address_zip = schema.Column(types.Unicode)
+
+    phone_number = schema.Column(types.Unicode)
+
+    fax_number = schema.Column(types.Unicode)
+
+
     @declared_attr
     def __table_args__(cls):
         return (
             schema.UniqueConstraint('name'),
+            schema.Index('ix_%s_active' % cls.__tablename__, 'active'),
+
             )
 
 class SpecialInstruction(LabModel, AutoNamed, Describeable, Referenceable, Modifiable):
@@ -141,6 +162,7 @@ class SpecialInstruction(LabModel, AutoNamed, Describeable, Referenceable, Modif
     def __table_args__(cls):
         return (
             schema.UniqueConstraint('name'),
+
             )
 
 class SpecimenType(LabModel, AutoNamed, Referenceable, Describeable, Modifiable):

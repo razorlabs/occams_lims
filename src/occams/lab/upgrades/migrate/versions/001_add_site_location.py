@@ -49,6 +49,29 @@ def upgrade(migrate_engine):
                                                     ondelete='SET NULL'
                                                     )
                                             )
+
+    active = Column('active', Boolean)
+    long_title1 = Column('active', Unicode)
+    long_title2 = Column('active', Unicode)
+    address_street = Column('active', Unicode)
+    address_city = Column('active', Unicode)
+    address_state = Column('active', Unicode)
+    address_zip = Column('active', Unicode)
+    phone_number = Column('active', Unicode)
+    fax_number = Column('active', Unicode)
+
+
+    active.create(location_table)
+    long_title1.create(location_table)
+    long_title2.create(location_table)
+    address_street.create(location_table)
+    address_city.create(location_table)
+    address_state.create(location_table)
+    address_zip.create(location_table)
+    phone_number.create(location_table)
+    fax_number.create(location_table)
+
+
     previous_location.create(specimen_table)
     previous_location.create(specimen_audit_table)
 
@@ -93,6 +116,16 @@ def downgrade(migrate_engine):
     specimen_audit_table = Table(u'specimen_audit', metadata, autoload=True)
     aliquot_table = Table(u'aliquot', metadata, autoload=True)
     aliquot_audit_table = Table(u'aliquot_audit', metadata, autoload=True)
+
+    location_table.c.active.drop()
+    location_table.c.long_title1.drop()
+    location_table.c.long_title2.drop()
+    location_table.c.address_street.drop()
+    location_table.c.address_city.drop()
+    location_table.c.address_state.drop()
+    location_table.c.address_zip.drop()
+    location_table.c.phone_number.drop()
+    location_table.c.fax_number.drop()
 
     location_column = Column('location_id', Integer)
     specimen_table.c.previous_location_id.drop()

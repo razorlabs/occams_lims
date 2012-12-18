@@ -8,35 +8,21 @@
       lang="en">
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
-         <h3>
-          <a id="specimenfilter" href="./specimenfilter">
-            <img alt="Apply a filter" title="Apply a filter" src="/++resource++occams.lab/images/filter-icon.png" />
-          Current filter
-          </a>
-        </h3>
-          <ul tal:define="filters view/current_filter">
-            <li tal:repeat="filter filters"><strong tal:content="python:filter[0]" />: <span tal:replace="python:filter[1]" /></li>
-          </ul>
-          <br  class="visualClear" />
-                <p><a id="addspecimen" href="./addspecimen"><img title="Add more specimen" src="/++resource++occams.lab/images/syringe-icon.png"> <strong>Add more specimen...</strong></a></p>
-                <tal:hascontent condition="view/entry_count">
-                   <tal:formcontents replace="structure view/crud_form/render" />
-                <h4>Instructions</h4>
-                <ul>
-                    <li><b>Select All:</b> Selects all of the specimen.</li>
-                    <li><b>Print Selected:</b> Saves all specimens (both selected and unselected) and generates labels for selected specimens.</li>
-                    <li><b>Save All Changes:</b> Saves all changes to specimens (both selected and unselected) .</li>
-                    <li><b>Complete Selected:</b> Saves all changes to specimens (both selected and unselected), and marks selected specimens as drawn and ready to be processed. If you complete a specimen by accident, you can use the Filter:  select "show all samples" to recover it.</li>
-                    <li><b>Mark Selected Undrawn:</b> Saves all changes to specimens  (both selected and unselected) and marks selected specimens as undrawn (never to be processed).If you mark a specimen by accident, you can use the Filter:  select "show all samples" to recover it.</li>
-                </ul>
-               </tal:hascontent>
-                  <tal:nocontent tal:condition="not:view/entry_count">
-                <p>There are no specimen currently scheduled for draw. If this is unexpected, check your filter:</p>
-                <h4> Current Filter</h4>
-                  <ul tal:define="filters view/current_filter">
-                    <li tal:repeat="filter filters"><strong tal:content="python:filter[0]" />: <span tal:replace="python:filter[1]" /></li>
-                  </ul>
-                </tal:nocontent>
+      <metal:content-core use-macro="context/labview/macros/content-core">
+      <metal:aliquot_navigation fill-slot="aliquot_navigation" />
+          <metal:link define-slot="filter_link">
+                  <a class="lab_filter" href="./labfilter" tal:attributes="href string:${context/absolute_url}/specimenfilter">
+                    <img alt="Apply a filter" title="Apply a filter" src="/++resource++occams.lab/images/filter-icon.png" />
+                  Apply a Filter
+                  </a>
+            </metal:link>
+      <metal:crud_header fill-slot="crud_header">
+      </metal:crud_header>
+                    <metal:no_crud fill-slot="no_crud">
+                            <h3>There are no items to display currently. This could be due to the filter. You can <a href="./addspecimen" id="addspecimen">Add Specimen</a></h3>
+                    </metal:no_crud>
+
+     </metal:content-core>
      </metal:content-core>
   </metal:content-core>
 </html>

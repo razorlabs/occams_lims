@@ -14,11 +14,8 @@ from Products.statusmessages.interfaces import IStatusMessage
 from occams.lab import FILTER_KEY
 from avrc.aeh import interfaces as clinical
 from occams.lab import model
-class FilterSuccessView(BrowserView):
-    """
-    A very basic view that will load quickly for a successful filter or add.
-    """
-    pass
+from sqlalchemy.orm import exc
+from occams.form.traversal import closest
 
 
 class LabFilterForm(z3c.form.form.Form):
@@ -146,8 +143,6 @@ class OccamsCrudEditForm(crud.EditForm):
             self.context.before_update(subform.content, data)
             changes = subform.applyChanges(data)
             if changes:
-                location = Session.query(model.Location).filter_by(name = self.context.context.location).one()
-                subform.content.previous_location = location
                 if status is no_changes:
                     status = success
         Session.flush()
@@ -188,9 +183,15 @@ class OccamsCrudForm(crud.CrudForm):
                 self._v_patient_dict[patient.id] = '%s/aliquot' % zope_patient.absolute_url()
                 return self._v_patient_dict[patient.id]
 
-
-    # def before_update(self, content, data):
-    #     data['previous_location'] = location
+    def before_update(self, content, data):
+        location = getattr(self.context, 'location', None)
+        if location and 'location' in data:
+            try:
+                previous_location = Session.query(model.Location).filter_by(name = location).one()
+            except exc.NoResultFound:
+                pass
+            else:
+                content.previous_location = previous_location
 
     def get_items(self):
         """
@@ -199,3 +200,15 @@ class OccamsCrudForm(crud.CrudForm):
         if getattr(self, '_v_sqlBatch', None) is None:
             self._v_sqlBatch = SqlBatch(self.query)
         return self._v_sqlBatch
+
+class OccamsLabView(BrowserView):
+
+    def list_aliquot(self):
+        query = (
+            Session.query(model.AliquotType)
+            .order_by(model.AliquotType.title.asc())
+            )
+        for aliquot_type in iter(query):
+            url = "%s/%s/%s" %(closest(self.context, clinical.IClinicalMarker).absolute_url(), aliquot_type.specimen_type.name, aliquot_type.name)
+            yield {'url': url, 'title': aliquot_type.title}
+

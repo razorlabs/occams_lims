@@ -13,6 +13,10 @@ from occams.lab import MessageFactory as _
 from occams.lab.browser import common
 import json
 
+from Products.statusmessages.interfaces import IStatusMessage
+
+SPECIMEN_LABEL_QUEUE = 'specimen_label_queue'
+
 # Override the choices in the addSpcimen view to not display a default value even though the fields are required.
 overrideCycleChoicePrompt = z3c.form.widget.StaticWidgetAttribute(value=True, field=interfaces.IAddableSpecimen['specimen_cycle'])
 overrideTypeChoicePrompt = z3c.form.widget.StaticWidgetAttribute(value=True, field=interfaces.IAddableSpecimen['specimen_type'])
@@ -36,7 +40,6 @@ class SpecimenFilterForm(common.LabFilterForm):
                 omitable =  [self.request['omit'],]
         return specimenfilter.getFilterFields(omitable=omitable)
 
-# from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 class AddSpecimenForm(z3c.form.form.AddForm):
     """
     Specimen Add Form
@@ -111,6 +114,67 @@ class CycleByPatientJsonView(BrowserView):
         self.request.response.setHeader(u'Content-type', u'application/json')
         return json.dumps(data)
 
+
+
+
+class SpecimenLabelForm(z3c.form.form.Form):
+    """
+    Specimen Filter form. This form presents itself as an overlay on the Primary
+    Clinical Lab view as a way to filter specimen.
+    """
+    # label = u"Label Aliquot"
+    description = _(u"Please enter the starting column and row for a partially used. ")
+
+    def specimen_for_labels(self):
+        printablespecimen = []
+        browser_session = ISession(self.request)
+        if SPECIMEN_LABEL_QUEUE in browser_session:
+            specimenQ = (
+                Session.query(model.Specimen)
+                .filter(model.Specimen.id.in_(browser_session[SPECIMEN_LABEL_QUEUE]))
+                .order_by(model.Specimen.patient_id, model.Specimen.specimen_type_id, model.Specimen.id)
+                )
+            for specimen in iter(specimenQ):
+                count = specimen.tubes
+                if count:
+                    for i in range(count):
+                        printablespecimen.append(specimen)
+        return printablespecimen
+
+    @property
+    def label(self):
+        label_length = len(self.specimen_for_labels())
+        return u"Print Specimen Labels for %d Specimen" % label_length
+
+    fields = z3c.form.field.Fields(interfaces.ILabelPrinter)
+
+    @z3c.form.button.buttonAndHandler(_('Print Specimen Labels'), name='print')
+    def handlePrintSpecimen(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = 'Please correct the indicated errors'
+            return
+        printablespecimen = self.specimen_for_labels()
+        content = interfaces.ILabelPrinter(self.context).printLabelSheet(printablespecimen, data['startcol'], data['startrow'])
+
+        self.request.RESPONSE.setHeader("Content-type", "application/pdf")
+        self.request.RESPONSE.setHeader("Content-disposition",
+                                        "attachment;filename=labels.pdf")
+        self.request.RESPONSE.setHeader("Cache-Control", "no-cache")
+        self.request.RESPONSE.write(content)
+        self.status = _(u"You print is on its way")
+        return
+
+    @z3c.form.button.buttonAndHandler(u'Clear Label Queue')
+    def handleClearFilter(self, action):
+        browser_session = ISession(self.request)
+        browser_session[SPECIMEN_LABEL_QUEUE] = set()
+        browser_session.save()
+        messages = IStatusMessage(self.request)
+        messages.addStatusMessage(_(u"Your Queue has been cleared"), type=u'info')
+        return self.request.response.redirect("%s/filtersuccess" % self.context.absolute_url())
+
+
 class ClinicalLabSubForm(crud.EditSubForm):
     """
     Individual row sub forms for the specimen crud form.
@@ -121,8 +185,14 @@ class ClinicalLabSubForm(crud.EditSubForm):
         """
         super(ClinicalLabSubForm, self).updateWidgets()
         context = self.context.context.context
-        if 'location' in self.widgets and self.widgets['location'].value == context.location:
+        specimen = self.content
+        if 'location' in self.widgets and specimen.location.name == context.location and not specimen.previous_location:
             self.widgets['location'].value = [context.processing_location]
+        browser_session = ISession(self.request)
+        if SPECIMEN_LABEL_QUEUE in browser_session \
+                and 'label_queue' in self.widgets \
+                and self.content.id in browser_session[SPECIMEN_LABEL_QUEUE]:
+            self.widgets['label_queue'].value = specimen.tubes and specimen.tubes or 0
 
 class ClinicalLabEditForm(common.OccamsCrudEditForm):
     label = _(u"Specimen to be processed")
@@ -134,7 +204,6 @@ class ClinicalLabEditForm(common.OccamsCrudEditForm):
         Using the passed state, change the selected items to that state
         """
         selected = self.selected_items()
-        # messages = IStatusMessage(self.request)
         if selected:
             number_specimen = len(selected)
             state = Session.query(model.SpecimenState).filter_by(name=state).one()
@@ -144,38 +213,50 @@ class ClinicalLabEditForm(common.OccamsCrudEditForm):
             Session.flush()
             self._update_subforms()
             self.status = _(u"%d Specimen have been changed to the status of %s." % (number_specimen, acttitle))
-            # messages.addStatusMessage(status, type=u'info')
         else:
             self.status = _(u"Please select Specimen")
-            # messages.addStatusMessage(status, type=u'error')
 
     @z3c.form.button.buttonAndHandler(_('Select All'), name='selectall')
     def handleSelectAll(self, action):
         pass
 
-    @z3c.form.button.buttonAndHandler(_('Print Selected'), name='printed')
-    def handlePrint(self, action):
-        self.saveChanges(action)
-        selected = self.selected_items()
-        label_list = []
-        labelsheet = interfaces.ILabelPrinter(self.context.context)
-        for id, item in selected:
-            count = item.tubes
-            if count:
-                for i in range(count):
-                    label_list.append(item)
-        content = labelsheet.printLabelSheet(label_list)
-
-        self.request.RESPONSE.setHeader("Content-type", "application/pdf")
-        self.request.RESPONSE.setHeader("Content-disposition",
-                                        "attachment;filename=labels.pdf")
-        self.request.RESPONSE.setHeader("Cache-Control", "no-cache")
-        self.request.RESPONSE.write(content)
-
     @z3c.form.button.buttonAndHandler(_('Save All Changes'), name='updated')
     def handleUpdate(self, action):
         self.saveChanges(action)
         return self.status
+
+    @z3c.form.button.buttonAndHandler(_('Toggle Print Queue'), name='queueprint')
+    def handlePrintSpecimen(self, action):
+        self.saveChanges(action)
+        selected = self.selected_items()
+        if selected:
+            browser_session = ISession(self.request)
+            if SPECIMEN_LABEL_QUEUE in browser_session:
+                label_queue = browser_session[SPECIMEN_LABEL_QUEUE]
+            else:
+                browser_session[SPECIMEN_LABEL_QUEUE] = label_queue = set()
+            alquot_number = len(selected)
+            for id, data in selected:
+                if id in label_queue:
+                    label_queue.discard(id)
+                else:
+                    label_queue.add(id)
+            browser_session.save()
+            self._update_subforms()
+            self.status = _(u"Specimen print queue is changed." )
+        else:
+            self.status = _(u"Please select Specimen")
+        return self.request.response.redirect(self.action)
+
+    def labelsinqueue(self):
+        browser_session = ISession(self.request)
+        if SPECIMEN_LABEL_QUEUE in browser_session:
+            return len(browser_session[SPECIMEN_LABEL_QUEUE])
+        return False
+
+    @z3c.form.button.buttonAndHandler(_('Print Labels'), name='print', condition=labelsinqueue)
+    def handlePrintLabels(self, action):
+        pass
 
     @z3c.form.button.buttonAndHandler(_('Complete selected'), name='completed')
     def handleCompleteDraw(self, action):
@@ -193,6 +274,12 @@ class ClinicalLabEditForm(common.OccamsCrudEditForm):
         self.changeState(action, 'cancel-draw', 'canceled')
         return self.status
 
+    @z3c.form.button.buttonAndHandler(_('Add Specimen'), name='addspecimen')
+    def handleAddSpecimen(self, action):
+        # trigger a javascript overlay that will allow adding of specimen
+        pass
+
+
 class ClinicalLabViewForm(common.OccamsCrudForm):
     """
     Primary view for a clinical lab object.
@@ -209,7 +296,8 @@ class ClinicalLabViewForm(common.OccamsCrudForm):
                     select('state',
                             )
         fields += z3c.form.field.Fields(interfaces.IViewableSpecimen, mode=z3c.form.interfaces.DISPLAY_MODE).\
-                    select('patient_our',
+                    select('label_queue',
+                             'patient_our',
                              'patient_initials',
                              'cycle_title',
                              'visit_date',
@@ -233,19 +321,39 @@ class ClinicalLabViewForm(common.OccamsCrudForm):
                 self.update_schema['tubes'].widgetFactory = widgets.StorageFieldWidget
 
 
-    def before_update(self, content, data):
-        location = Session.query(model.Location).filter_by(name = self.context.location).one()
-        data['previous_location'] = location
+    # def before_update(self, content, data):
+    #     location = Session.query(model.Location).filter_by(name = self.context.location).one()
+    #     data['previous_location'] = location
 
     def _getQuery(self):
         # multiadapter defined in filters.py
         specimenfilter = zope.component.getMultiAdapter((self.context, self.request),interfaces.ISpecimenFilter)
         return specimenfilter.getQuery(default_state='pending-draw')
 
-class ClinicalLabView(BrowserView):
+class ClinicalLabView(common.OccamsLabView):
     """
     Primary view for a clinical lab object.
     """
+
+    instructions = [
+        {'title':'Select All',
+        'description': 'Select or deselect all items displayed on the current page.'},
+        {'title':'Toggle Print Queue',
+        'description': 'Saves all changes, and then adds the selected specimen to the print queue'},
+        {'title':'Print Labels',
+        'description': 'Prints labels for the specimen in the print queue'},
+        {'title':'Save All Changes',
+        'description': 'Saves all of the changes entered to the database. This applies ' \
+        'to all specimen, not just selected specimen.'},
+        {'title':'Complete Selected',
+        'description': 'Saves all changes entered to the database (for all specimen). Then ' \
+        'marks the selected specimen as complete. If the location you\'ve entered for the items ' \
+        'is the current lab, you will find them <a href="./ready">ready to aliquot</a>'},
+        {'title':'Mark Selected Undrawn',
+        'description': 'Mark the selected specimen as undrawn.'},
+        {'title':'Add Specimen',
+        'description': 'Adds a new specimen. This action DOES NOT save current changes.'},
+        ]
 
     def current_filter(self):
         specimenfilter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.ISpecimenFilter)
@@ -253,6 +361,13 @@ class ClinicalLabView(BrowserView):
         if 'Specimen State' not in filter:
             filter['Specimen State'] = u"Pending Draw"
         return filter.iteritems()
+
+    def has_filter(self):
+        filter =  zope.component.getMultiAdapter((self.context, self.request),interfaces.ISpecimenFilter)
+        filter =  filter.getFilterValues()
+        if filter:
+            return True
+        return False
 
     @property
     def entry_count(self):
