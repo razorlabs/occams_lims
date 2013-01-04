@@ -1,63 +1,17 @@
+import plone.testing
+
 from plone.app.testing import PloneSandboxLayer
 from plone.app.testing import applyProfile
 from plone.app.testing import IntegrationTesting
 from plone.app.testing import FunctionalTesting
-import plone.testing
 from zope.configuration import xmlconfig
 from datetime import date
-from z3c.saconfig import named_scoped_session
-from occams.lab import SCOPED_SESSION_KEY
+
+from occams.lab import Session
 from occams.lab import model
-from occams.datastore.testing import OCCAMS_DATASTORE_FIXTURE
 
+from avrc.aeh.testing import OCCAMS_CLINICAL_FIXTURE, OCCAMS_CLINICAL_MODEL_FIXTURE
 
-try:
-    # Prefer the future naming convention 
-    from avrc.aeh.testing import OCCAMS_CLINICAL_FIXTURE
-except ImportError:
-    # Still not up-to-date, use the original
-    from avrc.aeh.testing import CLINICAL_FIXTURE as OCCAMS_CLINICAL_FIXTURE
-
-
-class OccamsLabModelLayer(plone.testing.Layer):
-    """
-    DataBase application layer for tests.
-    """
-    defaultBases = (OCCAMS_DATASTORE_FIXTURE,)
-
-    def testSetUp(self):
-        """
-        """
-        session = self['session']
-        dummy_patient = model.Patient(
-            our="XXX-XXX",
-             zid=234567890
-             )
-        session.add(dummy_patient)
-        session.flush()
-        self['dummy_patient'] = dummy_patient
-
-        dummy_study = model.Study(
-            name="Dummy Study",
-             title=u"Dummy Study",
-             code=u"000",
-             consent_date=date.today(),
-             zid=345678901
-             )
-        session.add(dummy_study)
-        session.flush()
-        self['dummy_study'] = dummy_study
-
-        dummy_cycle = model.Cycle(
-            name="Dummy Cycle",
-             title=u"Dummy Cycle",
-             week=u"0",
-             study=dummy_study,
-             zid=456789012
-             )
-        session.add(dummy_cycle)
-        session.flush()
-        self['dummy_cycle'] = dummy_cycle
 
 class OccamsLabLayer(PloneSandboxLayer):
 
@@ -71,11 +25,17 @@ class OccamsLabLayer(PloneSandboxLayer):
     def setUpPloneSite(self, portal):
         applyProfile(portal, 'occams.lab:default')
 
-        session = named_scoped_session(SCOPED_SESSION_KEY)
+        session = Session
+        site = model.Site(
+            name="location",
+            title="",
+            zid=56483
+            )
+
         dummy_patient = model.Patient(
             our="XXX-XXX",
-            # initials="AAA",
-             zid=1111
+             zid=234567890,
+             site=site
              )
         session.add(dummy_patient)
         session.flush()
@@ -84,7 +44,7 @@ class OccamsLabLayer(PloneSandboxLayer):
         dummy_study = model.Study(
             name="Dummy Study",
              title=u"Dummy Study",
-             # short_title=u"DS",
+             short_title=u"DS",
              code=u"2",
              consent_date=date.today(),
              zid=2222
@@ -114,6 +74,60 @@ class OccamsLabLayer(PloneSandboxLayer):
         session.add(dummy_visit)
         session.flush()
         self['dummy_visit'] = dummy_visit
+
+class OccamsLabModelLayer(plone.testing.Layer):
+    """
+    DataBase application layer for tests.
+    """
+    defaultBases = (OCCAMS_CLINICAL_MODEL_FIXTURE,)
+
+    def setUp(self):
+        # clinical.ClinicalModel.metadata.create_all(self[u'session'].bind, checkfirst=True)
+        model.LabModel.metadata.create_all(self[u'session'].bind, checkfirst=True)
+
+    def testSetUp(self):
+        """
+        Set up the dummy items that will be used in all of the tests
+        """
+        session = self['session']
+        dummy_site = model.Site(
+            name="location",
+            title="",
+            zid=56483
+            )
+
+        dummy_patient = model.Patient(
+            our="XXX-XXX",
+             zid=234567890,
+             site=dummy_site
+             )
+        session.add(dummy_patient)
+        session.flush()
+        self['dummy_patient'] = dummy_patient
+
+        dummy_study = model.Study(
+            name="Dummy Study",
+             title=u"Dummy Study",
+             short_title=u"DS",
+             code=u"000",
+             consent_date=date.today(),
+             zid=345678901
+             )
+        session.add(dummy_study)
+        session.flush()
+        self['dummy_study'] = dummy_study
+
+        dummy_cycle = model.Cycle(
+            name="Dummy Cycle",
+             title=u"Dummy Cycle",
+             week=u"0",
+             study=dummy_study,
+             zid=456789012
+             )
+        session.add(dummy_cycle)
+        session.flush()
+        self['dummy_cycle'] = dummy_cycle
+
 
 OCCAMS_LAB_MODEL_FIXTURE = OccamsLabModelLayer()
 

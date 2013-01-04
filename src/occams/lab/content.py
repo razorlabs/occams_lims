@@ -9,6 +9,9 @@ from sqlalchemy.orm import object_session
 
 from occams.lab import interfaces
 from occams.lab import model
+from plone.memoize import ram
+from avrc.aeh import interfaces as clinical
+
 
 class SpecimenContext(traversal.DataBaseItemContext):
     """
@@ -64,11 +67,17 @@ class AliquotContext(traversal.DataBaseItemContext):
             mapping = IFullMapping(self.item)
             mapping['collect_date'] = self.item.collect_date
             self._data = mapping
-        return self._dat
+        return self._data
 
 class ViewableSpecimen(grok.Adapter):
     grok.context(interfaces.ISpecimen)
     grok.provides(interfaces.IViewableSpecimen)
+
+    @property
+    def label_queue(self):
+        # Label Queue is dynamically manipulated from the crud form
+        # and should not be set here.
+        return None
 
     @property
     def patient_our(self):
@@ -80,8 +89,6 @@ class ViewableSpecimen(grok.Adapter):
 
     @property
     def cycle_title(self):
-        if self.context.study_cycle_label:
-            return self.context.study_cycle_label
         return "%s - %s" %(self.context.cycle.study.short_title, self.context.cycle.week)
 
     @property
@@ -102,14 +109,9 @@ class ViewableSpecimen(grok.Adapter):
     def specimen_type_name(self):
         return self.context.specimen_type.name
 
-    # @property
-    # def state(self):
-    #     return self.context.state.name
-
     @property
     def tube_type(self):
         return self.context.specimen_type.tube_type
-
 
 class AliquotGenerator(grok.Adapter):
     grok.context(interfaces.IAliquot)
@@ -118,8 +120,6 @@ class AliquotGenerator(grok.Adapter):
     @property
     def count(self):
         return None
-
-from plone.memoize import ram
 
 def _render_specimen_cachekey(method, self, context):
     return context.specimen_id
@@ -136,16 +136,18 @@ class ViewableAliquot(grok.Adapter):
         return str(self.context.id)
 
     @property
+    def label_queue(self):
+        # Label Queue is dynamically manipulated from the crud form
+        # and should not be set here.
+        return None
+
+    @property
     def aliquot_type_title(self):
         return self.context.aliquot_type.title
 
     @property
     def state_title(self):
         return self.context.state.title
-
-    @property
-    def location_title(self):
-        return self.context.location.title
 
     @property
     def patient_our(self):
@@ -169,10 +171,12 @@ class ViewableAliquot(grok.Adapter):
 
     @ram.cache(_render_specimen_cachekey)
     def getCycleTitle(self, context):
-        if context.specimen.study_cycle_label:
-            return context.specimen.study_cycle_label
         return "%s - %s" %(context.specimen.cycle.study.short_title, context.specimen.cycle.week)
 
+
+    @property
+    def location_title(self):
+        return self.context.location.title
 
     ##  For the checkout display
     @property
@@ -204,3 +208,29 @@ class ViewableAliquot(grok.Adapter):
             return 0
         else:
             return self.context.thawed_num
+
+
+class ViewableLocation(grok.Adapter):
+    grok.context(interfaces.ILocation)
+    grok.provides(interfaces.IViewableLocation)
+
+    @property
+    def edit_link(self):
+        return "Edit"
+
+    @property
+    def lab_title(self):
+        return self.context.title
+
+    @property
+    def full_address(self):
+        lines = self.context.long_title1 and "%s\n" % self.context.long_title1 or '\n"'
+        lines+= self.context.long_title2 and "%s\n" % self.context.long_title2 or "\n"
+        lines+= self.context.address_street and "%s\n" % self.context.address_street or "\n"
+        lines+= self.context.address_city and "%s\n" % self.context.address_city or "\n"
+        lines+= self.context.address_state and "%s\n" % self.context.address_state or "\n"
+        lines+= self.context.address_zip and "%s" % self.context.address_zip or ""
+        return lines
+
+
+
