@@ -18,6 +18,9 @@ def upgrade(migrate_engine):
     aliquot_table = Table(u'aliquot', metadata, autoload=True)
     aliquot_audit_table = Table(u'aliquot_audit', metadata, autoload=True)
 
+    # specimen_type_table.c.location_id.drop()
+    # aliquot_type_table.c.location_id.drop()
+
     site_lab_location_table = Table('site_lab_location', metadata,
         Column('site_id', Integer,
         ForeignKey(
@@ -34,7 +37,7 @@ def upgrade(migrate_engine):
         primary_key=True
         ),
     )
-    previous_location = Column('previous_location_id', Integer,
+    previous_specimen_location = Column('previous_location_id', Integer,
                                             ForeignKey(
                                                     location_table.c.id,
                                                     name='fk_specimen_previous_location_id',
@@ -42,7 +45,7 @@ def upgrade(migrate_engine):
                                                     )
                                             )
 
-    previous_location = Column('previous_location_id', Integer,
+    previous_aliquot_location = Column('previous_location_id', Integer,
                                             ForeignKey(
                                                     location_table.c.id,
                                                     name='fk_aliquot_previous_location_id',
@@ -50,15 +53,17 @@ def upgrade(migrate_engine):
                                                     )
                                             )
 
+    previous_specimen_audit_column = Column("previous_location_id", Integer)
+    previous_aliquot_audit_column = Column("previous_location_id", Integer)
     active = Column('active', Boolean)
-    long_title1 = Column('active', Unicode)
-    long_title2 = Column('active', Unicode)
-    address_street = Column('active', Unicode)
-    address_city = Column('active', Unicode)
-    address_state = Column('active', Unicode)
-    address_zip = Column('active', Unicode)
-    phone_number = Column('active', Unicode)
-    fax_number = Column('active', Unicode)
+    long_title1 = Column('long_title1', Unicode)
+    long_title2 = Column('long_title2', Unicode)
+    address_street = Column('address_street', Unicode)
+    address_city = Column('address_city', Unicode)
+    address_state = Column('address_state', Unicode)
+    address_zip = Column('address_zip', Unicode)
+    phone_number = Column('phone_number', Unicode)
+    fax_number = Column('fax_number', Unicode)
 
 
     active.create(location_table)
@@ -72,11 +77,11 @@ def upgrade(migrate_engine):
     fax_number.create(location_table)
 
 
-    previous_location.create(specimen_table)
-    previous_location.create(specimen_audit_table)
+    previous_specimen_location.create(specimen_table)
+    previous_specimen_audit_column.create(specimen_audit_table)
 
-    previous_location.create(aliquot_table)
-    previous_location.create(aliquot_audit_table)
+    previous_aliquot_location.create(aliquot_table)
+    previous_aliquot_audit_column.create(aliquot_audit_table)
 
     ix_specimen_specimen_type_index = Index('ix_specimen_specimen_type_id', specimen_table.c.specimen_type_id)
     ix_specimen_patient_index = Index('ix_specimen_patient_id', specimen_table.c.patient_id)

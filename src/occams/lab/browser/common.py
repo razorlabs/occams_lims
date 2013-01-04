@@ -176,7 +176,7 @@ class OccamsCrudForm(crud.CrudForm):
             if self._v_patient_dict.has_key(patient.id):
                 return self._v_patient_dict[patient.id]
             try:
-                zope_patient = clinical.IClinicalObject(patient)
+                zope_patient = patient.zobject
             except KeyError:
                 return None
             else:
@@ -209,6 +209,9 @@ class OccamsLabView(BrowserView):
             .order_by(model.AliquotType.title.asc())
             )
         for aliquot_type in iter(query):
-            url = "%s/%s/%s" %(closest(self.context, clinical.IClinicalMarker).absolute_url(), aliquot_type.specimen_type.name, aliquot_type.name)
+            #used to be:
+            #url = "%s/%s/%s" %(closest(self.context, clinical.IClinicalMarker).absolute_url(), aliquot_type.specimen_type.name, aliquot_type.name)
+            # but now aliquot are IClinicalMarked to get some other views working. FixMe!
+            url = "%s/%s/%s" %(closest(self.context, interfaces.ILab).absolute_url(), aliquot_type.specimen_type.name, aliquot_type.name)
             yield {'url': url, 'title': aliquot_type.title}
 
