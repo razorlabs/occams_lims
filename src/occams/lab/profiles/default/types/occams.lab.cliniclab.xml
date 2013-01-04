@@ -38,6 +38,7 @@
   <alias from="(Default)" to="@@view" />
   <alias from="view" to="@@view" />
   <alias from="edit" to="@@edit" />
+  <alias from="batched" to="@@batched" />
   <alias from="ready" to="@@ready" />
   <alias from="checkout" to="@@checkout" />
   <alias from="checkin" to="@@checkin" />
@@ -52,6 +53,11 @@
   <action title="Edit" action_id="edit" category="object" condition_expr=""
     url_expr="string:${object_url}/edit" visible="True">
     <permission value="occams: Modify Lab" />
+  </action>
+
+  <action title="Batched" action_id="batched" category="object" condition_expr=""
+    url_expr="string:${object_url}/batched" visible="True">
+    <permission value="occams: Aliquot Specimen" />
   </action>
 
   <action title="Ready to Aliquot" action_id="ready" category="object" condition_expr=""

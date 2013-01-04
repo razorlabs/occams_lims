@@ -209,6 +209,7 @@ class ResearchLabViewForm(common.OccamsCrudForm):
         # multiadapter defined in filters.py
         specimenfilter = zope.component.getMultiAdapter((self.context, self.request),interfaces.ISpecimenFilter)
         query =  specimenfilter.getQuery(default_state='complete')
+        query = query.filter(model.Specimen.location.has(name=self.context.location))
         return query
 
 class ResearchLabView(common.OccamsLabView):
@@ -409,7 +410,9 @@ class AliquotSpecimenForm(common.OccamsCrudForm):
     def _getQuery(self):
         # multiadapter defined in filters.py
         specimenfilter = zope.component.getMultiAdapter((self.context, self.request),interfaces.ISpecimenFilter)
-        return specimenfilter.getQuery(default_state='pending-aliquot', omitable=['show_all'])
+        query = specimenfilter.getQuery(default_state='pending-aliquot', omitable=['show_all'])
+        query = query.filter(model.Specimen.location.has(name=self.context.location))
+        return query
 
     def get_items(self):
         """

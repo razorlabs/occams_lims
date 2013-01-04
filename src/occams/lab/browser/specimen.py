@@ -1,39 +1,26 @@
 
 from occams.lab import MessageFactory as _
-from five import grok
 # from occams.lab.browser import crud
-from z3c.form.interfaces import DISPLAY_MODE
 
-from z3c.form import button, field, form as z3cform
+from z3c.form import button, field
 from Products.Five.browser import BrowserView
 
 from occams.lab import interfaces
 from occams.lab import model
 import zope.schema
-from plone.directives import form
 
-from Products.CMFCore.utils import getToolByName
 from plone.z3cform import layout
-from beast.browser import widgets
 
-from occams.lab.browser import base
-from beast.browser.crud import NestedFormView
+from occams.lab.browser import common
 from Products.statusmessages.interfaces import IStatusMessage
-from sqlalchemy import or_
-from collective.beaker.interfaces import ISession
 from zope.schema.vocabulary import SimpleTerm, \
                                    SimpleVocabulary
 import os
 from avrc.aeh import interfaces as clinical
-from z3c.form.widget import StaticWidgetAttribute
 
-from sqlalchemy.orm import object_session
 from occams.lab import Session
-from avrc.aeh.interfaces import IClinicalObject
-import json
 
 from plone.z3cform.crud import crud
-from occams.lab.browser import common
 import z3c.form
 
 class AliquotTypeAddForm(crud.AddForm):

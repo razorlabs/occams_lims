@@ -128,6 +128,7 @@ class LocationStringVocabulary(object):
     def getTerms(self, context):
         query = (
             Session.query(self._modelKlass)
+            .filter_by(active=True)
             .order_by(self._modelKlass.title.asc())
             )
         terms=[]

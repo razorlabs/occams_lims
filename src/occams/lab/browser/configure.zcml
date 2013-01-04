@@ -74,14 +74,13 @@
 
   <browser:page
       for="occams.lab.interfaces.IClinicalLab"
-      name="batch"
+      name="batched"
       class=".researchlab.ResearchLabView"
-      template="clinicallab_templates/batch.pt"
+      template="researchlab_templates/view.pt"
       permission="occams.lab.AliquotSpecimen"
       />
 
 <!-- Research Lab Pages -->
-
 
 
    <browser:page
