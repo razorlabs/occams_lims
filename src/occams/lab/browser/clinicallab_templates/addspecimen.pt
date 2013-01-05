@@ -1,3 +1,14 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      i18n:domain="plone"
+      metal:use-macro="context/main_template/macros/master">
+
+    <metal:block fill-slot="javascript-slot">
+
+
+      <script type="text/javascript">
 jQuery(function($){
     /*$(document).ready*/
     $(document).ready(function(){
@@ -23,16 +34,24 @@ jQuery(function($){
         });
    });
 
-    $(document).ready(function(){
-        $("#receiptprinter").printPage();
-      });
-    $("input[id='aliquot-checkout-buttons-printreceipt']").wrap('<a id="receiptprinter" href="./receipt" target="_new" />')
+       // No overlays for IE6
+       if (!jQuery.browser.msie ||
+           parseInt(jQuery.browser.version, 10) >= 7) {
+           // Set up overlays
+           $("a#specimenfilter").prepOverlay({
+               subtype: 'ajax',
+               filter: common_content_filter,
+               formselector: '#content-core>#form',
+               noform: 'reload',
+               //redirect: function() {return location.href;},
+            });
+       }
 
        // No overlays for IE6
        if (!jQuery.browser.msie ||
            parseInt(jQuery.browser.version, 10) >= 7) {
            // Set up overlays
-           $("a.lab_filter").prepOverlay({
+           $("a#aliquotfilter").prepOverlay({
                subtype: 'ajax',
                filter: common_content_filter,
                formselector: '#content-core>#form',
@@ -40,52 +59,6 @@ jQuery(function($){
                //redirect: function() {return location.href;},
             });
        }
-    $(document).ready(function(){
-        $("input[id='crud-edit-form-buttons-print']").wrap('<a id="specimenlabelprinter" href="./printspecimenlabelform" />')
-        });
-       if (!jQuery.browser.msie ||
-           parseInt(jQuery.browser.version, 10) >= 7) {
-           // Set up overlays
-           $("a#specimenlabelprinter").prepOverlay({
-               subtype: 'ajax',
-               filter: common_content_filter,
-               formselector: '#content-core>#form',
-               noform: 'reload',
-               //redirect: function() {return location.href;},
-               closeselector: '[name=form.buttons.close]'
-            });
-       }
-    $(document).ready(function(){
-        $("input[id='aliquot-prepared-buttons-print']").wrap('<a id="aliquotlabelprinter" href="./printaliquotlabelform" />')
-        });
-       if (!jQuery.browser.msie ||
-           parseInt(jQuery.browser.version, 10) >= 7) {
-           // Set up overlays
-           $("a#aliquotlabelprinter").prepOverlay({
-               subtype: 'ajax',
-               filter: common_content_filter,
-               formselector: '#content-core>#form',
-               noform: 'reload',
-               //redirect: function() {return location.href;},
-               closeselector: '[name=form.buttons.close]'
-            });
-       }
-    $(document).ready(function(){
-        $("input[id='aliquot-checkout-buttons-batchupdate']").wrap('<a class="batchcheckout" href="./batchcheckoutform" />')
-        });
-       if (!jQuery.browser.msie ||
-           parseInt(jQuery.browser.version, 10) >= 7) {
-           // Set up overlays
-           $("a.batchcheckout").prepOverlay({
-               subtype: 'ajax',
-               filter: common_content_filter,
-               formselector: '#content-core>#form',
-               noform: 'reload',
-               //redirect: function() {return location.href;},
-               closeselector: '[name=form.buttons.close]'
-            });
-       }
-
 
     var buildCycleList = function(){
       if ($('#form-widgets-specimen_patient_our').length){
@@ -134,16 +107,15 @@ jQuery(function($){
         };
 
          initializeSpecimenAdd();
-    $(document).ready(function(){
-        $("input[id='crud-edit-form-buttons-addspecimen']").wrap('<a class="addspecimen" href="./addspecimen" />')
-        });
+
+
        // No overlays for IE6
        if (!jQuery.browser.msie ||
            parseInt(jQuery.browser.version, 10) >= 7) {
            // Set up overlays
-           $("a#addspecimen, a.addspecimen").prepOverlay({
+           $("a#addspecimen").prepOverlay({
                subtype: 'ajax',
-               config: {onLoad: function() {initializeSpecimenAdd();}},
+               config: {onBeforeLoad: function() {initializeSpecimenAdd();}},
                filter: common_content_filter,
                formselector: '#content-core>form#form',
                noform: 'reload',
@@ -152,3 +124,16 @@ jQuery(function($){
             });
        }
 });
+        </script>
+      </metal:block>
+    <metal:block fill-slot="main">
+
+        <h1 class="documentFirstHeading" tal:content="view/label | nothing" />
+
+        <div id="content-core">
+            <metal:block use-macro="context/@@ploneform-macros/titlelessform" />
+        </div>
+
+    </metal:block>
+
+</html>
