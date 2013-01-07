@@ -45,14 +45,14 @@
 
 
 <plone:behavior
-      title="Label Sheet"
+      title="OCCAMS: Label Sheet"
       description="Make this lab produce labels"
       provides="occams.lab.interfaces.ILabelSheet"
       for="occams.lab.interfaces.ILab"
       />
 
   <plone:behavior
-      title="Available Specimen"
+      title="OCCAMS: Available Specimen"
       description="Make Specimen Available for an object."
       provides="occams.lab.interfaces.IAvailableSpecimen"
       factory="occams.lab.behaviors.AvailableSpecimen"
@@ -61,17 +61,26 @@
 
 
   <plone:behavior
-      title="Required Specimen"
+      title="OCCAMS: Required Specimen"
       description="Make Specimen Required for an object."
       provides="occams.lab.interfaces.IRequiredSpecimen"
       factory="occams.lab.behaviors.RequiredSpecimen"
       for="avrc.aeh.interfaces.ICycle"
       />
+
   <plone:behavior
-      title="Requested Specimen"
-      description="Make Specimen Required for an object."
+      title="OCCAMS: Requested Specimen"
+      description="Create required specimen when this item is added."
       provides="occams.lab.interfaces.IRequestedSpecimen"
       for="avrc.aeh.interfaces.IVisit"
+      />
+
+  <plone:behavior
+      title="OCCAMS: Lab Location"
+      description="Provide a lab location."
+      provides="occams.lab.interfaces.ILabLocation"
+      factory="occams.lab.behaviors.LabLocation"
+      for="avrc.aeh.interfaces.ISite"
       />
 
 
