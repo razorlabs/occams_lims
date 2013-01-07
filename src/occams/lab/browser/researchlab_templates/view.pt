@@ -3,29 +3,14 @@
       xmlns:metal="http://xml.zope.org/namespaces/metal"
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       metal:use-macro="context/main_template/macros/master"
-      i18n:domain="hive.lab"
+      i18n:domain="occams.lab"
       xml:lang="en"
       lang="en">
   <metal:content-core fill-slot="content-core">
     <metal:content-core define-macro="content-core">
-        <tal:aliquot tal:condition="exists:view/listAliquotTypes">
+      <metal:content-core use-macro="context/labview/macros/content-core">
+      <metal:crud_header fill-slot="crud_header">
 
-          <tal:data define="list view/listAliquotTypes">
-                  <p>Use this form to view a subset of specimen. Use the "<b>Remove Filter</b>" button remove all filter options.</p>
-                  <table class="listing">
-                    <tr >
-                      <td tal:repeat="aliquot list">
-                        <a href="" tal:attributes="href aliquot/url">
-                             <img src="/++resource++occams.lab/images/allergy-vials-icon.png" />
-                            <span tal:content="aliquot/title" />
-                          </a>
-                      </td>
-                    </tr>
-                  </table>
-                  <a href="#" name="" style="display:none"></a>
-                  <br class="visualClear" />
-          </tal:data>
-        </tal:aliquot>
         <dl class="collapsible collapsedOnLoad">
           <dt class="collapsibleHeader">
                 Specimen In The Clinical Lab Processing Queue
@@ -55,7 +40,7 @@
                                 <th>
                                     Est Collection Date
                                 </th>
-                                
+
                             </tr>
                         </thead>
                         <tbody>
@@ -73,31 +58,11 @@
                 </table>
           </dd>
         </dl>
-
-     
-        <br class="visualClear" />
-
-        <tal:data define="form view/getCrudForm">
-            <tal:hasdata tal:condition="form">
-                <tal:crud  replace="structure form" />
-                <a href="#" name="" style="display:none"></a>
-                <br class="visualClear" />
-                <ul><li>
-                <b><a href="./ready">Ready Selected</a>:</b> Readies selected specimens for aliquot.</li></ul>
-            </tal:hasdata>
-            <tal:nodata tal:condition="not:form">
-                <p>No specimen are currently on their way. Check the <a href="./ready">readied specimen</a></p>
-                <br />
-                <b>Other Views</b>
-                <ul><li><a href="./ready">Ready to Aliquot</a></li>
-                <li><a href="./prepared">Prepared Aliquot</a></li>
-                <li><a href="./checkedin">Completed today</a></li>
-                </ul>
-                <p>If you feel that this is in error, contact the <a href="" tal:attributes="href string:mailto:${context/email_from_address}">site administrator</a>.</p>
-            </tal:nodata>
-        </tal:data>
-
-        <br class="visualClear" />
-    </metal:content-core>
+      </metal:crud_header>
+      <metal:no_crud fill-slot="no_crud">
+              <h3>There are no items to display currently. This could be due to the filter. You can <a href="./addspecimen" id="addspecimen">Add Specimen</a></h3>
+      </metal:no_crud>
+     </metal:content-core>
+     </metal:content-core>
   </metal:content-core>
 </html>

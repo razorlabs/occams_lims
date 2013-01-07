@@ -34,9 +34,10 @@ class LabeledSpecimen(grok.Adapter):
 
     @property
     def cycle_title(self):
-        if self.context.study_cycle_label:
-            return self.context.study_cycle_label
-        return "%s - %s" %(self.context.cycle.study.short_title, self.context.cycle.week)
+        if self.context.cycle.week is not None:
+            return "%s - %s" %(self.context.cycle.study.short_title, self.context.cycle.week)
+        else:
+            return "%s - %s" %(self.context.cycle.study.short_title, self.context.cycle.title)
 
     @property
     def sample_date(self):
@@ -48,7 +49,7 @@ class LabeledSpecimen(grok.Adapter):
     @property
     def sample_type(self):
         return self.context.specimen_type.name
-        
+
     @property
     def barcodeline(self):
         return - 1
@@ -78,8 +79,6 @@ class LabeledAliquot(grok.Adapter):
 
     @property
     def cycle_title(self):
-        if self.context.specimen.study_cycle_label:
-            return self.context.specimen.study_cycle_label
         return "%s - %s" %(self.context.specimen.cycle.study.short_title, self.context.specimen.cycle.week)
 
     @property
@@ -117,52 +116,6 @@ class LabeledAliquot(grok.Adapter):
         return [line1, line2, line3, line4]
 
 
-class LabelFromBrain(grok.Adapter):
-    grok.provides(interfaces.ILabel)
-    grok.context(ICatalogBrain)
-
-    @property
-    def id(self):
-        return self.context['id']
-
-    @property
-    def patient_title(self):
-        return self.context['patient_title']
-
-    @property
-    def cycle_title(self):
-        return self.context['cycle_title']
-
-    @property
-    def sample_date(self):
-        return self.context['sample_date']
-
-    @property
-    def sample_type(self):
-        return self.context['sample_type']
-        
-    @property
-    def barcodeline(self):
-        return self.context['barcodeline']
-
-    @property
-    def label_lines(self):
-        return self.context['label_lines']
-
-@grok.subscribe(interfaces.ILabelSheet, IObjectAddedEvent)
-def handleLabelSheetAdded(sheet, event):
-    """ Clinical Lab added event handler.
-        This method will be triggered when an Clinical Lab is added to the
-        current Site.
-    """
-    manage_addZCatalog(sheet, 'labels', u'Labels', REQUEST=None)
-    zcat = sheet._getOb('labels')
-    label_catalog = zcat._catalog
-    for field in interfaces.ILabel.names():
-        index = FieldIndex(field)
-        label_catalog.addIndex(field, index)
-        label_catalog.addColumn(field)
-
 '''
 v0.1 by SL Kosakovsky Pond (spond@ucsd.edu)
 
@@ -181,7 +134,7 @@ to a file at that path).
 '''
 
 class LabelGenerator(object):
-#    def setup(self, settings, filename, doDrawGrid = False):    
+#    def setup(self, settings, filename, doDrawGrid = False):
     def __init__(self, context, filename=None):
         '''
         set up the default label drawing canvas
@@ -202,10 +155,10 @@ class LabelGenerator(object):
         self.label_round = float(self.context.label_round)
         self.no_across = int(self.context.no_across)
         self.no_down = int(self.context.no_down)
-        
+
         self.font_face = 'Helvetica'
         self.canvas = self.createCanvas(filename)
-        
+
         self.grid = self.drawGrid()
         self.row = 0
         self.column = -1
@@ -232,7 +185,7 @@ class LabelGenerator(object):
         newcanvas.setLineWidth(0.1) # line width = 0.5 pts
         newcanvas.setFont(self.font_face, 12)
         return newcanvas
-        
+
     def drawGrid (self):
         '''
         compute the grid of printable labels boxes
@@ -264,7 +217,7 @@ class LabelGenerator(object):
             for aBox in aColumn:
                 self.canvas.roundRect(aBox[0], aBox[1], aBox[2], aBox[3], self.label_round * inch)
         return self.grid
-        
+
     def getNextBox(self, startcol=None, startrow=None):
         ''' adjust self.row and self.column to the next available label
             make a new page if necessary '''
@@ -364,38 +317,22 @@ class LabelPrinter(grok.Adapter):
         lab = self.context
         return lab['labels']
 
-    def getLabelBrains(self):
-        queue = self.getLabelQueue()
-        results = queue(sort_on='id', sort_order='ascending')
-        return sorted(results, key=itemgetter('patient_title', 'sample_type','id'))
-
-
-    def queueLabel(self, labelable, uid=None):
-        """
-        Add a label to the cue
-        """
-        label = interfaces.ILabel(labelable)
-        queue = self.getLabelQueue()
-        if uid is None:
-            uid = label.id
-        queue.catalog_object(label, uid=str(uid))
-
-    def purgeLabel(self, uid):
-        """
-        Remove a label from the queue
-        """
-        queue = self.getLabelQueue()
-        queue.uncatalog_object(str(uid))
-
     def printLabelSheet(self, label_list, startcol=None, startrow=None):
         """
         Create the label page, and output
         """
         stream = StringIO()
         labelWriter = LabelGenerator(self.context, stream)
+
+        if startcol and startcol > 1:
+            labelWriter.column = startcol -2
+
+        if startrow and startrow > 1:
+            labelWriter.row = startrow - 1
+
         for labelable in label_list:
             label = interfaces.ILabel(labelable)
-            labelWriter.createLabel(label.label_lines, label.barcodeline, startcol, startrow)
+            labelWriter.createLabel(label.label_lines, label.barcodeline)
         labelWriter.writeLabels()
         content = stream.getvalue()
         stream.close()

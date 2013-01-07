@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<object name="avrc.aeh.institute"
+<object name="avrc.aeh.site"
    meta_type="Dexterity FTI"
    i18n:domain="avrc.aeh" xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
@@ -7,5 +7,5 @@
         <element value="occams.lab.cliniclab" />
         <element value="occams.lab.researchlab" />
   </property>
- 
+
 </object>

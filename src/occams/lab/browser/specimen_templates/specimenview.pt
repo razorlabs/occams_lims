@@ -1,0 +1,31 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="hive.lab"
+      xml:lang="en"
+      lang="en">
+  <metal:content-core fill-slot="content-core">
+  <metal:content-core define-macro="content-core">
+
+          <tal:data define="list view/list_aliquot_types">
+                  <table class="listing">
+                    <tr >
+                      <td tal:repeat="aliquot list">
+                        <a href="" tal:attributes="href aliquot/url">
+                             <img src="/++resource++occams.lab/images/allergy-vials-icon.png" />
+                            <span tal:content="aliquot/title" />
+                          </a>
+                      </td>
+                    </tr>
+                  </table>
+                  <a href="#" name="" style="display:none"></a>
+                  <br class="visualClear" />
+          </tal:data>
+      <tal:specimenedit replace="structure view/edit_specimen_type_form/contents" />
+      <hr />
+      <tal:specimenedit replace="structure view/crud_form" />
+    </metal:content-core>
+  </metal:content-core>
+</html>

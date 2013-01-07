@@ -8,8 +8,13 @@ from plone.directives import form
 from avrc.aeh.interfaces import IPatientModel
 from avrc.aeh.interfaces import ICycleModel
 from avrc.aeh.interfaces import IVisitModel
+from avrc.aeh.interfaces import IClinicalMarker
 from occams.lab import MessageFactory as _
 
+
+# -----------------------------------------------------------------------------
+# Model Interfaces
+# -----------------------------------------------------------------------------
 class IOccamsVocabulary(IDescribeable, IReferenceable, IModifiable):
     """
     """
@@ -28,13 +33,6 @@ class ISpecimenType(IDescribeable, IReferenceable, IModifiable):
         required=False,
         )
 
-    location_id = zope.schema.Choice(
-        title=_(u"Default Location"),
-        description=_(u"The location of the specimen"),
-        vocabulary="occams.lab.locationvocabulary",
-        required=False
-        )
-
 class IAliquotType(IDescribeable, IReferenceable, IModifiable):
     """
     """
@@ -45,15 +43,91 @@ class IAliquotType(IDescribeable, IReferenceable, IModifiable):
         schema= ISpecimenType
         )
 
-    location_id = zope.schema.Choice(
-        title=_(u"Default Location"),
-        description=_(u"The location of the aliquot"),
-        vocabulary="occams.lab.locationvocabulary",
-        required=False
+class ILocation(IOccamsVocabulary):
+
+    active = zope.schema.Bool(
+                title=_(u"Active Location"),
+                description=_(u"This location is active.")
+                )
+
+    long_title1 =  zope.schema.TextLine(
+        title=_(u"Address Line 1"),
+        description=_(u""),
+        required=False,
         )
 
+    long_title2 =  zope.schema.TextLine(
+        title=_(u"Address Line 2"),
+        description=_(u""),
+        required=False,
+        )
+    address_street =  zope.schema.TextLine(
+        title=_(u"Street"),
+        description=_(u""),
+        required=False,
+        )
+
+    address_city =  zope.schema.TextLine(
+        title=_(u"City"),
+        description=_(u""),
+        required=False,
+        )
+    address_state =  zope.schema.TextLine(
+        title=_(u"State"),
+        description=_(u""),
+        required=False,
+        )
+    address_zip =  zope.schema.TextLine(
+        title=_(u"Zip Code"),
+        description=_(u""),
+        required=False,
+        )
+    phone_number =  zope.schema.TextLine(
+        title=_(u"Phone Number"),
+        description=_(u""),
+        required=False,
+        )
+    fax_number = zope.schema.TextLine(
+        title=_(u"Fax Number"),
+        description=_(u""),
+        required=False,
+        )
+
+class IViewableLocation(form.Schema):
+
+    edit_link = zope.schema.TextLine(
+            title= _(u"Edit")
+            )
+    lab_title = zope.schema.TextLine(
+            title= _(u"Title")
+            )
+
+    full_address = zope.schema.Text(
+            title = _(u"Full Address")
+            )
+
+
 class ISpecimen(IReferenceable, IModifiable):
-    """
+    """ Speccialized table for specimen data. Note that only one specimen can be
+        drawn from a patient/protocol/type.
+
+        Attributes:
+            id: (int) machine generated primary key
+            subject_id: (int) reference to the subject this specimen was
+                drawn from
+            subject: (object) the relation to the subject
+            protocol_id: (int) reference to the protocol this specimen was
+                drawn for
+            protocol: (object) the relation to the protocol
+            state: (str) current state of the specimen
+            collect_date: (datetime) the date/time said specimen was collected
+            type: (str) the type of specimen
+            destination: (str) the destination of where the specimen is sent to.
+            tubes: (int) number of tubes collected (optional, if applicable)
+            volume_per_tube: (int) volume of each tube (optional, if applicable)
+            notes: (str) optinal notes that can be entered by users (optional)
+            aliquot: (list) convenience relation to the aliquot parts generated
+                from this speciemen
     """
     specimen_type = zope.schema.Choice(
         title=_(u"Type"),
@@ -102,6 +176,13 @@ class ISpecimen(IReferenceable, IModifiable):
         title=_(u"Location"),
         description=_(u"The location of the specimen"),
         vocabulary="occams.lab.locationvocabulary",
+        required=True
+        )
+
+    previous_location =  zope.schema.Choice(
+        title=_(u"Previous Location"),
+        description=_(u"The processing location for the specimen"),
+        vocabulary="occams.lab.locationvocabulary",
         required=False
         )
 
@@ -117,88 +198,12 @@ class ISpecimen(IReferenceable, IModifiable):
         required=False
         )
 
-    study_cycle_label = zope.schema.TextLine(
-        title=_(u"Study Cycle Label"),
-        description=_(u"The label text for the specimen tube"),
-        required=False
-        )
-
-class IViewableSpecimen(form.Schema):
-    """
-    """
-
-    patient_our = zope.schema.TextLine(
-        title=_(u"Patient OUR#"),
-        description=_(u"The source patient our #"),
-        readonly=True
-        )
-
-    patient_initials = zope.schema.TextLine(
-        title=_(u"Patient Initials"),
-        description=_(u"The source patient initials"),
-        readonly=True
-        )
-
-    cycle_title = zope.schema.TextLine(
-        title=_(u"Study/Cycle"),
-        description=_(u"The cycle for which this specimen was collected"),
-        readonly=True
-        )
-
-    visit_zid = zope.schema.Int(
-        title=_(u"Visit Id"),
-        description=_(u"The visit for which this specimen was collected"),
-        readonly=True,
-        )
-
-    visit_date = zope.schema.Date(
-        title=_(u"Visit Date"),
-        description=_(u"The visit for which this specimen was collected"),
-        readonly=True,
-        )
-
-    specimen_type_name = zope.schema.TextLine(
-        title=_(u"Type name"),
-        description=_(u"The Type specimen name"),
-        readonly=True,
-        )
-
-    collect_date = zope.schema.Date(
-        title=_(u'Collect Date'),
-        required=False,
-        )
-
-    collect_time = zope.schema.Time(
-        title=_(u'Collect Time'),
-        required=False,
-        )
-
-    tube_type = zope.schema.TextLine(
-        title=_(u"Tube Type"),
-        description=_(u""),
-        readonly=True
-        )
-    
-    tubes = zope.schema.TextLine(
-        title=_(u"Tubes"),
-        description=_(u"Number of Tubes drawn"),
-        required=False
-        )
-
-    notes = zope.schema.Text(
-        title=_(u"Notes"),
-        description=_("Notes about this specimen"),
-        required=False
-        )
-
-    study_cycle_label = zope.schema.TextLine(
-        title=_(u"Study Cycle Label"),
-        description=_(u"The label text for the specimen tube"),
-        required=False
-        )
-
 class IAliquot(IReferenceable, IModifiable):
-    """
+    """ Specialized table for aliquot parts generated from a specimen.
+
+        Attributes:
+            id: (int) machine generated primary key
+            specimen_id: (int) the specimen this aliquot was generated from
     """
     specimen = zope.schema.Object(
         title=_(u"Specimen"),
@@ -264,7 +269,14 @@ class IAliquot(IReferenceable, IModifiable):
 
     location =  zope.schema.Choice(
         title=_(u"Location"),
-        description=_(u"The location of the specimen"),
+        description=_(u"The location of the aliquot"),
+        vocabulary="occams.lab.locationvocabulary",
+        required=False
+        )
+
+    previous_location =  zope.schema.Choice(
+        title=_(u"Previous Location"),
+        description=_(u"The location of the aliquot"),
         vocabulary="occams.lab.locationvocabulary",
         required=False
         )
@@ -312,6 +324,139 @@ class IAliquot(IReferenceable, IModifiable):
         required=False
         )
 
+# -----------------------------------------------------------------------------
+# Viewing and processing interfaces
+# -----------------------------------------------------------------------------
+class IAliquotCheckout(form.Schema):
+    """
+    """
+    location =  zope.schema.Choice(
+        title=_(u"Lab Location"),
+        description=_(u"The location of the aliquot"),
+        vocabulary="occams.lab.locationvocabulary",
+        required=False
+        )
+
+    sent_date =  zope.schema.Date(
+        title=_(u'Sent Date'),
+        description=_(u"Date sent for analysis."),
+        required=False,
+        )
+
+    sent_name = zope.schema.TextLine(
+        title=_(u"Sent Name"),
+        description=_(u"The name of the aliquot's receiver."),
+        required=False,
+        )
+
+    sent_notes = zope.schema.Text(
+        title=_(u"Sent Notes"),
+        description=_("Notes about this aliquot's destination"),
+        required=False
+        )
+
+class IAddableSpecimen(form.Schema):
+    """
+    Interface for adding more specimen
+    """
+    specimen_patient_our = zope.schema.TextLine(
+        title=_(u'Patient Key'),
+        description=_(u'Enter the Patient\'s OUR Number'),
+        required=True
+        )
+
+    specimen_cycle = zope.schema.Choice(
+        title=_(u'Cycle'),
+        description=_(u'Select the cycle for which this specimen will be collected.'),
+        source="avrc.aeh.Cycles",
+        required=True
+        )
+
+    specimen_type = zope.schema.Choice(
+        title=_(u"Specimen Type"),
+        description=_(u"The Type of specimen to be added."),
+        vocabulary="occams.lab.specimentypevocabulary",
+        required=True
+        )
+
+class IViewableSpecimen(form.Schema):
+    """
+    """
+    label_queue = zope.schema.Int(
+        title=_(u"Label Queue"),
+        description=_(u"The Specimen is in the label queue"),
+        readonly=True,
+    )
+    patient_our = zope.schema.TextLine(
+        title=_(u"Patient OUR#"),
+        description=_(u"The source patient our #"),
+        readonly=True
+        )
+
+    patient_initials = zope.schema.TextLine(
+        title=_(u"Patient Initials"),
+        description=_(u"The source patient initials"),
+        readonly=True
+        )
+
+    cycle_title = zope.schema.TextLine(
+        title=_(u"Study/Cycle"),
+        description=_(u"The cycle for which this specimen was collected"),
+        readonly=True
+        )
+
+    visit_zid = zope.schema.Int(
+        title=_(u"Visit Id"),
+        description=_(u"The visit for which this specimen was collected"),
+        readonly=True,
+        )
+
+    visit_date = zope.schema.Date(
+        title=_(u"Visit Date"),
+        description=_(u"The visit for which this specimen was collected"),
+        readonly=True,
+        )
+
+    specimen_type_name = zope.schema.TextLine(
+        title=_(u"Type name"),
+        description=_(u"The Type specimen name"),
+        readonly=True,
+        )
+
+    collect_date = zope.schema.Date(
+        title=_(u'Collect Date'),
+        required=False,
+        )
+
+    collect_time = zope.schema.Time(
+        title=_(u'Collect Time'),
+        required=False,
+        )
+
+    tube_type = zope.schema.TextLine(
+        title=_(u"Tube Type"),
+        description=_(u""),
+        readonly=True
+        )
+
+    tubes = zope.schema.TextLine(
+        title=_(u"Tubes"),
+        description=_(u"Number of Tubes drawn"),
+        required=False
+        )
+
+    notes = zope.schema.Text(
+        title=_(u"Notes"),
+        description=_("Notes about this specimen"),
+        required=False
+        )
+
+    study_cycle_label = zope.schema.TextLine(
+        title=_(u"Study Cycle Label"),
+        description=_(u"The label text for the specimen tube"),
+        required=False
+        )
+
 class IAliquotGenerator(form.Schema):
     """
     Count for number of aliquot duplicates to create
@@ -330,6 +475,11 @@ class IViewableAliquot(form.Schema):
         description=_(u""),
         readonly=True,
         )
+    label_queue = zope.schema.Int(
+        title=_(u"Label Queue"),
+        description=_(u"The Aliquot is in the label queue"),
+        readonly=True,
+    )
     aliquot_type_title = zope.schema.TextLine(
         title=_(u'Type'),
         description=_(u"The type of aliquot"),
@@ -357,7 +507,7 @@ class IViewableAliquot(form.Schema):
         title=_(u"Patient Legacy #"),
         description=_(u"The source patient legacy #"),
         readonly=True
-        ) 
+        )
 
     cycle_title = zope.schema.TextLine(
         title=_(u"Study/Cycle"),
@@ -385,6 +535,11 @@ class IViewableAliquot(form.Schema):
         readonly=True,
         )
 
+
+# -----------------------------------------------------------------------------
+# Searching interfaces
+# -----------------------------------------------------------------------------
+
 class IFilterForm(form.Schema):
     """
     """
@@ -393,12 +548,11 @@ class IFilterForm(form.Schema):
         description=_(u"Patient OUR#, Legacy AEH ID, or Masterbook Number"),
         required=False
         )
-        
+
     after_date = zope.schema.Date(
         title=_(u"Sample Date"),
         description=_(u"Samples on this date. If Limit Date is set as well, will show samples between those dates"),
         required=False
-
         )
 
     before_date = zope.schema.Date(
@@ -407,33 +561,24 @@ class IFilterForm(form.Schema):
         required=False
         )
 
-    show_all = zope.schema.Bool(
-        title=_(u"Show all Samples"),
-        description=_(u"Show all samples, including missing, never drawn, checked out, etc"),
-        required=False
-        )
-
-class ISpecimenFilterForm(IFilterForm):
-    """
-    """
     specimen_type = zope.schema.Choice(
         title=u"Type of Sample",
         vocabulary='occams.lab.specimentypevocabulary',
         required=False
         )
 
-class IAliquotFilterForm(IFilterForm):
-    """
-    """
     aliquot_type = zope.schema.Choice(
         title=u"Type of Sample",
         vocabulary='occams.lab.aliquottypevocabulary',
         required=False
         )
 
-class IInventoryFilterForm(IAliquotFilterForm):
-    """
-"""
+    show_all = zope.schema.Bool(
+        title=_(u"Show all Samples"),
+        description=_(u"Show all samples, including pending draw, never drawn, completed, etc"),
+        required=False
+        )
+
     freezer = zope.schema.TextLine(
         title=_(u'Freezer'),
         required=False,
@@ -449,11 +594,51 @@ class IInventoryFilterForm(IAliquotFilterForm):
         required=False,
         )
 
-    inventory_date = zope.schema.Date(
-        title=_(u"'Not Inventoried Since'"),
-        description=_(u"Show samples that have not been inventoried since this date"),
-        required=False
+class IFilter(zope.interface.Interface):
+    """
+    Adaptable filter function that allows control over how filters are applied based on
+    where in the site you are
+    """
+
+    def getQuery():
+        """
+        returns a query object with lab items filtered appropriately for the context
+        """
+
+    def getFilterFields():
+        """
+        returns the appropriate fields for filtering in the specific context
+        """
+
+    def getFilterValues():
+        """
+        returns the appropriate filter values for the specific context
+        """
+
+class ISpecimenFilter(IFilter):
+    """
+    A filter for specimen
+    """
+
+class IAliquotFilter(IFilter):
+    """
+    A Filter for Aliquot
+    """
+
+# -----------------------------------------------------------------------------
+# Behavior interfaces
+# -----------------------------------------------------------------------------
+
+class ILabLocation(form.Schema):
+
+    lab_location = zope.schema.Choice(
+        title=_(u"Default Lab Location"),
+        description=_(u"The Default Clinical Lab"),
+        vocabulary="occams.lab.locationvocabulary",
+        required=True
         )
+
+zope.interface.alsoProvides(ILabLocation, form.IFormFieldProvider)
 
 class IAvailableSpecimen(form.Schema):
     """
@@ -510,8 +695,12 @@ class IRequestedSpecimen(form.Schema):
         """
         Function that provides specimen associated with the object
         """
-
 zope.interface.alsoProvides(IRequestedSpecimen, form.IFormFieldProvider)
+
+
+# -----------------------------------------------------------------------------
+# Labelling interfaces
+# -----------------------------------------------------------------------------
 
 class ILabelSheet(form.Schema):
     """
@@ -529,12 +718,12 @@ class ILabelSheet(form.Schema):
                   'label_round',
                   'no_across',
                   'no_down'])
-                  
+
     page_height = zope.schema.Float(
         title=_(u"Page Height"),
         required=True
         )
-        
+
     page_width = zope.schema.Float(
         title=_(u"Page Width"),
         required=True
@@ -552,7 +741,7 @@ class ILabelSheet(form.Schema):
         title=_(u"Vertical Pitch"),
         required=True
         )
-        
+
     horz_pitch = zope.schema.Float(
         title=_(u"Horizontal Pitch"),
         required=True
@@ -565,7 +754,7 @@ class ILabelSheet(form.Schema):
         title=_(u"Label Width"),
         required=True
         )
-        
+
     label_round = zope.schema.Float(
         title=_(u"Label Round"),
         required=True
@@ -580,7 +769,6 @@ class ILabelSheet(form.Schema):
         title=_(u"Number Down"),
         required=True
         )
-
 zope.interface.alsoProvides(ILabelSheet, form.IFormFieldProvider)
 
 class ILabel(zope.interface.Interface):
@@ -606,7 +794,7 @@ class ILabel(zope.interface.Interface):
         title=u"Date",
         readonly=True
         )
-        
+
     sample_type = zope.schema.TextLine(
         title=u"Sample Type",
         readonly=True
@@ -623,31 +811,40 @@ class ILabel(zope.interface.Interface):
         readonly=True
         )
 
-class ILabelPrinter(zope.interface.Interface):
+class ILabelPrinter(form.Schema):
     """
     parts needed for label printing to work
     """
-    
+    startcol = zope.schema.Int(
+        title=_(u"Starting Column"),
+        description=_(u"Starting column position"),
+        default=1,
+        )
+    startrow = zope.schema.Int(
+        title=_(u"Starting Row"),
+        description=_(u"Starting row positison"),
+        default=1,
+        )
     def getLabelQueue():
         """
         """
         pass
-    
+
     def queueLabel(labelable):
         """
         Add a label to the cue
         """
         pass
-        
+
     def printLabelSheet(label_list, startcol=None, startrow=None):
         """
         Create the label page, and output
         """
         pass
 
-class IContainsSpecimen(zope.interface.Interface):
+class ILabObject(IClinicalMarker):
     """
-    Marker interface for items that contain Specimen Blueprints
+    Marker interface for items that have Lab Data
     """
 
 class IChecklistSupport(zope.interface.Interface):
@@ -655,22 +852,47 @@ class IChecklistSupport(zope.interface.Interface):
     Marker interface to search for aliquot associated with a specific item
     """
 
-class ILab(form.Schema, IContainsSpecimen):
+# -----------------------------------------------------------------------------
+# Lab and object interfaces
+# -----------------------------------------------------------------------------
+
+class ILab(form.Schema, ILabObject):
     """
     An Interface for the Labs
     """
+
+    location = zope.schema.Choice(
+        title=_(u"Lab Location"),
+        description=_(u"The Location of this lab"),
+        vocabulary="occams.lab.locationstringvocabulary",
+        required=True
+        )
 
 class IClinicalLab(ILab):
     """
     An Interface for the Labs
     """
 
+    processing_location = zope.schema.Choice(
+        title=_(u"Processing Location"),
+        description=_(u"The Location where specimen will be processed"),
+        vocabulary="occams.lab.locationstringvocabulary",
+        required=True
+        )
+
 class IResearchLab(ILab, IChecklistSupport):
     """
     An Interface for the Labs
     """
 
-class ISpecimenContext(zope.interface.Interface):
+    storage_location = zope.schema.Choice(
+        title=_(u"Storage Location"),
+        description=_(u"The Location where specimen will be stored"),
+        vocabulary="occams.lab.locationstringvocabulary",
+        required=True
+        )
+
+class ISpecimenContext(ILabObject):
     """
     A wrapper context for DataStore entries so they are traversable.
     This allows a wrapped entry to comply with the Acquisition machinery
@@ -689,7 +911,7 @@ class ISpecimenContext(zope.interface.Interface):
         readonly=True
         )
 
-class IAliquotContext(zope.interface.Interface):
+class IAliquotContext(ILabObject):
     """
     A wrapper context for DataStore entries so they are traversable.
     This allows a wrapped entry to comply with the Acquisition machinery
@@ -707,3 +929,4 @@ class IAliquotContext(zope.interface.Interface):
         schema=IAliquotType,
         readonly=True
         )
+
