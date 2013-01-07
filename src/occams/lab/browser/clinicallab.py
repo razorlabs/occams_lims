@@ -348,7 +348,7 @@ class ClinicalLabView(common.OccamsLabView):
         {'title':'Complete Selected',
         'description': 'Saves all changes entered to the database (for all specimen). Then ' \
         'marks the selected specimen as complete. If the location you\'ve entered for the items ' \
-        'is the current lab, you will find them <a href="./ready">ready to aliquot</a>'},
+        'is the current lab, you will find them in <a href="./batched">batched</a>'},
         {'title':'Mark Selected Undrawn',
         'description': 'Mark the selected specimen as undrawn.'},
         {'title':'Add Specimen',
