@@ -56,18 +56,18 @@ class SpecimenLabFilter(grok.MultiAdapter):
             query = query.filter(model.Specimen.patient_id == patient.id)
         if 'specimen_type' in self.filter and 'specimen_type' not in omitable:
             query = query.filter(model.Specimen.specimen_type.has(name = self.filter['specimen_type']))
-        if 'before_date' in self.filter and 'before_date' not in omitable:
-            if 'after_date' in self.filter and 'after_date' not in omitable:
-                query = query.filter(model.Specimen.collect_date >= self.filter['before_date'])
-                query = query.filter(model.Specimen.collect_date <= self.filter['after_date'])
+        if 'after_date' in self.filter and 'after_date' not in omitable:
+            if 'before_date' in self.filter and 'before_date' not in omitable:
+                query = query.filter(model.Specimen.collect_date >= self.filter['after_date'])
+                query = query.filter(model.Specimen.collect_date <= self.filter['before_date'])
             else:
-                query = query.filter(model.Specimen.collect_date == self.filter['before_date'])
+                query = query.filter(model.Specimen.collect_date == self.filter['after_date'])
         if self.filter.get('show_all', False) and 'show_all' not in omitable:
             query = query.join(model.SpecimenState).filter(model.SpecimenState.name.in_(['pending-draw', 'complete', 'cancel-draw', 'prepared']))
         elif default_state:
             query = query.filter(model.Specimen.state.has(name = default_state))
         # query = query.order_by(model.Specimen.id.desc())
-        query = query.order_by(model.Specimen.patient_id, model.Specimen.specimen_type_id, model.Specimen.id)
+        query = query.order_by(model.Specimen.collect_date.desc(), model.Specimen.patient_id, model.Specimen.specimen_type_id, model.Specimen.id)
         return query
 
     def getFilterFields(self, omitable=[]):
