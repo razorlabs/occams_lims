@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<object name="avrc.aeh.institute"
+   meta_type="Dexterity FTI"
+   i18n:domain="avrc.aeh" xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+    <alias from="lablocations" to="@@lablocations" />
+    <action title="Lab Locations" action_id="lablocations" category="object" condition_expr=""
+    url_expr="string:${object_url}/lablocations" visible="True">
+        <permission value="occams: Manage Aliquot" />
+    </action>
+</object>
