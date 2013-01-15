@@ -300,7 +300,7 @@ class IAliquot(IReferenceable, IModifiable):
         )
 
     sent_name = zope.schema.TextLine(
-        title=_(u"Sent Name"),
+        title=_(u"Recipient"),
         description=_(u"The name of the aliquot's receiver."),
         required=False,
         )
@@ -706,7 +706,7 @@ class ILabelSheet(form.Schema):
     """
         info for building a pdf of labels
     """
-    form.fieldset('label-sheet', label=u"Label Sheet",
+    form.fieldset('label-sheet', label=u"Aliquot Label Sheet",
                   fields=['page_height',
                   'page_width',
                   'top_margin',
@@ -770,6 +770,77 @@ class ILabelSheet(form.Schema):
         required=True
         )
 zope.interface.alsoProvides(ILabelSheet, form.IFormFieldProvider)
+
+
+class ISpecimenLabelSheet(form.Schema):
+    """
+        info for building a pdf of labels
+    """
+    form.fieldset('specimen-label-sheet', label=u"Specimen Label Sheet",
+                  fields=[
+                  'sp_page_height',
+                  'sp_page_width',
+                  'sp_top_margin',
+                  'sp_side_margin',
+                  'sp_vert_pitch',
+                  'sp_horz_pitch',
+                  'sp_label_height',
+                  'sp_label_width',
+                  'sp_label_round',
+                  'sp_no_across',
+                  'sp_no_down'])
+
+    sp_page_height = zope.schema.Float(
+        title=_(u"Page Height"),
+        required=True
+        )
+
+    sp_page_width = zope.schema.Float(
+        title=_(u"Page Width"),
+        required=True
+        )
+
+    sp_top_margin = zope.schema.Float(
+        title=_(u"Top Margin"),
+        required=True
+        )
+    sp_side_margin = zope.schema.Float(
+        title=_(u"Side Margin"),
+        required=True
+        )
+    sp_vert_pitch = zope.schema.Float(
+        title=_(u"Vertical Pitch"),
+        required=True
+        )
+
+    sp_horz_pitch = zope.schema.Float(
+        title=_(u"Horizontal Pitch"),
+        required=True
+        )
+    sp_label_height = zope.schema.Float(
+        title=_(u"Label Height"),
+        required=True
+        )
+    sp_label_width = zope.schema.Float(
+        title=_(u"Label Width"),
+        required=True
+        )
+
+    sp_label_round = zope.schema.Float(
+        title=_(u"Label Round"),
+        required=True
+        )
+
+    sp_no_across = zope.schema.Int(
+        title=_(u"Number Across"),
+        required=True
+        )
+
+    sp_no_down = zope.schema.Int(
+        title=_(u"Number Down"),
+        required=True
+        )
+zope.interface.alsoProvides(ISpecimenLabelSheet, form.IFormFieldProvider)
 
 class ILabel(zope.interface.Interface):
     """
@@ -841,6 +912,38 @@ class ILabelPrinter(form.Schema):
         Create the label page, and output
         """
         pass
+
+class ISpecimenLabelPrinter(form.Schema):
+    """
+    parts needed for label printing to work
+    """
+    startcol = zope.schema.Int(
+        title=_(u"Starting Column"),
+        description=_(u"Starting column position"),
+        default=1,
+        )
+    startrow = zope.schema.Int(
+        title=_(u"Starting Row"),
+        description=_(u"Starting row positison"),
+        default=1,
+        )
+    def getLabelQueue():
+        """
+        """
+        pass
+
+    def queueLabel(labelable):
+        """
+        Add a label to the cue
+        """
+        pass
+
+    def printLabelSheet(label_list, startcol=None, startrow=None):
+        """
+        Create the label page, and output
+        """
+        pass
+
 
 class ILabObject(IClinicalMarker):
     """

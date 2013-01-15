@@ -45,10 +45,17 @@
 
 
 <plone:behavior
-      title="OCCAMS: Label Sheet"
+      title="OCCAMS: Aliquot Label Sheet"
       description="Make this lab produce labels"
       provides="occams.lab.interfaces.ILabelSheet"
       for="occams.lab.interfaces.ILab"
+      />
+
+<plone:behavior
+      title="OCCAMS: Specimen Label Sheet"
+      description="Make this lab produce labels"
+      provides="occams.lab.interfaces.ISpecimenLabelSheet"
+      for="occams.lab.interfaces.IClinicalLab"
       />
 
   <plone:behavior

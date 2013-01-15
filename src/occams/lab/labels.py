@@ -306,6 +306,38 @@ class LabelGenerator(object):
 
             self.canvas.restoreState()
 
+class SpecimenLabelGenerator(LabelGenerator):
+#    def setup(self, settings, filename, doDrawGrid = False):
+    def __init__(self, context, filename=None):
+        '''
+        set up the default label drawing canvas
+        the resulting PDF will be written to 'filename'
+        '''
+
+        self.context = context
+        #### Remake the variables to Float
+        self.page_width = float(self.context.sp_page_width)
+        self.page_height = float(self.context.sp_page_height)
+        self.page_width = float(self.context.sp_page_width)
+        self.top_margin = float(self.context.sp_top_margin)
+        self.side_margin = float(self.context.sp_side_margin)
+        self.vert_pitch = float(self.context.sp_vert_pitch)
+        self.horz_pitch = float(self.context.sp_horz_pitch)
+        self.label_height = float(self.context.sp_label_height)
+        self.label_width = float(self.context.sp_label_width)
+        self.label_round = float(self.context.sp_label_round)
+        self.no_across = int(self.context.sp_no_across)
+        self.no_down = int(self.context.sp_no_down)
+
+        self.font_face = 'Helvetica'
+        self.canvas = self.createCanvas(filename)
+
+        self.grid = self.drawGrid()
+        self.row = 0
+        self.column = -1
+        self.rows = self.no_down
+        self.cols = self.no_across
+
 class LabelPrinter(grok.Adapter):
     """
     Print a set of labels
@@ -337,3 +369,36 @@ class LabelPrinter(grok.Adapter):
         content = stream.getvalue()
         stream.close()
         return content
+
+class SpecimenLabelPrinter(grok.Adapter):
+    """
+    Print a set of labels
+    """
+    grok.implements(interfaces.ISpecimenLabelPrinter)
+    grok.context(interfaces.ISpecimenLabelSheet)
+
+    def getLabelQueue(self):
+        lab = self.context
+        return lab['labels']
+
+    def printLabelSheet(self, label_list, startcol=None, startrow=None):
+        """
+        Create the label page, and output
+        """
+        stream = StringIO()
+        labelWriter = SpecimenLabelGenerator(self.context, stream)
+
+        if startcol and startcol > 1:
+            labelWriter.column = startcol -2
+
+        if startrow and startrow > 1:
+            labelWriter.row = startrow - 1
+
+        for labelable in label_list:
+            label = interfaces.ILabel(labelable)
+            labelWriter.createLabel(label.label_lines, label.barcodeline)
+        labelWriter.writeLabels()
+        content = stream.getvalue()
+        stream.close()
+        return content
+

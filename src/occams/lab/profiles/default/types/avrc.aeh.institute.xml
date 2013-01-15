@@ -5,6 +5,6 @@
     <alias from="lablocations" to="@@lablocations" />
     <action title="Lab Locations" action_id="lablocations" category="object" condition_expr=""
     url_expr="string:${object_url}/lablocations" visible="True">
-        <permission value="occams: Manage Aliquot" />
+        <permission value="avrc: Modify an Institute" />
     </action>
 </object>
