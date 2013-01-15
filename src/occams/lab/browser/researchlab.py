@@ -730,7 +730,9 @@ class AliquotLabelForm(z3c.form.form.Form):
                 )
 
             content = interfaces.ILabelPrinter(self.context).printLabelSheet(aliquotQ.all(), data['startcol'], data['startrow'])
-
+            browser_session = ISession(self.request)
+            browser_session[ALIQUOT_LABEL_QUEUE] = set()
+            browser_session.save()
             self.request.RESPONSE.setHeader("Content-type", "application/pdf")
             self.request.RESPONSE.setHeader("Content-disposition",
                                             "attachment;filename=labels.pdf")

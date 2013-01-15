@@ -1,4 +1,3 @@
-from Products.Five.browser import BrowserView
 from plone.z3cform.crud import crud
 from occams.datastore.batch import SqlBatch
 from occams.lab import Session
@@ -6,92 +5,11 @@ from occams.lab import MessageFactory as _
 from beast.browser.crud import BatchNavigation
 import sys
 import z3c.form
-import zope.component
 from occams.lab import interfaces
-from collective.beaker.interfaces import ISession
-import datetime
-from Products.statusmessages.interfaces import IStatusMessage
-from occams.lab import FILTER_KEY
-from avrc.aeh import interfaces as clinical
 from occams.lab import model
-from sqlalchemy.orm import exc
-from occams.form.traversal import closest
 from plone.z3cform import layout
 from z3c.form.interfaces import DISPLAY_MODE
 from beast.browser import widgets
-
-# class LabFilterForm(z3c.form.form.Form):
-#     """
-#     Specimen Filter form. This form presents itself as an overlay on the Primary
-#     Clinical Lab view as a way to filter specimen.
-#     """
-#     ignoreContext = True
-#     description = _(u"Please enter filter criteria. You may filter by any or all options. "
-#                            u" Aliquot and specimen are, by default, filtered by state, which depends on your current view. "
-#                            u"The filter will persist while you are logged in. ")
-
-#     @property
-#     def fields(self):
-#         filter =  zope.component.getMultiAdapter((self.context, self.request), interfaces.IFilter)
-#         omitable = []
-#         if 'omit' in self.request:
-#             if type(self.request['omit']) == list:
-#                 omitable = self.request['omit']
-#             else:
-#                 omitable =  [self.request['omit'],]
-#         return filter.getFilterFields(omitable=omitable)
-
-#     def updateWidgets(self):
-#         """
-#         Apply The information in the browser request as values to this form
-#         """
-#         z3c.form.form.Form.updateWidgets(self)
-#         browser_session = ISession(self.request)
-#         if FILTER_KEY in browser_session:
-#             specimenfilter = browser_session[FILTER_KEY]
-#             for key, widget in self.widgets.items():
-#                 if key in specimenfilter:
-#                     value = specimenfilter[key]
-#                     if type(value) == datetime.date:
-#                         widget.value = (unicode(value.year), unicode(value.month), unicode(value.day))
-#                     elif type(value) == bool and value:
-#                         widget.value = ['selected']
-#                     elif hasattr(widget, 'terms'):
-#                         widget.value = [value]
-#                     else:
-#                         widget.value = value
-#                     widget.update()
-
-#     @z3c.form.button.buttonAndHandler(u'Filter')
-#     def handleFilter(self, action):
-#         data, errors = self.extractData()
-#         messages = IStatusMessage(self.request)
-#         if errors:
-#             messages.addStatusMessage(
-#                 _(u'There was an error with your request.'),
-#                 type=u'error'
-#                 )
-#             return
-#         browser_session = ISession(self.request)
-#         browser_session[FILTER_KEY] = {}
-#         for key, value in data.items():
-#             if value is not None:
-#                 if getattr(value, 'name', False):
-#                     browser_session[FILTER_KEY][key] = value.name
-#                 else:
-#                     browser_session[FILTER_KEY][key] = value
-#         browser_session.save()
-#         messages.addStatusMessage(_(u"Your Filter has been applied"), type=u'info')
-#         return self.request.response.redirect("%s/filtersuccess" % self.context.absolute_url())
-
-#     @z3c.form.button.buttonAndHandler(u'Remove Filter')
-#     def handleClearFilter(self, action):
-#         browser_session = ISession(self.request)
-#         browser_session[FILTER_KEY] = {}
-#         messages = IStatusMessage(self.request)
-#         messages.addStatusMessage(_(u"Your Filter has been cleared"), type=u'info')
-#         return self.request.response.redirect("%s/filtersuccess" % self.context.absolute_url())
-
 
 class LocationEditForm(crud.EditForm):
     """
@@ -200,6 +118,14 @@ class LocationCrudForm(crud.CrudForm):
                     )
         return fields
 
+    def add(self, data):
+        """
+        """
+        location_entry = model.Location(**data)
+        Session.add(location_entry)
+        Session.flush()
+        return location_entry
+
     def update(self):
         self.update_schema = self.edit_schema
         self.query = self._getQuery()
@@ -218,7 +144,6 @@ class LocationCrudForm(crud.CrudForm):
         query = Session.query(model.Location).order_by(model.Location.title.asc())
         return query
 
-
     def updateWidgets(self):
         super(LocationCrudForm, self).updateWidgets()
         if self.update_schema is not None:
@@ -228,12 +153,6 @@ class LocationCrudForm(crud.CrudForm):
                 self.update_schema['address_state'].widgetFactory = widgets.StorageFieldWidget
             if 'address_zip' in self.update_schema.keys():
                 self.update_schema['address_zip'].widgetFactory = widgets.AmountFieldWidget
-            # if 'rack' in self.update_schema.keys():
-            #     self.update_schema['rack'].widgetFactory = widgets.StorageFieldWidget
-            # if 'box' in self.update_schema.keys():
-            #     self.update_schema['box'].widgetFactory = widgets.StorageFieldWidget
-            # if 'thawed_num' in self.update_schema.keys():
-            #     self.update_schema['thawed_num'].widgetFactory = widgets.StorageFieldWidget
 
 LabLocationView = layout.wrap_form(LocationCrudForm)
 
