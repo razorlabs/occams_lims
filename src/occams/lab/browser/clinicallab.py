@@ -155,8 +155,10 @@ class SpecimenLabelForm(z3c.form.form.Form):
             self.status = 'Please correct the indicated errors'
             return
         printablespecimen = self.specimen_for_labels()
-        content = interfaces.ILabelPrinter(self.context).printLabelSheet(printablespecimen, data['startcol'], data['startrow'])
-
+        content = interfaces.ISpecimenLabelPrinter(self.context).printLabelSheet(printablespecimen, data['startcol'], data['startrow'])
+        browser_session = ISession(self.request)
+        browser_session[SPECIMEN_LABEL_QUEUE] = set()
+        browser_session.save()
         self.request.RESPONSE.setHeader("Content-type", "application/pdf")
         self.request.RESPONSE.setHeader("Content-disposition",
                                         "attachment;filename=labels.pdf")
