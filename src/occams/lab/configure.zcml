@@ -55,7 +55,7 @@
       title="OCCAMS: Specimen Label Sheet"
       description="Make this lab produce labels"
       provides="occams.lab.interfaces.ISpecimenLabelSheet"
-      for="occams.lab.interfaces.IClinicalLab"
+      for="occams.lab.interfaces.ILab"
       />
 
   <plone:behavior
