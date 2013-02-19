@@ -23,7 +23,7 @@ class LabLocation(object):
         try:
             modelObj = zope.component.getMultiAdapter((self.context, Session), clinical.IClinicalModel)
             return modelObj.lab_location
-        except KeyError:
+        except (zope.component.ComponentLookupError, KeyError):
             return self.context._v_addArgs.get('lab_location')
 
     @setproperty
@@ -32,7 +32,7 @@ class LabLocation(object):
             modelObj = zope.component.getMultiAdapter((self.context, Session), clinical.IClinicalModel)
             modelObj.lab_location = value
             Session.flush()
-        except KeyError:
+        except (zope.component.ComponentLookupError, KeyError):
             # The zid is not set. annotate the object for now
             self.context._v_addArgs['lab_location'] = value
 
@@ -65,7 +65,7 @@ class AvailableSpecimen(object):
             modelObj = zope.component.getMultiAdapter((self.context, Session), clinical.IClinicalModel)
             modelObj.specimen_types = set(value)
             Session.flush()
-        except KeyError:
+        except (zope.component.ComponentLookupError, KeyError):
             # The zid is not set. annotate the object for now
             self.context._v_addArgs['specimen_types'] = set(value)
 
@@ -127,12 +127,4 @@ def handleRequestedSpecimenAdded(visit, event):
                     )
                 Session.add(newSpecimen)
         Session.flush()
-
-
-
-
-
-
-
-
 
