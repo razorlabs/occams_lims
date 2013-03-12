@@ -31,8 +31,8 @@
         }
       );
       // Set up the receipt printer for the aliquot checkout view
-      // $("input[id='aliquot-checkout-buttons-printreceipt']").wrap('<a id="receiptprinter" href="./receipt" target="_new" />');
-      // $("#receiptprinter").printPage();
+      $("input[id='aliquot-checkout-buttons-printreceipt']").wrap('<a id="receiptprinter" href="./receipt" target="_new" />');
+      $("#receiptprinter").printPage();
 
       // Set up overlay for the lab filter
       // No overlays for IE6
@@ -60,7 +60,7 @@
         });
       }
       // Set up overlay for specimen label printer
-  //     $("input[id='crud-edit-form-buttons-print']").wrap('<a id="specimenlabelprinter" href="./printspecimenlabelform" />');
+      $("input[id='crud-edit-form-buttons-print']").wrap('<a id="specimenlabelprinter" href="./printspecimenlabelform" />');
 
       if (!$.browser.msie ||
           parseInt($.browser.version, 10) >= 7) {
@@ -152,6 +152,7 @@
             },
             success: function (response, status, xhr) {
               // use JSON to update the dropdown's option elements
+              $("select[id='form-widgets-specimen_cycle']").select2("close");
               $("select[id='form-widgets-specimen_cycle']").empty();
               $("select[id='form-widgets-specimen_cycle']").append(
                 $('<option>').attr({
