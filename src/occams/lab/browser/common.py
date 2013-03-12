@@ -91,10 +91,26 @@ class LabFilterForm(z3c.form.form.Form):
         return self.request.response.redirect("%s/filtersuccess" % self.context.absolute_url())
 
 
+
+class OccamsCrudEditSubForm(crud.EditSubForm):
+    """
+    Individual row sub forms for the specimen crud form.
+    """
+
+    def updateWidgets(self):
+        """
+        Set the default processing location based on the property of the Clinical Lab of that same name
+        """
+        super(OccamsCrudEditSubForm, self).updateWidgets()
+        for widget in self.widgets.values():
+            widget.klass = widget.klass.replace('bitcore-select2', '')
+
 class OccamsCrudEditForm(crud.EditForm):
     """
     Provide the default crud.EditForm features that repeat in every form
     """
+    editsubform_factory = OccamsCrudEditSubForm
+
     @property
     def action(self):
         return "%s?%spage=%s" % (self.request.getURL(), self.prefix, self._page())

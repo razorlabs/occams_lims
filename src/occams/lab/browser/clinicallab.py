@@ -177,7 +177,7 @@ class SpecimenLabelForm(z3c.form.form.Form):
         return self.request.response.redirect("%s/filtersuccess" % self.context.absolute_url())
 
 
-class ClinicalLabSubForm(crud.EditSubForm):
+class ClinicalLabSubForm(common.OccamsCrudEditSubForm):
     """
     Individual row sub forms for the specimen crud form.
     """
