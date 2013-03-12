@@ -66,7 +66,7 @@ class EmbeddedAliquotFilterForm(common.LabFilterForm):
 
 AliquotFilterFormView = layout.wrap_form(EmbeddedAliquotFilterForm)
 
-class EditAliquotSubForm(crud.EditSubForm):
+class EditAliquotSubForm(common.OccamsCrudEditSubForm):
     """
     Individual row sub forms for the specimen crud form.
     """
@@ -281,7 +281,7 @@ class AliquotView(common.OccamsLabView):
         'description': 'Marks the selected aliquot as missing.'},
         {'title':'Check out',
         'description': 'Saves all of the changes entered to the database. Move the selected aliquot to a "pending check out" state, ' \
-                            'and makes them available in the <a href="checkout">Check out</a> queue.'},
+                            'and makes them available in the <a href="../checkout">Check out</a> queue.'},
         {'title':'Return to Checked-In',
         'description': 'Return the selected aliquot to a "checked in" state. Useful when you\'ve found missing aliquot, etc'},
         ]
