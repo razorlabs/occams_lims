@@ -45,16 +45,16 @@
           formselector: '#content-core>#form',
           noform: 'reload',
           config: {onLoad: function () {
-              $("select.bitcore-select2").select2();
+              $("select.occams-select2").select2();
               $(function () {
-                  $("input.bitcore-datepicker").datepicker({
+                  $("input.occams-datepicker").datepicker({
                     changeMonth: true,
                     changeYear: true
                   });
                 });
             },
             onBeforeClose: function () {
-              $("select.bitcore-select2").select2("close");
+              $("select.occams-select2").select2("close");
             }
           }
         });
@@ -71,16 +71,16 @@
           formselector: '#content-core>#form',
           noform: 'reload',
           config: {onLoad: function () {
-              $("select.bitcore-select2").select2();
+              $("select.occams-select2").select2();
               $(function () {
-                  $("input.bitcore-datepicker").datepicker({
+                  $("input.occams-datepicker").datepicker({
                     changeMonth: true,
                     changeYear: true
                   });
                 });
             },
             onBeforeClose: function () {
-              $("select.bitcore-select2").select2("close");
+              $("select.occams-select2").select2("close");
             }
           },
           closeselector: '[name=form.buttons.close]'
@@ -97,16 +97,16 @@
           formselector: '#content-core>#form',
           noform: 'reload',
           config: {onLoad: function () {
-              $("select.bitcore-select2").select2();
+              $("select.occams-select2").select2();
               $(function () {
-                  $("input.bitcore-datepicker").datepicker({
+                  $("input.occams-datepicker").datepicker({
                     changeMonth: true,
                     changeYear: true
                   });
                 });
             },
             onBeforeClose: function () {
-              $("select.bitcore-select2").select2("close");
+              $("select.occams-select2").select2("close");
             }
           },
           closeselector: '[name=form.buttons.close]'
@@ -123,16 +123,16 @@
           formselector: '#content-core>#form',
           noform: 'reload',
           config: {onLoad: function () {
-              $("select.bitcore-select2").select2();
+              $("select.occams-select2").select2();
               $(function () {
-                  $("input.bitcore-datepicker").datepicker({
+                  $("input.occams-datepicker").datepicker({
                     changeMonth: true,
                     changeYear: true
                   });
                 });
             },
             onBeforeClose: function () {
-              $("select.bitcore-select2").select2("close");
+              $("select.occams-select2").select2("close");
             }
           },
           closeselector: '[name=form.buttons.close]'
@@ -200,16 +200,16 @@
           subtype: 'ajax',
           config: {onLoad: function () {
               initializeSpecimenAdd();
-              $("select.bitcore-select2").select2();
+              $("select.occams-select2").select2();
               $(function () {
-                  $("input.bitcore-datepicker").datepicker({
+                  $("input.occams-datepicker").datepicker({
                     changeMonth: true,
                     changeYear: true
                   });
                 });
             },
             onBeforeClose: function () {
-              $("select.bitcore-select2").select2("close");
+              $("select.occams-select2").select2("close");
             }
           },
           filter: common_content_filter,
