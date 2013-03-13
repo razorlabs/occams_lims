@@ -43,7 +43,20 @@
           subtype: 'ajax',
           filter: common_content_filter,
           formselector: '#content-core>#form',
-          noform: 'reload'
+          noform: 'reload',
+          config: {onLoad: function () {
+              $("select.occams-select2").select2();
+              $(function () {
+                  $("input.occams-datepicker").datepicker({
+                    changeMonth: true,
+                    changeYear: true
+                  });
+                });
+            },
+            onBeforeClose: function () {
+              $("select.occams-select2").select2("close");
+            }
+          }
         });
       }
       // Set up overlay for specimen label printer
@@ -57,6 +70,19 @@
           filter: common_content_filter,
           formselector: '#content-core>#form',
           noform: 'reload',
+          config: {onLoad: function () {
+              $("select.occams-select2").select2();
+              $(function () {
+                  $("input.occams-datepicker").datepicker({
+                    changeMonth: true,
+                    changeYear: true
+                  });
+                });
+            },
+            onBeforeClose: function () {
+              $("select.occams-select2").select2("close");
+            }
+          },
           closeselector: '[name=form.buttons.close]'
         });
       }
@@ -70,10 +96,23 @@
           filter: common_content_filter,
           formselector: '#content-core>#form',
           noform: 'reload',
+          config: {onLoad: function () {
+              $("select.occams-select2").select2();
+              $(function () {
+                  $("input.occams-datepicker").datepicker({
+                    changeMonth: true,
+                    changeYear: true
+                  });
+                });
+            },
+            onBeforeClose: function () {
+              $("select.occams-select2").select2("close");
+            }
+          },
           closeselector: '[name=form.buttons.close]'
         });
       }
-      // Set up overlay for batch updating aliquot pending checkout
+  //     // Set up overlay for batch updating aliquot pending checkout
       $("input[id='aliquot-checkout-buttons-batchupdate']").wrap('<a class="batchcheckout" href="./batchcheckoutform" />');
       if (!$.browser.msie ||
           parseInt($.browser.version, 10) >= 7) {
@@ -83,10 +122,23 @@
           filter: common_content_filter,
           formselector: '#content-core>#form',
           noform: 'reload',
+          config: {onLoad: function () {
+              $("select.occams-select2").select2();
+              $(function () {
+                  $("input.occams-datepicker").datepicker({
+                    changeMonth: true,
+                    changeYear: true
+                  });
+                });
+            },
+            onBeforeClose: function () {
+              $("select.occams-select2").select2("close");
+            }
+          },
           closeselector: '[name=form.buttons.close]'
         });
       }
-      // Set up the add specimen overlay
+  //     // Set up the add specimen overlay
       $("input[id='crud-edit-form-buttons-addspecimen']").wrap('<a class="addspecimen" href="./addspecimen" />');
       // Set up cycle listing for adding of specimen
       var buildCycleList = function () {
@@ -100,6 +152,7 @@
             },
             success: function (response, status, xhr) {
               // use JSON to update the dropdown's option elements
+              $("select[id='form-widgets-specimen_cycle']").select2("close");
               $("select[id='form-widgets-specimen_cycle']").empty();
               $("select[id='form-widgets-specimen_cycle']").append(
                 $('<option>').attr({
@@ -134,6 +187,7 @@
         $("#form-widgets-specimen_patient_our").blur(
           function () {
             buildCycleList();
+            $("#s2id_form-widgets-specimen_cycle").select2("val", "");
           }
         );
       };
@@ -144,10 +198,24 @@
         // Set up overlays
         $("a#addspecimen, a.addspecimen").prepOverlay({
           subtype: 'ajax',
-          config: {onLoad: function () {initializeSpecimenAdd(); }},
+          config: {onLoad: function () {
+              initializeSpecimenAdd();
+              $("select.occams-select2").select2();
+              $(function () {
+                  $("input.occams-datepicker").datepicker({
+                    changeMonth: true,
+                    changeYear: true
+                  });
+                });
+            },
+            onBeforeClose: function () {
+              $("select.occams-select2").select2("close");
+            }
+          },
           filter: common_content_filter,
           formselector: '#content-core>form#form',
           noform: 'reload',
+
           closeselector: '[name=form.buttons.cancel]'
         });
       }
