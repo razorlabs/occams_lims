@@ -103,7 +103,7 @@ class OccamsCrudEditSubForm(crud.EditSubForm):
         """
         super(OccamsCrudEditSubForm, self).updateWidgets()
         for widget in self.widgets.values():
-            widget.klass = widget.klass.replace('bitcore-select2', '')
+            widget.klass = widget.klass.replace('occams-select2', '')
 
 class OccamsCrudEditForm(crud.EditForm):
     """
