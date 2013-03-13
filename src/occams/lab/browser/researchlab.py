@@ -273,6 +273,8 @@ class AliquotSpecimenEditForm(crud.EditForm):
     label = _(u"Specimen to Aliquot Templates")
     prefix = 'aliquot-creator'
 
+    editsubform_factory = common.OccamsCrudEditSubForm
+
     def render_batch_navigation(self):
         """
         Render the batch navigation to include the default styles for Plone
@@ -441,7 +443,7 @@ class AliquotSpecimenForm(common.OccamsCrudForm):
                 i = i + 1
         return self._v_aliquotList
 
-class AliquotPreparedSubForm(crud.EditSubForm):
+class AliquotPreparedSubForm(common.OccamsCrudEditSubForm):
     """
     Individual row sub forms for the specimen crud form.
     """
