@@ -97,7 +97,7 @@ class RequiredSpecimen(object):
             modelObj = zope.component.getMultiAdapter((self.context, Session), clinical.IClinicalModel)
             modelObj.specimen_types = set(value)
             Session.flush()
-        except KeyError:
+        except (zope.component.ComponentLookupError, KeyError):
             # The zid is not set. annotate the object for now
             self.context._v_addArgs['specimen_types'] = set(value)
 
