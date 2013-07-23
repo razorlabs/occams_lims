@@ -86,7 +86,40 @@ cycle is added.
 Specimen Lifecycle
 ==================
 When a visit is added to a patient, specimen for the visit's associated cycles
-are created
+are created. (This behavior can be overridden by unchecking the "create specimen"
+checkbox on the specimen sub-tab of the add a visit screen.)
+
+These created specimen appear on the view screen (Specimen to be processed) of
+the Clinical Lab if the visit date is on or before today in a pending state. Lab workers fill out
+the appropriate information for the specimen, print labels using the label queue,
+and then "Complete Selected". If the processing lab location is the same location
+as this clinical lab, the specimen are moved to the "Batched" tab, awaiting processing.
+If the processing lab location is at a different lab, the specimen will show up
+in that lab's batched tab, if its a clinical lab, or its primary view if it is
+a processing lab.
+
+The Batched/Processing lab view lists all specimen that were successfully drawn.
+The lab worker can then select some or all of the specimen and move them to the
+"Ready to Aliquot" tab.
+
+Under the "Ready to Aliquot" tab, each specimen will be displayed as a collection
+of aliquot templates that directly reflects how those specimen aliquot. For instance,
+if blood aliquot into plasma and pbmc, two templates will show at the top of the
+screen for that blood aliquot. Using the template, the lab worker can create
+a number of identical aliquot from a specimen, which show in the second table
+on the same page. These pending aliquot can have labels printed, then either
+checked in, checked out, or deleted (in case more aliquot were created in the
+system than were actually aliquotted.)
+
+If the aliquot were checked in, they are now available to view through the "View
+Stored Aliquot" links at the top of the screen.
+
+If the aliquot were checked out, they will show up on the Checkout Queue. This
+queue allows you to set a new location as well as other sent information to the
+aliquot.
+Once checked out, if they were checked out to a location that has a Lab, the
+aliquot will show up in the Check in tab of that Lab.
+
 
 ==================
 Self-Certification
