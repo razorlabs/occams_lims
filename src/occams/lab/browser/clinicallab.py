@@ -47,7 +47,6 @@ class AddSpecimenForm(z3c.form.form.AddForm):
     label = _(u"Add More Specimen")
     description= _(u"Please enter the patient our number, protocol cycle, and specimen type.")
     ignoreContext = True
-    # template = ViewPageTemplateFile('clinicallab_templates/addspecimen.pt')
     fields = z3c.form.field.Fields(interfaces.IAddableSpecimen)
 
     def updateWidgets(self):
