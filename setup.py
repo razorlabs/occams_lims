@@ -34,7 +34,7 @@ REQUIRES = [
     'zope.sqlalchemy',
     'zope.dottedname',
 
-    'occams.clinical',
+    'occams.studies',
     'occams.datastore'
 ]
 

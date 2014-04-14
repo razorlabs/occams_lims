@@ -6,7 +6,7 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.ext.declarative import declared_attr
 
-from occams.clinical.models import Site, Patient, Study, Cycle
+from occams.studies.models import Site, Patient, Study, Cycle
 from occams.datastore.models import (
     ModelClass, Referenceable, Describeable, Modifiable, Auditable)
 
