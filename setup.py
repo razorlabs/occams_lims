@@ -8,44 +8,42 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 REQUIRES = [
     'alembic',
     'babel',
-    'colander',
     'cssmin',
-    'deform',
     'humanize',
     'jsmin',
     'lingua',
     'pyramid',
     'pyramid_chameleon',
-    'pyramid_deform',
-    'pyramid_layout',
-    'pyramid_mailer',
     'pyramid_tm',
     'pyramid_redis_sessions',
-    'pyramid_redis',
     'pyramid_rewrite',
     'pyramid_webassets',
     'pyramid_who',
     'reportlab',
     'SQLAlchemy',
     'six',
-    'transaction',
     'webassets',
     'xlutils',
     'zope.sqlalchemy',
-    'zope.dottedname',
 
     'occams.studies',
     'occams.datastore'
 ]
 
 EXTRAS = {
-    'postgresql': ['psycopg2'],
+    'ldap': ['python3-ldap', 'who_ldap'],
+    'sqlite': [],
+    'postgresql': ['psycopg2', 'psycogreen'],
+    'gunicorn': ['gunicorn'],
     'test': [
         'pyramid_debugtoolbar',
         'nose',
+        'nose-testconfig',
         'coverage',
         'WebTest',
-        'beautifulsoup4'],
+        'beautifulsoup4',
+        'mock',
+        'ddt'],
 }
 
 
