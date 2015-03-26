@@ -1,17 +1,163 @@
+from pyramid.settings import aslist
+from pyramid.security import Allow, Authenticated, ALL_PERMISSIONS
+import six
+import sqlalchemy as sa
+from sqlalchemy import orm
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import (
     Table, Column,
     ForeignKey, ForeignKeyConstraint, UniqueConstraint, Index,
     Boolean, Date, Time, Float, Integer, Unicode)
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.ext.declarative import declared_attr
 
-from occams.studies.models import Site, Patient, Study, Cycle
+from occams.studies.models import Site, Patient, Study, Cycle, Visit
 from occams.datastore.models import (
-    ModelClass, Referenceable, Describeable, Modifiable, Auditable)
+    ModelClass, Referenceable, Describeable, Modifiable, Auditable, User)
 
+from . import Session, log
 
 Base = ModelClass('Base')
+
+
+def includeme(config):
+    """
+    Configures additional security utilities
+    """
+    settings = config.registry.settings
+
+    assert 'auth.groups' in settings
+
+    mappings = {}
+
+    for entry in aslist(settings['auth.groups'], flatten=False):
+        (site_domain, app_domain) = entry.split('=')
+        mappings[site_domain.strip()] = app_domain.strip()
+
+    config.add_request_method(
+        lambda request: mappings, name='group_mappings', reify=True)
+
+    # tests will override the session, use the setting for everything else
+    if isinstance(settings['app.db.url'], six.string_types):
+        Session.configure(bind=sa.engine_from_config(settings, 'app.db.'))
+
+    log.debug('Clinical connected to: "%s"' % repr(Session.bind.url))
+    Base.metadata.info['settings'] = settings
+
+
+class groups:
+
+    @staticmethod
+    def principal(site=None, group=None):
+        """
+        Generates the principal name used internally by this application
+        Supported keyword parameters are:
+            site --  The site code
+            group -- The group name
+        """
+        return site.name + ':' + group if site else group
+
+    @staticmethod
+    def administrator():
+        return groups.principal(group='administrator')
+
+    @staticmethod
+    def manager(site=None):
+        return groups.principal(site=site, group='manager')
+
+    @staticmethod
+    def reviewer(site=None):
+        return groups.principal(site=site, group='reviewer')
+
+    @staticmethod
+    def enterer(site=None):
+        return groups.principal(site=site, group='enterer')
+
+    @staticmethod
+    def consumer(site=None):
+        return groups.principal(site=site, group='consumer')
+
+    @staticmethod
+    def member(site=None):
+        return groups.principal(site=site, group='member')
+
+
+def groupfinder(identity, request):
+    """
+    Parse the groups from the identity into internal app groups
+    """
+    assert 'groups' in identity, \
+        'Groups has not been set in the repoze identity!'
+    mappings = request.group_mappings
+    return [mappings[g] for g in identity['groups'] if g in mappings]
+
+
+class RootFactory(dict):
+
+    __acl__ = [
+        (Allow, groups.administrator(), ALL_PERMISSIONS),
+        (Allow, Authenticated, 'view')
+        ]
+
+    def __init__(self, request):
+        self.request = request
+
+
+class LabFactory(dict):
+
+    __acl__ = [
+        (Allow, groups.administrator(), ALL_PERMISSIONS),
+        (Allow, Authenticated, 'view')
+        ]
+
+    def __init__(self, request):
+        self.request = request
+
+    def __getitem__(self, key):
+        try:
+            lab = Session.query(Location).filter_by(name=key).one()
+        except orm.exc.NoResultFound:
+            raise KeyError
+        lab.__parent__ = self
+        return lab
+
+
+class SpecimenFactory(dict):
+
+    __acl__ = [
+        (Allow, groups.administrator(), ALL_PERMISSIONS),
+        (Allow, Authenticated, 'view')
+        ]
+
+    def __init__(self, request):
+        self.request = request
+
+    def __getitem__(self, key):
+        try:
+            specimen = Session.query(Specimen).filter_by(id=key).one()
+        except orm.exc.NoResultFound:
+            raise KeyError
+        specimen.__parent__ = self
+        return specimen
+
+
+class AliquotFactory(dict):
+
+    __acl__ = [
+        (Allow, groups.administrator(), ALL_PERMISSIONS),
+        (Allow, Authenticated, 'view')
+        ]
+
+    def __init__(self, request):
+        self.request = request
+
+    def __getitem__(self, key):
+        try:
+            aliquot = Session.query(Aliquot).filter_by(id=key).one()
+        except orm.exc.NoResultFound:
+            raise KeyError
+        aliquot.__parent__ = self
+        return aliquot
 
 
 specimentype_study_table = Table(
@@ -103,6 +249,15 @@ class Location(Base, Describeable, Referenceable, Modifiable):
 
     __tablename__ = 'location'
 
+    @property
+    def __acl__(self):
+        acl = [(Allow, groups.administrator(), ALL_PERMISSIONS)]
+        for site in self.sites:
+            acl.extend([
+                (Allow, groups.member(site=site.name), 'view')
+                ])
+        return acl
+
     sites = relationship(
         Site,
         secondary=site_lab_location_table,
@@ -192,6 +347,7 @@ class AliquotType(Base, Referenceable, Describeable, Modifiable):
             name='aliquot_types',
             primaryjoin='SpecimenType.id == AliquotType.specimen_type_id',
             collection_class=attribute_mapped_collection('name'),
+            order_by='AliquotType.title',
             cascade='all, delete, delete-orphan'),
         primaryjoin=(specimen_type_id == SpecimenType.id),
         doc='The Type specimen from which this aliquot type is derived')
@@ -283,6 +439,22 @@ class Specimen(Base, Referenceable, Auditable, Modifiable):
     tubes = Column(Integer)
 
     notes = Column(Unicode)
+
+    @property
+    def visit_date(self):
+        session = orm.object_session(self)
+        query = (
+            session.query(Visit)
+            .filter(Visit.patient == self.patient)
+            .filter(Visit.cycles.any(id=self.cycle.id)))
+        try:
+            visit = query.one()
+        except orm.exc.NoResultFound:
+            return self.collect_date
+        except orm.exc.MultipleResultsFound:
+            return self.collect_date
+        else:
+            return visit.visit_date
 
     @declared_attr
     def __table_args__(cls):
