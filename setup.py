@@ -1,33 +1,38 @@
 import os
 from subprocess import Popen, PIPE
 from setuptools import setup, find_packages
+from setuptools.command.develop import develop as _develop
 import sys
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 REQUIRES = [
-    'alembic',
-    'babel',
-    'cssmin',
-    'humanize',
-    'jsmin',
-    'lingua',
-    'pyramid',
-    'pyramid_chameleon',
-    'pyramid_tm',
-    'pyramid_redis_sessions',
-    'pyramid_rewrite',
-    'pyramid_webassets',
-    'pyramid_who',
-    'reportlab',
-    'SQLAlchemy',
-    'six',
-    'webassets',
-    'xlutils',
-    'zope.sqlalchemy',
+    'alembic',                          # Database table upgrades
+    'babel',                            # i18n
+    'cssmin',                           # CSS asset compression
+    'humanize',                         # human readable measurements
+    'jsmin',                            # JS asset compression
+    'lingua',                           # i18n
+    'python-dateutil',                  # Date parsing
+    'python-slugify',                   # path-friendly filenames
+    'pyramid>=1.5',                     # Framework
+    'pyramid_chameleon',                # Templating
+    'pyramid_tm',                       # Centralized transations
+    'pyramid_redis_sessions',           # HTTP session with redis backend
+    'pyramid_rewrite',                  # Allows urls to end in "/"
+    'pyramid_webassets',                # Asset management (ala grunt)
+    'pyramid_who',                      # User authentication
+    'six',                              # Py 2 & 3 compatibilty
+    'SQLAlchemy>=0.9.0',                # Database ORM
+    'tabulate',                         # ASCII tables for CLI pretty-print
+    'wtforms',
+    'wtforms-components',
+    'wtforms-json',
+    'zope.sqlalchemy',                  # Connects sqlalchemy to pyramid_tm
 
-    'occams.studies',
-    'occams.datastore'
+    'occams.datastore',                 # EAV
+    'occams.accounts',
+    'occams.studies'
 ]
 
 EXTRAS = {
@@ -45,6 +50,15 @@ EXTRAS = {
         'mock',
         'ddt'],
 }
+
+
+if sys.version_info < (2, 7):
+    REQUIRES.extend(['argparse', 'ordereddict'])
+    EXTRAS['test'].extend(['unittest2'])
+
+
+if sys.version_info < (3, 0):
+    REQUIRES.extend(['unicodecsv'])
 
 
 def get_version():
@@ -76,6 +90,18 @@ def get_version():
 
     return version
 
+
+class _custom_develop(_develop):
+    def run(self):
+        _develop.run(self)
+        self.execute(_post_develop, [], msg="Running post-develop task")
+
+
+def _post_develop():
+    from subprocess import call
+    call(['npm', 'install'], cwd=HERE)
+    call(['./node_modules/.bin/bower', 'install'], cwd=HERE)
+
 setup(
     name='occams.lab',
     version=get_version(),
@@ -100,6 +126,7 @@ setup(
     extras_require=EXTRAS,
     tests_require=EXTRAS['test'],
     test_suite='nose.collector',
+    cmdclass={'develop': _custom_develop},
     entry_points="""\
     [paste.app_factory]
     main = occams.lab:main

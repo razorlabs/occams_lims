@@ -1,0 +1,19 @@
+<tal:switch switch="state.name">
+
+  <span tal:case="'aliquoted'" class="label label-success">${state.title}</span>
+
+  <span tal:case="'batched'" class="label label-primary">${state.title}</span>
+  <span tal:case="'complete'" class="label label-primary">${state.title}</span>
+
+  <span tal:case="'pending-aliquot'" class="label label-warning">${state.title}</span>
+  <span tal:case="'pending-draw'" class="label label-warning">${state.title}</span>
+
+  <span tal:case="'postponed'" class="label label-info">${state.title}</span>
+  <span tal:case="'prepared-aliquot'" class="label label-info">${state.title}</span>
+
+  <span tal:case="'cancel-draw'" class="label label-danger">${state.title}</span>
+  <span tal:case="'rejected'" class="label label-danger">${state.title}</span>
+
+  <span tal:case="default" class="label label-default">${state.title}</span>
+
+</tal:switch>

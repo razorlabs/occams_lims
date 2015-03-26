@@ -63,6 +63,12 @@ Session.vim
 *.egg
 *.egg-info*
 *PKG-INFO
+VERSION
+
+##### Node
+npm_modules
+node_modules
+bower_components
 
 ##### Buildout / Unit test / Coverage Reports
 .coverage
@@ -82,10 +88,16 @@ parts
 sdist
 var
 develop.cfg
-VERSION
+development.ini
+production.ini
+res
+refs
+gen
+webassets-external
 
 ##### Translations
 *.mo
 
 ##### Installer Logs
 pip-log.txt
+
