@@ -1,8 +1,6 @@
 <html i18n:domain="occams.studies" metal:use-macro="load:../master.pt">
   <metal:content-slot fill-slot="content-slot">
 
-    <div metal:use-macro="load: header-toolbar.pt"></div>
-
     <h1>${context.title}</h1>
 
     <nav metal:use-macro="load: header-nav.pt"></nav>

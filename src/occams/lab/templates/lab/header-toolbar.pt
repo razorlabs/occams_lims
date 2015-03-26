@@ -1,9 +1,0 @@
-<div class="btn-toolbar pull-right">
-    <button
-        type="button"
-        class="btn btn-default"
-        data-modal-remote="${request.current_route_path(_route_name='lab_edit')}"
-        data-modal-target="#modal-target"
-        >Edit Location</button>
-
-</div>
