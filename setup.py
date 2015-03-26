@@ -103,7 +103,7 @@ def _post_develop():
     call(['./node_modules/.bin/bower', 'install'], cwd=HERE)
 
 setup(
-    name='occams.lab',
+    name='occams.lims',
     version=get_version(),
     description="Lab Inventory management",
     classifiers=[
@@ -115,7 +115,7 @@ setup(
     keywords='',
     author='BEAST Core Development Team',
     author_email='bitcore@ucsd.edu',
-    url='https://bitbucket.org/ucsdbitcore/occams.lab',
+    url='https://bitbucket.org/ucsdbitcore/occams.lims',
     license='GPL',
     packages=find_packages('src', exclude=['ez_setup']),
     package_dir={'': 'src'},
@@ -129,6 +129,6 @@ setup(
     cmdclass={'develop': _custom_develop},
     entry_points="""\
     [paste.app_factory]
-    main = occams.lab:main
+    main = occams.lims:main
     """,
 )

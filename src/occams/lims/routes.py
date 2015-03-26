@@ -11,7 +11,7 @@ def includeme(config):
     Helper method to configure available routes for the application
     """
 
-    config.add_static_view('static',                'occams.lab:static', cache_max_age=3600)
+    config.add_static_view('static',                'occams.lims:static', cache_max_age=3600)
 
     config.add_route('labs',                         '/',                                factory=models.LabFactory)
     config.add_route('lab',                          '/{lab}',                           factory=models.LabFactory, traverse='/{lab}')

@@ -1,5 +1,5 @@
 {
-  "name": "occams.studies",
+  "name": "occams.lims",
   "dependencies": {
     "bootstrap": "3.x",
     "font-awesome": "4.x",
