@@ -1,7 +1,4 @@
-from pyramid.settings import aslist
 from pyramid.security import Allow, Authenticated, ALL_PERMISSIONS
-import six
-import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import (
@@ -11,38 +8,13 @@ from sqlalchemy import (
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from occams.studies.models import Site, Patient, Study, Cycle, Visit
-from occams.datastore.models import (
-    ModelClass, Referenceable, Describeable, Modifiable, Auditable, User)
+from occams_datastore.models import (
+    ModelClass, Referenceable, Describeable, Modifiable, Auditable)
+from occams_studies.models import Site, Patient, Study, Cycle, Visit
 
-from . import Session, log
+from . import Session
 
 Base = ModelClass('Base')
-
-
-def includeme(config):
-    """
-    Configures additional security utilities
-    """
-    settings = config.registry.settings
-
-    assert 'auth.groups' in settings
-
-    mappings = {}
-
-    for entry in aslist(settings['auth.groups'], flatten=False):
-        (site_domain, app_domain) = entry.split('=')
-        mappings[site_domain.strip()] = app_domain.strip()
-
-    config.add_request_method(
-        lambda request: mappings, name='group_mappings', reify=True)
-
-    # tests will override the session, use the setting for everything else
-    if isinstance(settings['app.db.url'], six.string_types):
-        Session.configure(bind=sa.engine_from_config(settings, 'app.db.'))
-
-    log.debug('Clinical connected to: "%s"' % repr(Session.bind.url))
-    Base.metadata.info['settings'] = settings
 
 
 class groups:
@@ -80,27 +52,6 @@ class groups:
     @staticmethod
     def member(site=None):
         return groups.principal(site=site, group='member')
-
-
-def groupfinder(identity, request):
-    """
-    Parse the groups from the identity into internal app groups
-    """
-    assert 'groups' in identity, \
-        'Groups has not been set in the repoze identity!'
-    mappings = request.group_mappings
-    return [mappings[g] for g in identity['groups'] if g in mappings]
-
-
-class RootFactory(dict):
-
-    __acl__ = [
-        (Allow, groups.administrator(), ALL_PERMISSIONS),
-        (Allow, Authenticated, 'view')
-        ]
-
-    def __init__(self, request):
-        self.request = request
 
 
 class LabFactory(dict):

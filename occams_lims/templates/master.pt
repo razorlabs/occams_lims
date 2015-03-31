@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="${request.locale_name}" i18n:domain="occams.lims">
+<html lang="${request.locale_name}" i18n:domain="occams_lims">
 
-  <tal:version define="pkg import:occams.lims">
+  <tal:version define="pkg import:occams_lims">
   <!-- Application: ${pkg.__name__} -->
   <!-- Version:     ${pkg.__version__} -->
   </tal:version>
@@ -14,16 +14,16 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-    <link tal:repeat="url request.webassets_env['default-css'].urls()" href="${url}" rel="stylesheet" type="text/css" />
+    <link tal:repeat="url request.webassets_env['lims-css'].urls()" href="${url}" rel="stylesheet" type="text/css" />
 
     <!-- Shortcut icons -->
     <link
         rel="shortcut icon"
-        href="${request.static_path('occams.lims:static/images/favicon.ico')}"/>
-    <link rel="shortcut icon" sizes="1024x1024" href="${request.static_path('occams.lims:static/images/favicon-highres.png')}">
-    <link rel="shortcut icon" sizes="128x128" href="${request.static_path('occams.lims:static/images/favicon.png')}">
-    <link rel="apple-touch-icon" sizes="128x128" href="${request.static_path('occams.lims:static/images/favicon.png')}">
-    <link rel="apple-touch-icon-precomposed" sizes="128x128" href="${request.static_path('occams.lims:static/images/favicon.png')}">
+        href="${request.static_path('occams_lims:static/images/favicon.ico')}"/>
+    <link rel="shortcut icon" sizes="1024x1024" href="${request.static_path('occams_lims:static/images/favicon-highres.png')}">
+    <link rel="shortcut icon" sizes="128x128" href="${request.static_path('occams_lims:static/images/favicon.png')}">
+    <link rel="apple-touch-icon" sizes="128x128" href="${request.static_path('occams_lims:static/images/favicon.png')}">
+    <link rel="apple-touch-icon-precomposed" sizes="128x128" href="${request.static_path('occams_lims:static/images/favicon.png')}">
   </head>
 
   <body>
@@ -57,7 +57,7 @@
                 tal:define="section request.current_route_path(_query={})">
 
               <li tal:define="
-                    factory import:occams.lims.models.LabFactory;
+                    factory import:occams_lims.models.LabFactory;
                     labs factory(request);
                     url request.route_path('labs');
                     current_lab request.matchdict['lab']|nothing;
@@ -118,7 +118,7 @@
                 </ul>
               </li>
               <li>
-                <a href="${request.accounts_logout_url}"
+                <a href="${request.route_path('logout')}"
                     rel="tooltip"
                     data-placement="bottom"
                     data-container="body"
@@ -159,7 +159,7 @@
 
   <!--! Load scripts at the end so we don't block rendering -->
   <script
-      tal:repeat="url request.webassets_env['default-js'].urls()"
+      tal:repeat="url request.webassets_env['lims-js'].urls()"
       src="${url}"
       type="text/javascript"></script>
 
