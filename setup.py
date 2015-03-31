@@ -30,9 +30,7 @@ REQUIRES = [
     'wtforms-json',
     'zope.sqlalchemy',                  # Connects sqlalchemy to pyramid_tm
 
-    'occams.datastore',                 # EAV
-    'occams.accounts',
-    'occams.studies'
+    'occams_studies'
 ]
 
 EXTRAS = {
@@ -99,11 +97,10 @@ class _custom_develop(_develop):
 
 def _post_develop():
     from subprocess import call
-    call(['npm', 'install'], cwd=HERE)
-    call(['./node_modules/.bin/bower', 'install'], cwd=HERE)
+    call(['bower', 'install'], cwd=HERE)
 
 setup(
-    name='occams.lims',
+    name='occams_lims',
     version=get_version(),
     description="Lab Inventory management",
     classifiers=[
@@ -115,11 +112,9 @@ setup(
     keywords='',
     author='BEAST Core Development Team',
     author_email='bitcore@ucsd.edu',
-    url='https://bitbucket.org/ucsdbitcore/occams.lims',
+    url='https://bitbucket.org/ucsdbitcore/occams_lims',
     license='GPL',
-    packages=find_packages('src', exclude=['ez_setup']),
-    package_dir={'': 'src'},
-    namespace_packages=['occams'],
+    packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
     install_requires=REQUIRES,
@@ -127,8 +122,4 @@ setup(
     tests_require=EXTRAS['test'],
     test_suite='nose.collector',
     cmdclass={'develop': _custom_develop},
-    entry_points="""\
-    [paste.app_factory]
-    main = occams.lims:main
-    """,
 )
