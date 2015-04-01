@@ -102,7 +102,7 @@
           type="button"
           class="btn btn-default"
           name="print"
-          data-modal-remote="${request.current_route_path(_route_name='lab_specimen_labels')}"
+          data-modal-remote="${request.current_route_path(_route_name='lims.lab_specimen_labels')}"
           data-modal-target="#modal-target"
           data-toggle="popover"
           data-trigger="hover"
@@ -119,7 +119,7 @@
           data-trigger="hover"
           data-placement="top"
           data-html="true"
-          data-content="Saves all changes entered to the database (for all specimen). Then marks the selected specimen as complete. If the location you've entered for the items is the current lab, you will find them in <a href='${request.current_route_path(_route_name='lab_batched')}'>batched</a>"
+          data-content="Saves all changes entered to the database (for all specimen). Then marks the selected specimen as complete. If the location you've entered for the items is the current lab, you will find them in <a href='${request.current_route_path(_route_name='lims.lab_batched')}'>batched</a>"
           >Complete Selected</button>
       <button
           type="submit"
@@ -135,7 +135,7 @@
           type="button"
           class="btn btn-default"
           name="add"
-          data-modal-remote="${request.current_route_path(_route_name='lab_specimen_add')}"
+          data-modal-remote="${request.current_route_path(_route_name='lims.lab_specimen_add')}"
           data-modal-target="#modal-target"
           data-toggle="popover"
           data-trigger="hover"

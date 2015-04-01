@@ -90,7 +90,7 @@
           class="btn btn-default"
           name="bulk_update"
           tal:attributes="disabled not:has_aliquot"
-          data-modal-remote="${request.current_route_path(_route_name='lab_checkout_update')}"
+          data-modal-remote="${request.current_route_path(_route_name='lims.lab_checkout_update')}"
           data-modal-target="#modal-target"
           data-toggle="popover"
           data-trigger="hover"
@@ -99,7 +99,7 @@
           >Bulk Update</button>
       <a type="button"
           class="btn btn-default"
-          href="${request.current_route_path(_route_name='lab_checkout_receipt')}"
+          href="${request.current_route_path(_route_name='lims.lab_checkout_receipt')}"
           target="_blank"
           tal:attributes="disabled not:has_aliquot"
         >Print Receipt</a>

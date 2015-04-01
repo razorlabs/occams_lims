@@ -3,7 +3,7 @@
 
     <div class="list-group">
       <tal:lab repeat="lab labs">
-        <a href="${request.route_path('lab', lab=lab.name)}" class="list-group-item">${lab.title}</a>
+        <a href="${request.route_path('lims.lab', lab=lab.name)}" class="list-group-item">${lab.title}</a>
       </tal:lab>
     </div>
 

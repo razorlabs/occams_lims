@@ -81,7 +81,7 @@
           type="button"
           class="btn btn-default"
           name="add"
-          data-modal-remote="${request.current_route_path(_route_name='lab_specimen_add')}"
+          data-modal-remote="${request.current_route_path(_route_name='lims.lab_specimen_add')}"
           data-modal-target="#modal-target"
           data-toggle="popover"
           data-trigger="hover"

@@ -25,7 +25,7 @@ ALIQUOT_LABEL_QUEUE = 'aliquot_label_queue'
 
 
 @view_config(
-    route_name='labs',
+    route_name='lims.main',
     permission='view',
     renderer='../templates/lab/list.pt')
 def list_(context, request):
@@ -130,7 +130,7 @@ def build_crud_form(context, request):
 
 
 @view_config(
-    route_name='lab',
+    route_name='lims.lab',
     permission='view',
     renderer='../templates/lab/inbox.pt')
 def inbox(context, request):
@@ -227,7 +227,7 @@ def inbox(context, request):
 
 
 @view_config(
-    route_name='lab_specimen_labels',
+    route_name='lims.lab_specimen_labels',
     permission='view',
     renderer='../templates/lab/modal-labels.pt')
 def specimen_labels(context, request):
@@ -297,7 +297,7 @@ def specimen_labels(context, request):
 
 
 @view_config(
-    route_name='lab_aliquot_labels',
+    route_name='lims.lab_aliquot_labels',
     permission='view',
     renderer='../templates/lab/modal-labels.pt')
 def aliquot_labels(context, request):
@@ -351,7 +351,7 @@ def aliquot_labels(context, request):
             request.session[ALIQUOT_LABEL_QUEUE] = set()
             request.session.changed()
             request.session.flash(u'Your Queue has been cleared', 'info')
-            next = request.current_route_path(_route_name='lab')
+            next = request.current_route_path(_route_name='lims.lab')
             if request.is_xhr:
                 return HTTPOk(json={'__next__': next})
             else:
@@ -447,7 +447,7 @@ def build_add_form(context, request):
 
 
 @view_config(
-    route_name='lab_specimen_add',
+    route_name='lims.lab_specimen_add',
     permission='edit',
     renderer='../templates/lab/modal-specimen-add.pt')
 def add(context, request):
@@ -485,7 +485,7 @@ def add(context, request):
         request.session.flash(
             _(u'Specimen added for ${pid}', mapping={'pid': form.pid.data}),
             'success')
-        url = request.current_route_path(_route_name='lab')
+        url = request.current_route_path(_route_name='lims.lab')
         return HTTPOk(json={'__next__': url})
 
     return {
@@ -701,7 +701,7 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
 
 
 @view_config(
-    route_name='lab_batched',
+    route_name='lims.lab_batched',
     permission='edit',
     renderer='../templates/lab/batched.pt')
 def batched(context, request):
@@ -753,7 +753,7 @@ def batched(context, request):
 
 
 @view_config(
-    route_name='lab_ready',
+    route_name='lims.lab_ready',
     permission='edit',
     renderer='../templates/lab/ready.pt')
 def ready(context, request):
@@ -1017,7 +1017,7 @@ def ready(context, request):
 
 
 @view_config(
-    route_name='lab_checkout',
+    route_name='lims.lab_checkout',
     permission='edit',
     renderer='../templates/lab/checkout.pt')
 def checkout(context, request):
@@ -1111,7 +1111,7 @@ def checkout(context, request):
 
 
 @view_config(
-    route_name='lab_checkout_update',
+    route_name='lims.lab_checkout_update',
     permission='edit',
     renderer='../templates/lab/modal-checkout-bulk-update.pt')
 def checkout_update(context, request):
@@ -1152,7 +1152,7 @@ def checkout_update(context, request):
             request.session.flash(_(u'Changed saved'), 'success')
             return HTTPOk(json={
                 '__next__': request.current_route_path(
-                    _route_name='lab_checkout')
+                    _route_name='lims.lab_checkout')
             })
 
     vals.update({
@@ -1163,7 +1163,7 @@ def checkout_update(context, request):
 
 
 @view_config(
-    route_name='lab_checkout_receipt',
+    route_name='lims.lab_checkout_receipt',
     permission='edit',
     renderer='../templates/lab/receipt.pt')
 def checkout_receipt(context, request):
@@ -1196,7 +1196,7 @@ def checkout_receipt(context, request):
 
 
 @view_config(
-    route_name='lab_checkin',
+    route_name='lims.lab_checkin',
     permission='edit',
     renderer='../templates/lab/checkin.pt')
 def checkin(context, request):

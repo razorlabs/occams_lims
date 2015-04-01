@@ -48,7 +48,7 @@
               <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand"
-                href="${request.route_path('labs')}">OCCAMS LIMS</a>
+                href="${request.route_path('lims.main')}">OCCAMS LIMS</a>
           </div> <!--/.navbar-header -->
 
           <div class="collapse navbar-collapse">
@@ -59,9 +59,9 @@
               <li tal:define="
                     factory import:occams_lims.models.LabFactory;
                     labs factory(request);
-                    url request.route_path('labs');
+                    url request.route_path('lims.main');
                     current_lab request.matchdict['lab']|nothing;
-                    active request.matched_route.name.startswith('lab');"
+                    active request.matched_route.name.startswith('lims.lab');"
                   tal:attributes="class python:'active' if active else ''"
                   tal:condition="request.has_permission('view', labs)"
                   id="labs-menu"
@@ -79,7 +79,7 @@
                         class="js-lab-option"
                         data-id="${lab.id}"
                         tabindex="-1"
-                        href="${request.route_path('lab', lab=lab.name)}">${lab.title}</a>
+                        href="${request.route_path('lims.lab', lab=lab.name)}">${lab.title}</a>
                   </li>
                 </ul>
               </li> <!-- /#labs-menu -->
@@ -118,7 +118,7 @@
                 </ul>
               </li>
               <li>
-                <a href="${request.route_path('logout')}"
+                <a href="${request.route_path('accounts.logout')}"
                     rel="tooltip"
                     data-placement="bottom"
                     data-container="body"
