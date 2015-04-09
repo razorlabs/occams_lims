@@ -926,8 +926,8 @@ def ready(context, request):
             return HTTPFound(location=request.current_route_path())
 
         elif 'queue' in request.POST and aliquot_form.validate():
-            for i, subform in enumerate(aliquot_form.specimen.entries):
-                apply_changes(subform.form, specimen[i])
+            for i, subform in enumerate(aliquot_form.aliquot.entries):
+                apply_changes(subform.form, aliquot[i])
             queue_count = update_print_queue()
             if queue_count:
                 request.session.flash(
