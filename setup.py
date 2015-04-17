@@ -8,38 +8,16 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 
 REQUIRES = [
     'alembic',                          # Database table upgrades
-    'babel',                            # i18n
-    'cssmin',                           # CSS asset compression
     'humanize',                         # human readable measurements
-    'jsmin',                            # JS asset compression
-    'lingua',                           # i18n
-    'python-dateutil',                  # Date parsing
-    'python-slugify',                   # path-friendly filenames
-    'pyramid>=1.5',                     # Framework
-    'pyramid_chameleon',                # Templating
-    'pyramid_tm',                       # Centralized transations
-    'pyramid_redis_sessions',           # HTTP session with redis backend
-    'pyramid_rewrite',                  # Allows urls to end in "/"
-    'pyramid_webassets',                # Asset management (ala grunt)
-    'pyramid_who',                      # User authentication
+    'reportlab',
     'six',                              # Py 2 & 3 compatibilty
-    'SQLAlchemy>=0.9.0',                # Database ORM
-    'tabulate',                         # ASCII tables for CLI pretty-print
-    'wtforms',
-    'wtforms-components',
-    'wtforms-json',
-    'zope.sqlalchemy',                  # Connects sqlalchemy to pyramid_tm
 
+    'occams',
     'occams_studies'
 ]
 
 EXTRAS = {
-    'ldap': ['python3-ldap', 'who_ldap'],
-    'sqlite': [],
-    'postgresql': ['psycopg2', 'psycogreen'],
-    'gunicorn': ['gunicorn'],
     'test': [
-        'pyramid_debugtoolbar',
         'nose',
         'nose-testconfig',
         'coverage',
@@ -48,15 +26,6 @@ EXTRAS = {
         'mock',
         'ddt'],
 }
-
-
-if sys.version_info < (2, 7):
-    REQUIRES.extend(['argparse', 'ordereddict'])
-    EXTRAS['test'].extend(['unittest2'])
-
-
-if sys.version_info < (3, 0):
-    REQUIRES.extend(['unicodecsv'])
 
 
 def get_version():
