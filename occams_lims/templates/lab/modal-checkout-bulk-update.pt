@@ -1,0 +1,78 @@
+<div class="modal-dialog">
+  <div class="modal-content">
+    <form class="form-horizontal"
+        method="POST"
+        action="${request.current_route_path()}">
+
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
+
+      <div class="modal-header">
+        <h4 class="modal-title">Bulk update ${pager.total_count} aliquot</h4>
+      </div>
+
+      <div class="modal-body">
+
+        <div tal:define="field form.location_id" class="form-group ${'has-errors' if field.errors else ''}">
+          <label class="col-sm-3 control-label ${'required' if field.flags.required else ''}">${field.label.text}</label>
+          <div class="col-sm-9">
+            <div class="row">
+              <div class="col-sm-12">
+                ${field(class_='form-control js-select2')}
+                <script>$('#${field.id}').select2()</script>
+              </div>
+            </div>
+            <div class="errors"><div class="help-block" tal:repeat="error field.errors"><strong>${error}</strong></div></div>
+            <div class="help-block" tal:condition="field.description">${field.description}</div>
+          </div>
+        </div>
+
+        <div tal:define="field form.sent_date" class="form-group ${'has-errors' if field.errors else ''}">
+          <label class="col-sm-3 control-label ${'required' if field.flags.required else ''}">${field.label.text}</label>
+          <div class="col-sm-9">
+            <div class="row">
+              <div class="col-sm-12">
+                ${field(class_='form-control js-date')}
+                <script>$('#${field.id}').datetimepicker({format: 'YYYY-MM-DD', useCurrent: false, pickTime: false});</script>
+              </div>
+            </div>
+            <div class="errors"><div class="help-block" tal:repeat="error field.errors"><strong>${error}</strong></div></div>
+            <div class="help-block" tal:condition="field.description">${field.description}</div>
+          </div>
+        </div>
+
+        <div tal:define="field form.sent_name" class="form-group ${'has-errors' if field.errors else ''}">
+          <label class="col-sm-3 control-label ${'required' if field.flags.required else ''}">${field.label.text}</label>
+          <div class="col-sm-9">
+            <div class="row">
+              <div class="col-sm-12">
+                ${field(class_='form-control')}
+              </div>
+            </div>
+            <div class="errors"><div class="help-block" tal:repeat="error field.errors"><strong>${error}</strong></div></div>
+            <div class="help-block" tal:condition="field.description">${field.description}</div>
+          </div>
+        </div>
+
+        <div tal:define="field form.sent_notes" class="form-group ${'has-errors' if field.errors else ''}">
+          <label class="col-sm-3 control-label ${'required' if field.flags.required else ''}">${field.label.text}</label>
+          <div class="col-sm-9">
+            <div class="row">
+              <div class="col-sm-12">
+                ${field(class_='form-control js-select2')}
+              </div>
+            </div>
+            <div class="errors"><div class="help-block" tal:repeat="error field.errors"><strong>${error}</strong></div></div>
+            <div class="help-block" tal:condition="field.description">${field.description}</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-link" data-dismiss="modal">Close</button>
+        <button type="submit" name="save" value="1" class="btn btn-primary">Save</button>
+      </div>
+
+    </form>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->

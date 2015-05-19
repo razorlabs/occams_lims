@@ -1,0 +1,142 @@
+<html i18n:domain="occams.studies" metal:use-macro="load:../master.pt">
+  <metal:content-slot fill-slot="content-slot">
+
+    <h1>${context.title}</h1>
+
+    <nav metal:use-macro="load: header-nav.pt"></nav>
+
+    <br />
+
+    <form metal:use-macro="load: filter-aliquot.pt"></form>
+
+    <hr />
+
+    <div class="well well-lg" tal:condition="not:has_aliquot">
+      <h3 i18n:translate="">No aliquot found</h3>
+      <p i18n:translate="">Please refine your search</p>
+    </div>
+
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
+
+      <table class="table table-bordered table-hover table-striped" tal:condition="has_aliquot">
+        <thead>
+          <tr>
+            <!-- TODO remove hardcoded styling -->
+            <th style="width: 2%"><input type="checkbox" data-toggle='selectall'/></th>
+            <th style="width: 4%" i18n:translate="">ID</th>
+            <th style="width: 5%" i18n:translate="">Patient</th>
+            <th style="width: 5%" i18n:translate="">Study/Cycle</th>
+            <th style="width: 9%" i18n:translate="">Type</th>
+            <th style="width: 9%" i18n:translate="">Volume / Cell Count</th>
+            <th style="width: 4%" i18n:translate="">Freezer/Rack/Box</th>
+            <th style="width: 9%" i18n:translate="">Storage Date</th>
+            <th style="width: 7%" i18n:translate="">Special Instructions</th>
+            <th style="width: 10%" i18n:translate="">Notes</th>
+            <th style="width: 10%" i18n:translate="">Location</th>
+            <th style="width: 10%" i18n:translate="">Sent Date</th>
+            <th style="width: 10%" i18n:translate="">Recipient</th>
+            <th style="width: 10%" i18n:translate="">Sent Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tal:draw repeat="sample aliquot">
+            <tr tal:define="subform form.aliquot.entries[repeat['sample'].index]">
+              <td>${subform.ui_selected(**{'data-toggle': 'select'})}</td>
+              <td><code>${sample.id}</code></td>
+              <td><code>${sample.specimen.patient.pid}</code></td>
+              <td>${sample.specimen.cycle.study.short_title} - ${sample.specimen.cycle.week}</td>
+              <td>${sample.aliquot_type.title}</td>
+              <td>${(sample.volume > 0 and sample.volume) or (sample.cell_amount > 0 and sample.cell_amount) or '--'}</td>
+              <td>${sample.freezer or '?'}/${sample.rack or '?'}/${sample.box or '?'}</td>
+              <td>${sample.store_date}</td>
+              <td>${sample.special_instruction}</td>
+              <td>${sample.notes}</td>
+              <td tal:define="field subform.location_id">
+                ${field(class_='form-control js-select2')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.sent_date">
+                ${field(class_='form-control js-date')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.sent_name">
+                ${field(class_='form-control')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.sent_notes">
+                ${field(class_='form-control')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+            </tr>
+          </tal:draw>
+        <tbody>
+      </table>
+
+      <nav metal:use-macro="load: specimen-pager.pt"></nav>
+
+      <button
+          type="submit"
+          class="btn btn-default"
+          name="save"
+          tal:attributes="disabled not:has_aliquot"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-content=" Saves all of the changes entered to the database. This applies to all aliquot, not just selected aliquot. "
+          >Save Changes</button>
+      <button
+          type="button"
+          class="btn btn-default"
+          name="bulk_update"
+          tal:attributes="disabled not:has_aliquot"
+          data-modal-remote="${request.current_route_path(_route_name='lims.lab_checkout_update')}"
+          data-modal-target="#modal-target"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-content="Opens a new window for updating *all* of the aliquot in the checkout queue. NOTE: There may be more aliquot in the queue than you see on the screen"
+          >Bulk Update</button>
+      <a type="button"
+          class="btn btn-default"
+          href="${request.current_route_path(_route_name='lims.lab_checkout_receipt')}"
+          target="_blank"
+          tal:attributes="disabled not:has_aliquot"
+        >Print Receipt</a>
+      <button
+          type="submit"
+          class="btn btn-default"
+          name="return"
+          tal:attributes="disabled not:has_aliquot"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-html="true"
+          data-content="Return the selected aliquot to a 'checked in' state. This will reset the location to the current lab location. "
+          >Return Aliquot</button>
+      <button
+          type="submit"
+          class="btn btn-default"
+          name="complete"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-content="Finalize checkout for selected aliquot. These aliquot can be checked back in"
+          tal:attributes="disabled not:has_aliquot"
+          >Complete Checkout</button>
+
+    </form>
+
+    <div id="modal-target" class="modal fade"></div>
+
+  </metal:content-slot>
+  <metal:content-slot fill-slot="javascript-extras-slot">
+    <script>
+      $(function () {
+        $('[data-toggle="popover"]').popover();
+        $('.js-select2').select2({allowClear: true});
+        $('.js-date').datetimepicker({useCurrent: false, pickTime: false, format: 'YYYY-MM-DD'});
+      })
+    </script>
+  </metal:content-slot>
+</html>

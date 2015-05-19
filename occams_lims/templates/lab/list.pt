@@ -1,0 +1,11 @@
+<html i18n:domain="occams.studies" metal:use-macro="load:../master.pt">
+  <metal:content-slot fill-slot="content-slot">
+
+    <div class="list-group">
+      <tal:lab repeat="lab labs">
+        <a href="${request.route_path('lims.lab', lab=lab.name)}" class="list-group-item">${lab.title}</a>
+      </tal:lab>
+    </div>
+
+  </metal:content-slot>
+</html>

@@ -1,0 +1,33 @@
+<nav
+    tal:define="
+      pager pager|nothing;
+      page_key page_key|'page'; "
+    tal:condition="pager and pager.pages > 1">
+  <ul class="pagination" tal:define="
+      current_query           [v for v in request.GET.items() if v[0] != page_key];">
+
+    <li class="${'disabled' if not pager.has_previous else ''}">
+      <a tal:define="_query [(page_key, pager.previous_page)] + current_query"
+          href="${request.current_route_path(_query=_query)}"
+          aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+    </li>
+
+    <tal:page tal:repeat="page pager.iter_pages()">
+      <li tal:condition="page" class="${'active' if page == pager.page else ''}">
+        <a tal:define="_query [(page_key, page)] + current_query"
+            href="${request.current_route_path(_query=_query)}">${page}</a>
+      </li>
+      <li tal:condition="not:page" class="disabled">
+        <span>...</span>
+      </li>
+    </tal:page>
+
+    <li class="${'disabled' if not pager.has_next else ''}">
+      <a tal:define="_query [(page_key, pager.next_page)] + current_query"
+          href="${request.current_route_path(_query=_query)}"
+          aria-label="Next"><span aria-hidden="true">&raquo;</span>
+      </a>
+
+    </li>
+  </ul>
+</nav>
