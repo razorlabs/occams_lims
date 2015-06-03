@@ -20,38 +20,30 @@ Base = ModelClass('Base')
 class groups:
 
     @staticmethod
-    def principal(site=None, group=None):
+    def principal(location=None, group=None):
         """
         Generates the principal name used internally by this application
         Supported keyword parameters are:
             site --  The site code
             group -- The group name
         """
-        return site.name + ':' + group if site else group
+        return location.name + ':' + group if location else group
 
     @staticmethod
     def administrator():
         return groups.principal(group='administrator')
 
     @staticmethod
-    def manager(site=None):
-        return groups.principal(site=site, group='manager')
+    def manager(location=None):
+        return groups.principal(location=location, group='manager')
 
     @staticmethod
-    def reviewer(site=None):
-        return groups.principal(site=site, group='reviewer')
+    def worker(location=None):
+        return groups.principal(location=location, group='consumer')
 
     @staticmethod
-    def enterer(site=None):
-        return groups.principal(site=site, group='enterer')
-
-    @staticmethod
-    def consumer(site=None):
-        return groups.principal(site=site, group='consumer')
-
-    @staticmethod
-    def member(site=None):
-        return groups.principal(site=site, group='member')
+    def member(location=None):
+        return groups.principal(location=location, group='member')
 
 
 class LabFactory(dict):
