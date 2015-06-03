@@ -42,14 +42,16 @@ def setup_package():
     from testconfig import config
     from occams_datastore import models as datastore
     from occams_studies import Session, models
+    from occams_lims import models as lims
     from occams_roster import models as roster, Session as RosterSession
 
     db = config.get('db')
-    studies_engine = create_engine(db)
-    Session.configure(bind=studies_engine)
+    lims_engine = create_engine(db)
+    Session.configure(bind=lims_engine)
 
-    datastore.DataStoreModel.metadata.create_all(studies_engine)
-    models.Base.metadata.create_all(studies_engine)
+    datastore.DataStoreModel.metadata.create_all(lims_engine)
+    models.Base.metadata.create_all(lims_engine)
+    lims.Base.metadata.create_all(lims_engine)
 
     roster_engine = create_engine('sqlite://')
     RosterSession.configure(bind=roster_engine)
@@ -59,6 +61,7 @@ def setup_package():
 def teardown_package():
     import os
     from occams_datastore import models as datastore
+    from occams_lims import models as lims
     from occams_studies import Session, models
 
     url = Session.bind.url
@@ -67,6 +70,7 @@ def teardown_package():
         if Session.bind.url.database not in ('', ':memory:'):
             os.unlink(url.database)
     else:
+        lims.Base.metadata.drop_all(Session.bind)
         models.Base.metadata.drop_all(Session.bind)
         datastore.DataStoreModel.metadata.drop_all(Session.bind)
 
@@ -105,10 +109,9 @@ class FunctionalFixture(unittest.TestCase):
     def setUp(self):
         import tempfile
         import six
-        import transaction
         from webtest import TestApp
-        from occams import main
-        from occams_studies import Session, models
+
+        from occams import main, Session
 
         # The pyramid_who plugin requires a who file, so let's create a
         # barebones files for it...
@@ -142,47 +145,20 @@ class FunctionalFixture(unittest.TestCase):
             'occams.db.url': Session.bind,
             'occams.groups': [],
 
-            # 'studies.export.dir': '/tmp',
-            # 'studies.export.user': 'celery@localhost',
-            # 'studies.celery.broker.url': REDIS_URL,
-            # 'studies.celery.backend.url': REDIS_URL,
-            # 'studies.pid.package': 'occams.roster',
-            # 'studies.blob.dir': '/tmp',
-
             'roster.db.url': 'sqlite://',
         })
 
         self.app = TestApp(app)
-
-        # Add hard-coded workflow that needs to one day be replaced...
-        with transaction.manager:
-            blame = models.User(key=u'autostate')
-            Session.add(blame)
-            Session.flush()
-            Session.info['blame'] = blame
-
-            Session.add_all([
-                models.State(name=u'pending-entry', title=u'Pending Entry'),
-                models.State(name=u'pending-review', title=u'Pending Review'),
-                models.State(name=u'pending-correction', title=u'Pending Correction'),
-                models.State(name=u'complete', title=u'Complete')
-            ])
 
     def tearDown(self):
         import transaction
         from zope.sqlalchemy import mark_changed
         from occams_studies import Session
         with transaction.manager:
-            # DELETE is significantly faster than TRUNCATE
-            # http://stackoverflow.com/a/11423886/148781
-            # We also have to do this as a raw query becuase SA does
-            # not have a way to invoke server-side cascade
-            Session.execute('DELETE FROM "study" CASCADE')
-            Session.execute('DELETE FROM "patient" CASCADE')
+            Session.execute('DELETE FROM "location" CASCADE')
             Session.execute('DELETE FROM "site" CASCADE')
-            Session.execute('DELETE FROM "schema" CASCADE')
-            Session.execute('DELETE FROM "export" CASCADE')
-            Session.execute('DELETE FROM "state" CASCADE')
+            Session.execute('DELETE FROM "study" CASCADE')
+            Session.execute('DELETE FROM "specimentype" CASCADE')
             Session.execute('DELETE FROM "user" CASCADE')
             mark_changed(Session())
         Session.remove()
