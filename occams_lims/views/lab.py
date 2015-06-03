@@ -1,6 +1,6 @@
 from datetime import date
 
-from pyramid.httpexceptions import HTTPFound, HTTPOk
+from pyramid.httpexceptions import HTTPFound, HTTPOk, HTTPForbidden
 from pyramid.view import view_config
 from pyramid.session import check_csrf_token
 import sqlalchemy as sa
@@ -162,6 +162,9 @@ def inbox(context, request):
             and check_csrf_token(request)
             and form.validate()):
 
+        if not request.has_permission('process'):
+            raise HTTPForbidden
+
         if 'save' in request.POST:
             updated_count = 0
             for i, subform in enumerate(form.specimen.entries):
@@ -247,6 +250,8 @@ def specimen_labels(context, request):
     form = PrintForm(request.POST)
 
     if request.method == 'POST' and check_csrf_token(request):
+        if not request.has_permission('process'):
+            raise HTTPForbidden()
 
         if 'print' in request.POST and form.validate():
             if label_queue:
@@ -317,6 +322,8 @@ def aliquot_labels(context, request):
     form = PrintForm(request.POST)
 
     if request.method == 'POST' and check_csrf_token(request):
+        if not request.has_permission('process'):
+            raise HTTPForbidden
 
         if 'print' in request.POST and form.validate():
             if label_queue:
