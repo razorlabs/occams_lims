@@ -198,7 +198,7 @@ class Location(Base, Describeable, Referenceable, Modifiable):
             (Allow, groups.administrator(), ALL_PERMISSIONS),
             (Allow, groups.manager(), ('view', 'process')),
             (Allow, groups.worker(self), ('view', 'process')),
-            (Allow, groups.manager(self), 'view')
+            (Allow, groups.member(self), 'view')
         ]
 
         return acl
