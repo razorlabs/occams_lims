@@ -194,11 +194,13 @@ class Location(Base, Describeable, Referenceable, Modifiable):
 
     @property
     def __acl__(self):
-        acl = [(Allow, groups.administrator(), ALL_PERMISSIONS)]
-        for site in self.sites:
-            acl.extend([
-                (Allow, groups.member(site=site.name), 'view')
-                ])
+        acl = [
+            (Allow, groups.administrator(), ALL_PERMISSIONS),
+            (Allow, groups.manager(), ('view', 'process')),
+            (Allow, groups.worker(self), ('view', 'process')),
+            (Allow, groups.manager(self), 'view')
+        ]
+
         return acl
 
     sites = relationship(
