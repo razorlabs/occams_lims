@@ -69,7 +69,7 @@ class LabFactory(dict):
             lab = Session.query(Location).filter_by(name=key).one()
         except orm.exc.NoResultFound:
             raise KeyError
-        lab.__parent__ = self
+
         return lab
 
 
