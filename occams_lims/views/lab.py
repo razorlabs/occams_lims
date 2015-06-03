@@ -448,7 +448,7 @@ def build_add_form(context, request):
 
 @view_config(
     route_name='lims.lab_specimen_add',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/modal-specimen-add.pt')
 def add(context, request):
     Form = build_add_form(context, request)
@@ -702,7 +702,7 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
 
 @view_config(
     route_name='lims.lab_batched',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/batched.pt')
 def batched(context, request):
 
@@ -754,7 +754,7 @@ def batched(context, request):
 
 @view_config(
     route_name='lims.lab_ready',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/ready.pt')
 def ready(context, request):
     specimen_vals = filter_specimen(context, request, page_key='specimenpage', state='pending-aliquot')
@@ -1018,7 +1018,7 @@ def ready(context, request):
 
 @view_config(
     route_name='lims.lab_checkout',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/checkout.pt')
 def checkout(context, request):
     vals = filter_aliquot(context, request, state='pending-checkout')
@@ -1112,7 +1112,7 @@ def checkout(context, request):
 
 @view_config(
     route_name='lims.lab_checkout_update',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/modal-checkout-bulk-update.pt')
 def checkout_update(context, request):
     vals = filter_aliquot(context, request, state='pending-checkout')
@@ -1164,7 +1164,7 @@ def checkout_update(context, request):
 
 @view_config(
     route_name='lims.lab_checkout_receipt',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/receipt.pt')
 def checkout_receipt(context, request):
     vals = filter_aliquot(context, request, state='pending-checkout')
@@ -1197,7 +1197,7 @@ def checkout_receipt(context, request):
 
 @view_config(
     route_name='lims.lab_checkin',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/checkin.pt')
 def checkin(context, request):
     vals = filter_aliquot(context, request, state='checked-out')
