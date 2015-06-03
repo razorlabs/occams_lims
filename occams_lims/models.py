@@ -39,7 +39,7 @@ class groups:
 
     @staticmethod
     def worker(location=None):
-        return groups.principal(location=location, group='consumer')
+        return groups.principal(location=location, group='worker')
 
     @staticmethod
     def member(location=None):
