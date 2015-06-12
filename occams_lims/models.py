@@ -20,38 +20,30 @@ Base = ModelClass('Base')
 class groups:
 
     @staticmethod
-    def principal(site=None, group=None):
+    def principal(location=None, group=None):
         """
         Generates the principal name used internally by this application
         Supported keyword parameters are:
             site --  The site code
             group -- The group name
         """
-        return site.name + ':' + group if site else group
+        return location.name + ':' + group if location else group
 
     @staticmethod
     def administrator():
         return groups.principal(group='administrator')
 
     @staticmethod
-    def manager(site=None):
-        return groups.principal(site=site, group='manager')
+    def manager(location=None):
+        return groups.principal(location=location, group='manager')
 
     @staticmethod
-    def reviewer(site=None):
-        return groups.principal(site=site, group='reviewer')
+    def worker(location=None):
+        return groups.principal(location=location, group='worker')
 
     @staticmethod
-    def enterer(site=None):
-        return groups.principal(site=site, group='enterer')
-
-    @staticmethod
-    def consumer(site=None):
-        return groups.principal(site=site, group='consumer')
-
-    @staticmethod
-    def member(site=None):
-        return groups.principal(site=site, group='member')
+    def member(location=None):
+        return groups.principal(location=location, group='member')
 
 
 class LabFactory(dict):
@@ -69,7 +61,7 @@ class LabFactory(dict):
             lab = Session.query(Location).filter_by(name=key).one()
         except orm.exc.NoResultFound:
             raise KeyError
-        lab.__parent__ = self
+
         return lab
 
 
@@ -202,11 +194,13 @@ class Location(Base, Describeable, Referenceable, Modifiable):
 
     @property
     def __acl__(self):
-        acl = [(Allow, groups.administrator(), ALL_PERMISSIONS)]
-        for site in self.sites:
-            acl.extend([
-                (Allow, groups.member(site=site.name), 'view')
-                ])
+        acl = [
+            (Allow, groups.administrator(), ALL_PERMISSIONS),
+            (Allow, groups.manager(), ('view', 'process')),
+            (Allow, groups.worker(self), ('view', 'process')),
+            (Allow, groups.member(self), 'view')
+        ]
+
         return acl
 
     sites = relationship(

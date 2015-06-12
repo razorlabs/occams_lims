@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link tal:repeat="url request.webassets_env['default-css'].urls()" href="${url}" rel="stylesheet" type="text/css" />
+    <link tal:repeat="url request.webassets_env['lims-css'].urls()" href="${url}" rel="stylesheet" type="text/css" />
   </head>
   <body>
     <div class="container">

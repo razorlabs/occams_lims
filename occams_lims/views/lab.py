@@ -1,6 +1,6 @@
 from datetime import date
 
-from pyramid.httpexceptions import HTTPFound, HTTPOk
+from pyramid.httpexceptions import HTTPFound, HTTPOk, HTTPForbidden
 from pyramid.view import view_config
 from pyramid.session import check_csrf_token
 import sqlalchemy as sa
@@ -39,18 +39,29 @@ def list_(context, request):
     """
 
     # We need to know which sites the user has access
-    sites = Session.query(models.Site)
-    site_ids = [s.id for s in sites if request.has_permission('view', s)]
+    query = Session.query(models.Location)
+    location_ids = [l.id for l in query if request.has_permission('view', l)]
 
-    query = (
-        Session.query(models.Location)
-        .filter_by(active=True)
-        .filter(models.Location.sites.any(
-            models.Site.id.in_(site_ids)))
-        .order_by(models.Location.title))
+    if location_ids:
+
+        locations = (
+            Session.query(models.Location)
+            .filter_by(active=True)
+            .filter(models.Location.id.in_(location_ids))
+            .join(models.Location.sites)
+            .order_by(models.Location.title)
+            .all())
+
+        locations_count = len(locations)
+
+    else:
+
+        locations = []
+        locations_count = 0
 
     return {
-        'labs': query
+        'labs': locations,
+        'labs_count': locations_count
     }
 
 
@@ -162,6 +173,9 @@ def inbox(context, request):
             and check_csrf_token(request)
             and form.validate()):
 
+        if not request.has_permission('process'):
+            raise HTTPForbidden
+
         if 'save' in request.POST:
             updated_count = 0
             for i, subform in enumerate(form.specimen.entries):
@@ -247,6 +261,8 @@ def specimen_labels(context, request):
     form = PrintForm(request.POST)
 
     if request.method == 'POST' and check_csrf_token(request):
+        if not request.has_permission('process'):
+            raise HTTPForbidden()
 
         if 'print' in request.POST and form.validate():
             if label_queue:
@@ -317,6 +333,8 @@ def aliquot_labels(context, request):
     form = PrintForm(request.POST)
 
     if request.method == 'POST' and check_csrf_token(request):
+        if not request.has_permission('process'):
+            raise HTTPForbidden
 
         if 'print' in request.POST and form.validate():
             if label_queue:
@@ -448,7 +466,7 @@ def build_add_form(context, request):
 
 @view_config(
     route_name='lims.lab_specimen_add',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/modal-specimen-add.pt')
 def add(context, request):
     Form = build_add_form(context, request)
@@ -702,7 +720,7 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
 
 @view_config(
     route_name='lims.lab_batched',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/batched.pt')
 def batched(context, request):
 
@@ -754,7 +772,7 @@ def batched(context, request):
 
 @view_config(
     route_name='lims.lab_ready',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/ready.pt')
 def ready(context, request):
     specimen_vals = filter_specimen(context, request, page_key='specimenpage', state='pending-aliquot')
@@ -1018,7 +1036,7 @@ def ready(context, request):
 
 @view_config(
     route_name='lims.lab_checkout',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/checkout.pt')
 def checkout(context, request):
     vals = filter_aliquot(context, request, state='pending-checkout')
@@ -1112,7 +1130,7 @@ def checkout(context, request):
 
 @view_config(
     route_name='lims.lab_checkout_update',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/modal-checkout-bulk-update.pt')
 def checkout_update(context, request):
     vals = filter_aliquot(context, request, state='pending-checkout')
@@ -1164,7 +1182,7 @@ def checkout_update(context, request):
 
 @view_config(
     route_name='lims.lab_checkout_receipt',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/receipt.pt')
 def checkout_receipt(context, request):
     vals = filter_aliquot(context, request, state='pending-checkout')
@@ -1197,7 +1215,7 @@ def checkout_receipt(context, request):
 
 @view_config(
     route_name='lims.lab_checkin',
-    permission='edit',
+    permission='process',
     renderer='../templates/lab/checkin.pt')
 def checkin(context, request):
     vals = filter_aliquot(context, request, state='checked-out')
