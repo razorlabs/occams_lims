@@ -41,8 +41,10 @@
         </thead>
         <tbody>
           <tal:draw repeat="draw specimen">
-            <tr tal:define="subform form.specimen.entries[repeat['draw'].index]">
-              <td>${subform.ui_selected(**{'data-toggle': 'select'})}</td>
+            <tr tal:define="
+              subform form.specimen.entries[repeat['draw'].index];
+              disabled not:request.has_permission('process')">
+              <td><tal:select condition="not:disabled">${subform.ui_selected(**{'data-toggle': 'select'})}</tal:select></td>
               <td><code>${draw.id}</code></td>
               <td><span tal:define="state draw.state" metal:use-macro="load: pretty-state.pt"></span></td>
               <td>${(draw.tubes and draw.tubes or 0) if draw.id in label_queue else None}</td>
@@ -52,23 +54,23 @@
               <td>${draw.specimen_type.tube_type}</td>
               <td>${draw.specimen_type.title}</td>
               <td>
-                ${subform.tubes(class_='form-control')}
+                ${subform.tubes(class_='form-control', disabled=disabled)}
                 <div class="text-danger" tal:repeat="error subform.tubes.errors">${error}</div>
               </td>
               <td>
-                ${subform.collect_date(class_='form-control js-date', placeholder='YYYY-MM-DD')}
+                ${subform.collect_date(class_='form-control js-date', placeholder='YYYY-MM-DD', disabled=disabled)}
                 <div class="text-danger" tal:repeat="error subform.collect_date.errors">${error}</div>
               </td>
               <td>
-                ${subform.collect_time(class_='form-control js-time', placeholder='HH:MM')}
+                ${subform.collect_time(class_='form-control js-time', placeholder='HH:MM', disabled=disabled)}
                 <div class="text-danger" tal:repeat="error subform.collect_time.errors">${error}</div>
               </td>
               <td>
-                ${subform.location_id(class_='js-select2')}
+                ${subform.location_id(class_='js-select2', disabled=disabled)}
                 <div class="text-danger" tal:repeat="error subform.location_id.errors">${error}</div>
               </td>
               <td>
-                ${subform.notes(class_='form-control')}
+                ${subform.notes(class_='form-control', disabled=disabled)}
                 <div class="text-danger" tal:repeat="error subform.notes.errors">${error}</div>
               </td>
             </tr>
@@ -83,6 +85,7 @@
           class="btn btn-default"
           name="save"
           tal:attributes="disabled not:has_specimen"
+          tal:condition="request.has_permission('process')"
           data-toggle="popover"
           data-trigger="hover"
           data-placement="top"
@@ -93,6 +96,7 @@
           class="btn btn-default"
           name="queue"
           tal:attributes="disabled not:has_specimen"
+          tal:condition="request.has_permission('process')"
           data-toggle="popover"
           data-trigger="hover"
           data-placement="top"
@@ -109,12 +113,14 @@
           data-placement="top"
           data-content="Prints labels for the specimen in the print queue"
           tal:attributes="disabled not:has_labels_queued"
+          tal:condition="request.has_permission('process')"
         >Print Labels</button>
       <button
           type="submit"
           class="btn btn-default"
           name="complete"
           tal:attributes="disabled not:has_specimen"
+          tal:condition="request.has_permission('process')"
           data-toggle="popover"
           data-trigger="hover"
           data-placement="top"
@@ -126,6 +132,7 @@
           class="btn btn-default"
           name="cancel-draw"
           tal:attributes="disabled not:has_specimen"
+          tal:condition="request.has_permission('process')"
           data-toggle="popover"
           data-trigger="hover"
           data-placement="top"
@@ -141,6 +148,7 @@
           data-trigger="hover"
           data-placement="top"
           data-content="Adds a new specimen. This action DOES NOT save current changes."
+          tal:condition="request.has_permission('process')"
           >Add Specimen</button>
     </form>
 

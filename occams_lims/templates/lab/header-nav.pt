@@ -1,23 +1,28 @@
 <ul class="nav nav-tabs"
     tal:define="tab tab|request.matched_route.name">
   <li role="presentation"
-      class="${'active' if tab == 'lims.lab' else ''}">
+      class="${'active' if tab == 'lims.lab' else ''}"
+      tal:condition="request.has_permission('view')">
     <a href="${request.current_route_path(_route_name='lims.lab')}" i18n:translate="">Pending Draw</a>
   </li>
   <li role="presentation"
-      class="${'active' if tab == 'lims.lab_batched' else ''}">
+      class="${'active' if tab == 'lims.lab_batched' else ''}"
+      tal:condition="request.has_permission('process')">
     <a href="${request.current_route_path(_route_name='lims.lab_batched')}" i18n:translate="">Batched</a>
   </li>
   <li role="presentation"
-      class="${'active' if tab == 'lims.lab_ready' else ''}">
+      class="${'active' if tab == 'lims.lab_ready' else ''}"
+      tal:condition="request.has_permission('process')">
     <a href="${request.current_route_path(_route_name='lims.lab_ready')}" i18n:translate="">Ready to Aliquot</a>
   </li>
   <li role="presentation"
-      class="${'active' if tab == 'lims.lab_checkout' else ''}">
+      class="${'active' if tab == 'lims.lab_checkout' else ''}"
+      tal:condition="request.has_permission('process')">
     <a href="${request.current_route_path(_route_name='lims.lab_checkout')}" i18n:translate="">Check-out Queue</a>
   </li>
   <li role="presentation"
-      class="${'active' if tab == 'lims.lab_checkin' else ''}">
+      class="${'active' if tab == 'lims.lab_checkin' else ''}"
+      tal:condition="request.has_permission('process')">
     <a href="${request.current_route_path(_route_name='lims.lab_checkin')}" i18n:translate="">Check-in</a>
   </li>
 </ul>
