@@ -45,6 +45,8 @@ def setup_package():
     from occams_lims import models as lims
     from occams_roster import models as roster, Session as RosterSession
 
+    # parse db name from command line
+    # example: nosetests --tc=db:postgresql://plone:plone@/test
     db = config.get('db')
     lims_engine = create_engine(db)
     Session.configure(bind=lims_engine)
