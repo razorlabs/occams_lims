@@ -3,7 +3,7 @@ import pytest
 from tests.conftest import make_environ, USERID, get_csrf_token
 
 
-class TestLimsViewPermissions:
+class TestPermissions:
 
     @pytest.fixture(autouse=True)
     def transact(self, app):

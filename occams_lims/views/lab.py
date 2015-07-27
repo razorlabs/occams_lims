@@ -124,6 +124,7 @@ def build_crud_form(context, request):
             validators=[wtforms.validators.Optional()])
 
         collect_time = TimeField(
+            format='%H:%M',
             validators=[wtforms.validators.Optional()])
 
         location_id = wtforms.SelectField(
@@ -151,6 +152,7 @@ def inbox(context, request):
 
     # override specimen with default processing locations
     processing_location = get_processing_location(context)
+
     overriden_specimen = [{
         'id': s.id,
         'tubes': s.tubes,
@@ -162,7 +164,8 @@ def inbox(context, request):
                 and s.location == context
                 and not s.previous_location)
             else context.id,
-        'notes': s.notes} for s in specimen if s]
+        'notes': s.notes
+    } for s in specimen if s]
 
     Form = build_crud_form(context, request)
     form = Form(request.POST, specimen=overriden_specimen)
