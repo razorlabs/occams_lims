@@ -799,15 +799,15 @@ def ready(context, request):
 
     def update_print_queue():
         queued = 0
-        for entry in aliquot_form.aliquot:
+        for entry in aliquot_form.aliquot.entries:
             subform = entry.form
             if subform.ui_selected.data:
                 id = subform.id.data
                 if id in label_queue:
+                    label_queue.discard(id)
+                else:
                     queued += 1
                     label_queue.add(id)
-                else:
-                    label_queue.discard(id)
                 request.session.changed()
         return queued
 
