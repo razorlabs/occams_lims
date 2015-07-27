@@ -89,7 +89,6 @@
       </table>
 
       <nav tal:define="page_key 'specimenpage'; pager specimen_pager" metal:use-macro="load: specimen-pager.pt"></nav>
-
       <button
           type="submit"
           class="btn btn-default"
@@ -98,7 +97,7 @@
           data-toggle="popover"
           data-trigger="hover"
           data-placement="top"
-          data-content="sing the selected template, create COUNT aliquot, and place them in the queue below."
+          data-content="Using the selected template, create COUNT aliquot, and place them in the queue below."
           >Create Aliquot</button>
       <button
           type="submit"

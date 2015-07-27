@@ -109,14 +109,14 @@
         <button
             type="submit"
             class="btn btn-default"
-            name="complete"
+            name="pending-aliquot"
             tal:attributes="disabled not:has_specimen"
             tal:condition="request.has_permission('process')"
             data-toggle="popover"
             data-trigger="hover"
             data-placement="top"
             data-html="true"
-            data-content="Saves all changes entered to the database (for all specimen). Then marks the selected specimen as complete. If the location you've entered for the items is the current lab, you will find them in <a href='${request.current_route_path(_route_name='lims.lab_batched')}'>batched</a>"
+            data-content="Saves all changes entered to the database (for all specimen). Then marks the selected specimen as complete. Completed specimen will then appear in the <a href='${request.current_route_path(_route_name='lims.lab_ready')}'>Ready to Aliquot</a> tab of the target location."
             >Complete Selected</button>
         <button
             type="submit"

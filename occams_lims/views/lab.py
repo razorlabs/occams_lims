@@ -210,7 +210,7 @@ def inbox(context, request):
                 request.session.flash(u'Please select specimen', 'warning')
             return HTTPFound(location=request.current_route_path())
 
-        for state_name in ('cancel-draw', 'complete'):
+        for state_name in ('cancel-draw', 'pending-aliquot'):
             if state_name in request.POST:
                 state = (
                     Session.query(models.SpecimenState)
@@ -719,58 +719,6 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
         'has_aliquot': len(aliquot) > 0,
         'pager': pager,
     }
-
-
-@view_config(
-    route_name='lims.lab_batched',
-    permission='process',
-    renderer='../templates/lab/batched.pt')
-def batched(context, request):
-
-    vals = filter_specimen(context, request, state='complete')
-    specimen = vals['specimen']
-
-    class BatchSpecimenForm(wtforms.Form):
-        ui_selected = wtforms.BooleanField()
-
-    class CrudForm(wtforms.Form):
-        specimen = wtforms.FieldList(wtforms.FormField(BatchSpecimenForm))
-
-    form = CrudForm(request.POST, specimen=specimen)
-
-    if (request.method == 'POST'
-            and check_csrf_token(request)
-            and form.validate()):
-
-        for state_name in ('cancel-draw', 'pending-aliquot'):
-            if state_name in request.POST:
-                state = (
-                    Session.query(models.SpecimenState)
-                    .filter_by(name=state_name)
-                    .one())
-                transitioned_count = 0
-                updated_count = 0
-                for i, subform in enumerate(form.specimen.entries):
-                    if subform.ui_selected.data:
-                        specimen[i].state = state
-                        transitioned_count += 1
-                    if apply_changes(subform.form, specimen[i]):
-                        updated_count += 1
-                Session.flush()
-                if transitioned_count:
-                    request.session.flash(
-                        u'%d Specimen have been changed to the status of %s.'
-                        % (transitioned_count, state.title),
-                        'success')
-                else:
-                    request.session.flash(u'Please select specimen', 'warning')
-                return HTTPFound(location=request.current_route_path())
-
-    vals.update({
-        'form': form
-    })
-
-    return vals
 
 
 @view_config(
