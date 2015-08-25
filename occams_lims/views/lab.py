@@ -124,6 +124,7 @@ def build_crud_form(context, request):
             validators=[wtforms.validators.Optional()])
 
         collect_time = TimeField(
+            format='%H:%M',
             validators=[wtforms.validators.Optional()])
 
         location_id = wtforms.SelectField(
@@ -151,6 +152,7 @@ def inbox(context, request):
 
     # override specimen with default processing locations
     processing_location = get_processing_location(context)
+
     overriden_specimen = [{
         'id': s.id,
         'tubes': s.tubes,
@@ -162,7 +164,8 @@ def inbox(context, request):
                 and s.location == context
                 and not s.previous_location)
             else context.id,
-        'notes': s.notes} for s in specimen if s]
+        'notes': s.notes
+    } for s in specimen if s]
 
     Form = build_crud_form(context, request)
     form = Form(request.POST, specimen=overriden_specimen)
@@ -207,7 +210,7 @@ def inbox(context, request):
                 request.session.flash(u'Please select specimen', 'warning')
             return HTTPFound(location=request.current_route_path())
 
-        for state_name in ('cancel-draw', 'complete'):
+        for state_name in ('cancel-draw', 'pending-aliquot'):
             if state_name in request.POST:
                 state = (
                     Session.query(models.SpecimenState)
@@ -719,58 +722,6 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
 
 
 @view_config(
-    route_name='lims.lab_batched',
-    permission='process',
-    renderer='../templates/lab/batched.pt')
-def batched(context, request):
-
-    vals = filter_specimen(context, request, state='complete')
-    specimen = vals['specimen']
-
-    class BatchSpecimenForm(wtforms.Form):
-        ui_selected = wtforms.BooleanField()
-
-    class CrudForm(wtforms.Form):
-        specimen = wtforms.FieldList(wtforms.FormField(BatchSpecimenForm))
-
-    form = CrudForm(request.POST, specimen=specimen)
-
-    if (request.method == 'POST'
-            and check_csrf_token(request)
-            and form.validate()):
-
-        for state_name in ('cancel-draw', 'pending-aliquot'):
-            if state_name in request.POST:
-                state = (
-                    Session.query(models.SpecimenState)
-                    .filter_by(name=state_name)
-                    .one())
-                transitioned_count = 0
-                updated_count = 0
-                for i, subform in enumerate(form.specimen.entries):
-                    if subform.ui_selected.data:
-                        specimen[i].state = state
-                        transitioned_count += 1
-                    if apply_changes(subform.form, specimen[i]):
-                        updated_count += 1
-                Session.flush()
-                if transitioned_count:
-                    request.session.flash(
-                        u'%d Specimen have been changed to the status of %s.'
-                        % (transitioned_count, state.title),
-                        'success')
-                else:
-                    request.session.flash(u'Please select specimen', 'warning')
-                return HTTPFound(location=request.current_route_path())
-
-    vals.update({
-        'form': form
-    })
-
-    return vals
-
-
-@view_config(
     route_name='lims.lab_ready',
     permission='process',
     renderer='../templates/lab/ready.pt')
@@ -848,15 +799,15 @@ def ready(context, request):
 
     def update_print_queue():
         queued = 0
-        for entry in aliquot_form.aliquot:
+        for entry in aliquot_form.aliquot.entries:
             subform = entry.form
             if subform.ui_selected.data:
                 id = subform.id.data
                 if id in label_queue:
+                    label_queue.discard(id)
+                else:
                     queued += 1
                     label_queue.add(id)
-                else:
-                    label_queue.discard(id)
                 request.session.changed()
         return queued
 

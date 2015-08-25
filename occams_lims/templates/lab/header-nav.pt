@@ -3,17 +3,12 @@
   <li role="presentation"
       class="${'active' if tab == 'lims.lab' else ''}"
       tal:condition="request.has_permission('view')">
-    <a href="${request.current_route_path(_route_name='lims.lab')}" i18n:translate="">Pending Draw</a>
-  </li>
-  <li role="presentation"
-      class="${'active' if tab == 'lims.lab_batched' else ''}"
-      tal:condition="request.has_permission('process')">
-    <a href="${request.current_route_path(_route_name='lims.lab_batched')}" i18n:translate="">Batched</a>
+    <a href="${request.current_route_path(_route_name='lims.lab')}" i18n:translate="">Specimen</a>
   </li>
   <li role="presentation"
       class="${'active' if tab == 'lims.lab_ready' else ''}"
       tal:condition="request.has_permission('process')">
-    <a href="${request.current_route_path(_route_name='lims.lab_ready')}" i18n:translate="">Ready to Aliquot</a>
+    <a href="${request.current_route_path(_route_name='lims.lab_ready')}" i18n:translate="">Aliquot</a>
   </li>
   <li role="presentation"
       class="${'active' if tab == 'lims.lab_checkout' else ''}"

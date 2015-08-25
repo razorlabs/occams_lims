@@ -80,88 +80,87 @@
 
       <nav metal:use-macro="load: specimen-pager.pt"></nav>
 
-      <button
-          type="submit"
-          class="btn btn-default"
-          name="save"
-          tal:attributes="disabled not:has_specimen"
-          tal:condition="request.has_permission('process')"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-content="Saves all of the changes entered to the database. This applies to all specimen, not just selected specimen."
-          >Save All Changes</button>
-      <button
-          type="submit"
-          class="btn btn-default"
-          name="queue"
-          tal:attributes="disabled not:has_specimen"
-          tal:condition="request.has_permission('process')"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-content="Saves all changes, and then adds the selected specimen to the print queue"
-          >Toggle Print Queue</button>
-      <button
-          type="button"
-          class="btn btn-default"
-          name="print"
-          data-modal-remote="${request.current_route_path(_route_name='lims.lab_specimen_labels')}"
-          data-modal-target="#modal-target"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-content="Prints labels for the specimen in the print queue"
-          tal:attributes="disabled not:has_labels_queued"
-          tal:condition="request.has_permission('process')"
-        >Print Labels</button>
-      <button
-          type="submit"
-          class="btn btn-default"
-          name="complete"
-          tal:attributes="disabled not:has_specimen"
-          tal:condition="request.has_permission('process')"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-html="true"
-          data-content="Saves all changes entered to the database (for all specimen). Then marks the selected specimen as complete. If the location you've entered for the items is the current lab, you will find them in <a href='${request.current_route_path(_route_name='lims.lab_batched')}'>batched</a>"
-          >Complete Selected</button>
-      <button
-          type="submit"
-          class="btn btn-default"
-          name="cancel-draw"
-          tal:attributes="disabled not:has_specimen"
-          tal:condition="request.has_permission('process')"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-content="Mark the selected specimen as undrawn"
-          >Mark Selected Undrawn</button>
-      <button
-          type="button"
-          class="btn btn-default"
-          name="add"
-          data-modal-remote="${request.current_route_path(_route_name='lims.lab_specimen_add')}"
-          data-modal-target="#modal-target"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-content="Adds a new specimen. This action DOES NOT save current changes."
-          tal:condition="request.has_permission('process')"
-          >Add Specimen</button>
+      <div>
+
+        <button
+            type="submit"
+            class="btn btn-default"
+            name="queue"
+            tal:attributes="disabled not:has_specimen"
+            tal:condition="request.has_permission('process')"
+            data-toggle="popover"
+            data-trigger="hover"
+            data-placement="top"
+            data-content="Saves all changes, and then adds the selected specimen to the print queue"
+            >Toggle Print Queue</button>
+        <button
+            type="button"
+            class="btn btn-default"
+            name="print"
+            data-modal-remote="${request.current_route_path(_route_name='lims.lab_specimen_labels')}"
+            data-modal-target="#modal-target"
+            data-toggle="popover"
+            data-trigger="hover"
+            data-placement="top"
+            data-content="Prints labels for the specimen in the print queue"
+            tal:attributes="disabled not:has_labels_queued"
+            tal:condition="request.has_permission('process')"
+          >Print Labels</button>
+        <button
+            type="submit"
+            class="btn btn-default"
+            name="pending-aliquot"
+            tal:attributes="disabled not:has_specimen"
+            tal:condition="request.has_permission('process')"
+            data-toggle="popover"
+            data-trigger="hover"
+            data-placement="top"
+            data-html="true"
+            data-content="Saves all changes entered to the database (for all specimen). Then marks the selected specimen as complete. Completed specimen will then appear in the <a href='${request.current_route_path(_route_name='lims.lab_ready')}'>Ready to Aliquot</a> tab of the target location."
+            >Complete Selected</button>
+        <button
+            type="submit"
+            class="btn btn-default"
+            name="cancel-draw"
+            tal:attributes="disabled not:has_specimen"
+            tal:condition="request.has_permission('process')"
+            data-toggle="popover"
+            data-trigger="hover"
+            data-placement="top"
+            data-content="Mark the selected specimen as undrawn"
+            >Mark Selected Undrawn</button>
+        <button
+            type="button"
+            class="btn btn-default"
+            name="add"
+            data-modal-remote="${request.current_route_path(_route_name='lims.lab_specimen_add')}"
+            data-modal-target="#modal-target"
+            data-toggle="popover"
+            data-trigger="hover"
+            data-placement="top"
+            data-content="Adds a new specimen. This action DOES NOT save current changes."
+            tal:condition="request.has_permission('process')"
+            >Add Specimen</button>
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+            name="save"
+            tal:attributes="disabled not:has_specimen"
+            tal:condition="request.has_permission('process')"
+            data-toggle="popover"
+            data-trigger="hover"
+            data-placement="top"
+            data-content="Saves all of the changes entered to the database. This applies to all specimen, not just selected specimen."
+            >Save All Changes</button>
+
+        </div>
+
+
     </form>
 
     <div id="modal-target" class="modal fade"></div>
 
   </metal:content-slot>
-  <metal:content-slot fill-slot="javascript-extras-slot">
-    <script>
-      $(function () {
-        $('[data-toggle="popover"]').popover();
-        $('.js-select2').select2({allowClear: true});
-        $('.js-date').datetimepicker({useCurrent: false, pickTime: false, format: 'YYYY-MM-DD'});
-      })
-    </script>
-  </metal:content-slot>
+
 </html>

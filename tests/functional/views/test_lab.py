@@ -1,13 +1,12 @@
-from ddt import ddt, data
+import pytest
 
-from tests import FunctionalFixture, USERID
+from tests.conftest import make_environ, USERID, get_csrf_token
 
 
-@ddt
-class TestLims(FunctionalFixture):
+class TestPermissions:
 
-    def setUp(self):
-        super(TestLims, self).setUp()
+    @pytest.fixture(autouse=True)
+    def transact(self, app):
 
         from datetime import date
 
@@ -87,57 +86,60 @@ class TestLims(FunctionalFixture):
 
             Session.flush()
 
-    @data('administrator', 'manager',
-          'test_location:worker', 'test_location:member', None)
-    def test_lims_view_list(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager',
+        'test_location:worker', 'test_location:member',
+        None])
+    def test_lims_view_list(self, group, app):
         url = '/lims'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        response = self.app.get(url, extra_environ=environ)
+        environ = make_environ(userid=USERID, groups=[group])
+        response = app.get(url, extra_environ=environ)
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    def test_not_authenticated(self):
+    def test_not_authenticated(self, app):
         url = '/lims'
 
-        response = self.app.get(url, status='*')
+        response = app.get(url, status='*')
 
-        self.assertEquals(401, response.status_code)
+        assert response.status_code == 401
 
-    @data('administrator', 'manager',
-          'test_location:worker', 'test_location:member')
-    def test_lims_lab_view(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager',
+        'test_location:worker', 'test_location:member'])
+    def test_lims_lab_view(self, group, app):
         url = '/lims/test_location'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        response = self.app.get(url, extra_environ=environ, status='*')
+        environ = make_environ(userid=USERID, groups=[group])
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('fake_location:member')
-    def test_not_allowed_lims_lab_view(self, group):
+    @pytest.mark.parametrize('group', ['fake_location:member'])
+    def test_not_allowed_lims_lab_view(self, group, app):
         url = '/lims/test_location'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        response = self.app.get(url, extra_environ=environ, status='*')
+        environ = make_environ(userid=USERID, groups=[group])
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_lims_lab_view(self):
+    def test_not_authenticated_lims_lab_view(self, app):
         url = '/lims/test_location'
 
-        response = self.app.get(url, status='*')
-        self.assertEquals(401, response.status_code)
+        response = app.get(url, status='*')
+        assert response.status_code == 401
 
-    @data('administrator', 'manager',
-          'test_location:worker')
-    def test_lims_lab_post(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker'])
+    def test_lims_lab_post(self, group, app):
         url = '/lims/test_location'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        csrf_token = self.get_csrf_token(environ)
+        environ = make_environ(userid=USERID, groups=[group])
+        csrf_token = get_csrf_token(app, environ)
 
-        response = self.app.post(
+        response = app.post(
             url,
             extra_environ=environ,
             status='*',
@@ -146,16 +148,17 @@ class TestLims(FunctionalFixture):
                 'X-REQUESTED-WITH': str('XMLHttpRequest')
             })
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('test_location:member', 'fake_location:member')
-    def test_not_allowed_lims_lab_post(self, group):
+    @pytest.mark.parametrize('group', [
+        'test_location:member', 'fake_location:member'])
+    def test_not_allowed_lims_lab_post(self, group, app):
         url = '/lims/test_location'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        csrf_token = self.get_csrf_token(environ)
+        environ = make_environ(userid=USERID, groups=[group])
+        csrf_token = get_csrf_token(app, environ)
 
-        response = self.app.post(
+        response = app.post(
             url,
             extra_environ=environ,
             status='*',
@@ -164,24 +167,25 @@ class TestLims(FunctionalFixture):
                 'X-REQUESTED-WITH': str('XMLHttpRequest')
             })
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_lims_lab_post(self):
+    def test_not_authenticated_lims_lab_post(self, app):
         url = '/lims/test_location'
 
-        response = self.app.post(url, status='*')
-        self.assertEquals(401, response.status_code)
+        response = app.post(url, status='*')
+        assert response.status_code == 401
 
-    @data('administrator', 'manager', 'test_location:worker')
-    def test_specimen_add(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker'])
+    def test_specimen_add(self, group, app):
         from occams import Session
         from occams_studies import models as studies
         from occams_lims import models as lims
 
         url = '/lims/test_location/addspecimen'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        csrf_token = self.get_csrf_token(environ)
+        environ = make_environ(userid=USERID, groups=[group])
+        csrf_token = get_csrf_token(app, environ)
 
         cycle_id = Session.query(studies.Cycle.id).filter(
             studies.Cycle.name == u'test_cycle').scalar()
@@ -195,7 +199,7 @@ class TestLims(FunctionalFixture):
             'specimen_type_id': specimen_id
         }
 
-        response = self.app.post_json(
+        response = app.post_json(
             url,
             extra_environ=environ,
             status='*',
@@ -205,18 +209,19 @@ class TestLims(FunctionalFixture):
             },
             params=data)
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('test_location:member', 'fake_location:worker')
-    def test_not_allowed_specimen_add(self, group):
+    @pytest.mark.parametrize('group', [
+        'test_location:member', 'fake_location:worker'])
+    def test_not_allowed_specimen_add(self, group, app):
         from occams import Session
         from occams_studies import models as studies
         from occams_lims import models as lims
 
         url = '/lims/test_location/addspecimen'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        csrf_token = self.get_csrf_token(environ)
+        environ = make_environ(userid=USERID, groups=[group])
+        csrf_token = get_csrf_token(app, environ)
 
         cycle_id = Session.query(studies.Cycle.id).filter(
             studies.Cycle.name == u'test_cycle').scalar()
@@ -230,7 +235,7 @@ class TestLims(FunctionalFixture):
             'specimen_type_id': specimen_id
         }
 
-        response = self.app.post_json(
+        response = app.post_json(
             url,
             extra_environ=environ,
             status='*',
@@ -240,48 +245,49 @@ class TestLims(FunctionalFixture):
             },
             params=data)
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_specimen_add(self):
+    def test_not_authenticated_specimen_add(self, app):
         url = '/lims/test_location/addspecimen'
 
-        self.app.post(url, status=401)
+        app.post(url, status=401)
 
-    @data('administrator', 'manager',
-          'test_location:worker', 'test_location:member')
-    def test_specimen_labels(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker',
+        'test_location:member'])
+    def test_specimen_labels(self, group, app):
         url = '/lims/test_location/specimen_labels'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        response = self.app.get(url, extra_environ=environ, status='*')
+        environ = make_environ(userid=USERID, groups=[group])
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('fake_location:worker')
-    def test_not_allowed_specimen_labels(self, group):
+    @pytest.mark.parametrize('group', ['fake_location:worker'])
+    def test_not_allowed_specimen_labels(self, group, app):
         url = '/lims/test_location/specimen_labels'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        response = self.app.get(url, extra_environ=environ, status='*')
+        environ = make_environ(userid=USERID, groups=[group])
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_specimen_labels(self):
+    def test_not_authenticated_specimen_labels(self, app):
         url = '/lims/test_location/specimen_labels'
 
-        response = self.app.get(url, status='*')
+        response = app.get(url, status='*')
 
-        self.assertEquals(401, response.status_code)
+        assert response.status_code == 401
 
-    @data('administrator', 'manager',
-          'test_location:worker')
-    def test_specimen_labels_post(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker'])
+    def test_specimen_labels_post(self, group, app):
         url = '/lims/test_location/specimen_labels'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        csrf_token = self.get_csrf_token(environ)
+        environ = make_environ(userid=USERID, groups=[group])
+        csrf_token = get_csrf_token(app, environ)
 
-        response = self.app.post(
+        response = app.post(
             url,
             extra_environ=environ,
             status='*',
@@ -290,16 +296,17 @@ class TestLims(FunctionalFixture):
                 'X-REQUESTED-WITH': str('XMLHttpRequest')
             })
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('test_location:member', 'fake_location:member')
-    def test_not_allowed_specimen_labels_post(self, group):
+    @pytest.mark.parametrize('group', [
+        'test_location:member', 'fake_location:member'])
+    def test_not_allowed_specimen_labels_post(self, group, app):
         url = '/lims/test_location/specimen_labels'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        csrf_token = self.get_csrf_token(environ)
+        environ = make_environ(userid=USERID, groups=[group])
+        csrf_token = get_csrf_token(app, environ)
 
-        response = self.app.post(
+        response = app.post(
             url,
             extra_environ=environ,
             status='*',
@@ -308,50 +315,51 @@ class TestLims(FunctionalFixture):
                 'X-REQUESTED-WITH': str('XMLHttpRequest')
             })
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_specimen_labels_post(self):
+    def test_not_authenticated_specimen_labels_post(self, app):
         url = '/lims/test_location/specimen_labels'
 
-        response = self.app.post(url, status='*')
+        response = app.post(url, status='*')
 
-        self.assertEquals(401, response.status_code)
+        assert response.status_code == 401
 
-    @data('administrator', 'manager',
-          'test_location:worker', 'test_location:member')
-    def test_aliquot_labels(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker',
+        'test_location:member'])
+    def test_aliquot_labels(self, group, app):
         url = '/lims/test_location/aliquot_labels'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        response = self.app.get(url, extra_environ=environ, status='*')
+        environ = make_environ(userid=USERID, groups=[group])
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('fake_location:worker')
-    def test_not_allowed_aliquot_labels(self, group):
+    @pytest.mark.parametrize('group', ['fake_location:worker'])
+    def test_not_allowed_aliquot_labels(self, group, app):
         url = '/lims/test_location/aliquot_labels'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        response = self.app.get(url, extra_environ=environ, status='*')
+        environ = make_environ(userid=USERID, groups=[group])
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_aliquot_labels(self):
+    def test_not_authenticated_aliquot_labels(self, app):
         url = '/lims/test_location/aliquot_labels'
 
-        response = self.app.get(url, status='*')
+        response = app.get(url, status='*')
 
-        self.assertEquals(401, response.status_code)
+        assert response.status_code == 401
 
-    @data('administrator', 'manager',
-          'test_location:worker')
-    def test_aliquot_labels_post(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker'])
+    def test_aliquot_labels_post(self, group, app):
         url = '/lims/test_location/aliquot_labels'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        csrf_token = self.get_csrf_token(environ)
+        environ = make_environ(userid=USERID, groups=[group])
+        csrf_token = get_csrf_token(app, environ)
 
-        response = self.app.post(
+        response = app.post(
             url,
             extra_environ=environ,
             status='*',
@@ -360,16 +368,17 @@ class TestLims(FunctionalFixture):
                 'X-REQUESTED-WITH': str('XMLHttpRequest')
             })
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('test_location:member', 'fake_location:member')
-    def test_not_allowed_aliquot_labels_post(self, group):
+    @pytest.mark.parametrize('group', [
+        'test_location:member', 'fake_location:member'])
+    def test_not_allowed_aliquot_labels_post(self, group, app):
         url = '/lims/test_location/aliquot_labels'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
-        csrf_token = self.get_csrf_token(environ)
+        environ = make_environ(userid=USERID, groups=[group])
+        csrf_token = get_csrf_token(app, environ)
 
-        response = self.app.post(
+        response = app.post(
             url,
             extra_environ=environ,
             status='*',
@@ -378,179 +387,185 @@ class TestLims(FunctionalFixture):
                 'X-REQUESTED-WITH': str('XMLHttpRequest')
             })
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_aliquot_labels_post(self):
+    def test_not_authenticated_aliquot_labels_post(self, app):
         url = '/lims/test_location/aliquot_labels'
 
-        response = self.app.post(url, status='*')
+        response = app.post(url, status='*')
 
-        self.assertEquals(401, response.status_code)
+        assert response.status_code == 401
 
-    @data('administrator', 'manager',
-          'test_location:worker')
-    def test_lab_batched(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker'])
+    def test_lab_batched(self, group, app):
         url = '/lims/test_location/batched'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('test_location:member', 'fake_location:worker')
-    def test_not_allowed_lab_batched(self, group):
+    @pytest.mark.parametrize('group', [
+        'test_location:member', 'fake_location:worker'])
+    def test_not_allowed_lab_batched(self, group, app):
         url = '/lims/test_location/batched'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_batched(self):
+    def test_not_authenticated_batched(self, app):
         url = '/lims/test_location/batched'
 
-        response = self.app.get(url, status='*')
+        response = app.get(url, status='*')
 
-        self.assertEquals(401, response.status_code)
+        assert response.status_code == 401
 
-    @data('administrator', 'manager',
-          'test_location:worker')
-    def test_lab_ready(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker'])
+    def test_lab_ready(self, group, app):
         url = '/lims/test_location/ready'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('test_location:member', 'fake_location:worker')
-    def test_not_allowed_lab_ready(self, group):
+    @pytest.mark.parametrize('group', [
+        'test_location:member', 'fake_location:worker'])
+    def test_not_allowed_lab_ready(self, group, app):
         url = '/lims/test_location/ready'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_lab_ready(self):
+    def test_not_authenticated_lab_ready(self, app):
         url = '/lims/test_location/ready'
 
-        response = self.app.get(url, status='*')
+        response = app.get(url, status='*')
 
-        self.assertEquals(401, response.status_code)
+        assert response.status_code == 401
 
-    @data('administrator', 'manager',
-          'test_location:worker')
-    def test_lab_checkout(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker'])
+    def test_lab_checkout(self, group, app):
         url = '/lims/test_location/checkout'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('test_location:member', 'fake_location:worker')
-    def test_not_allowed_lab_checkout(self, group):
+    @pytest.mark.parametrize('group', [
+        'test_location:member', 'fake_location:worker'])
+    def test_not_allowed_lab_checkout(self, group, app):
         url = '/lims/test_location/checkout'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_lab_checkout(self):
+    def test_not_authenticated_lab_checkout(self, app):
         url = '/lims/test_location/checkout'
 
-        response = self.app.get(url, status='*')
+        response = app.get(url, status='*')
 
-        self.assertEquals(401, response.status_code)
+        assert response.status_code == 401
 
-    @data('administrator', 'manager',
-          'test_location:worker')
-    def test_lab_checkout_update(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker'])
+    def test_lab_checkout_update(self, group, app):
         url = '/lims/test_location/bulkupdate'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('test_location:member', 'fake_location:worker')
-    def test_not_allowed_lab_checkout_update(self, group):
+    @pytest.mark.parametrize('group', [
+        'test_location:member', 'fake_location:worker'])
+    def test_not_allowed_lab_checkout_update(self, group, app):
         url = '/lims/test_location/bulkupdate'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_lab_checkout_update(self):
+    def test_not_authenticated_lab_checkout_update(self, app):
         url = '/lims/test_location/bulkupdate'
 
-        response = self.app.get(url, status='*')
+        response = app.get(url, status='*')
 
-        self.assertEquals(401, response.status_code)
+        assert response.status_code == 401
 
-    @data('administrator', 'manager',
-          'test_location:worker')
-    def test_lab_checkout_receipt(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker'])
+    def test_lab_checkout_receipt(self, group, app):
         url = '/lims/test_location/checkoutreceipt'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('test_location:member', 'fake_location:member')
-    def test_not_allowed_lab_checkout_receipt(self, group):
+    @pytest.mark.parametrize('group', [
+        'test_location:member', 'fake_location:member'])
+    def test_not_allowed_lab_checkout_receipt(self, group, app):
         url = '/lims/test_location/checkoutreceipt'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_lab_checkout_receipt(self):
+    def test_not_authenticated_lab_checkout_receipt(self, app):
         url = '/lims/test_location/checkoutreceipt'
 
-        response = self.app.get(url, status='*')
+        response = app.get(url, status='*')
 
-        self.assertEquals(401, response.status_code)
+        assert response.status_code == 401
 
-    @data('administrator', 'manager',
-          'test_location:worker')
-    def test_lab_checkin(self, group):
+    @pytest.mark.parametrize('group', [
+        'administrator', 'manager', 'test_location:worker'])
+    def test_lab_checkin(self, group, app):
         url = '/lims/test_location/checkin'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(200, response.status_code)
+        assert response.status_code == 200
 
-    @data('test_location:member', 'fake_location:worker')
-    def test_not_allowed_lab_checkin(self, group):
+    @pytest.mark.parametrize('group', [
+        'test_location:member', 'fake_location:worker'])
+    def test_not_allowed_lab_checkin(self, group, app):
         url = '/lims/test_location/checkin'
 
-        environ = self.make_environ(userid=USERID, groups=[group])
+        environ = make_environ(userid=USERID, groups=[group])
 
-        response = self.app.get(url, extra_environ=environ, status='*')
+        response = app.get(url, extra_environ=environ, status='*')
 
-        self.assertEquals(403, response.status_code)
+        assert response.status_code == 403
 
-    def test_not_authenticated_lab_checkin(self):
+    def test_not_authenticated_lab_checkin(self, app):
         url = '/lims/test_location/checkin'
 
-        response = self.app.get(url, status='*')
+        response = app.get(url, status='*')
 
-        self.assertEquals(401, response.status_code)
+        assert response.status_code == 401
