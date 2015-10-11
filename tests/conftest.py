@@ -25,6 +25,11 @@ def pytest_addoption(parser):
     parser.addoption('--db', action='store', help='db string for testing')
 
 
+@pytest.fixture(scope='session')
+def db_url(request):
+    return request.config.getoption("--db")
+
+
 @compiles(CreateTable, 'postgresql')
 def compile_unlogged(create, compiler, **kwargs):
     """
@@ -47,7 +52,7 @@ def compile_unlogged(create, compiler, **kwargs):
 
 
 @pytest.yield_fixture(scope='session', autouse=True)
-def create_tables(request):
+def create_tables(db_url):
     """
     Creates the database tables for the entire testing session
 
@@ -60,9 +65,7 @@ def create_tables(request):
     from occams_lims import models as lims
     from occams_roster import models as roster, Session as RosterSession
 
-    db = request.config.getoption("--db")
-
-    engine = create_engine(db)
+    engine = create_engine(db_url)
     url = engine.url
 
     Session.configure(bind=engine)
@@ -87,6 +90,10 @@ def create_tables(request):
 
 @pytest.yield_fixture
 def config():
+    """
+    Conguration for integration testing
+    """
+
     from pyramid import testing
     import transaction
     from occams_forms import models, Session
@@ -105,14 +112,14 @@ def config():
     Session.remove()
 
 
-@pytest.yield_fixture
-def app(request):
+@pytest.fixture(scope='session')
+def wsgi(db_url):
+    """
+    Initializes a singleton full WSGI stack for functional testing
+    """
 
     import tempfile
     import six
-    import transaction
-    from webtest import TestApp
-    from zope.sqlalchemy import mark_changed
 
     from occams import main, Session
 
@@ -129,7 +136,7 @@ def app(request):
     who.write(who_ini)
     who_ini.flush()
 
-    testapp = TestApp(main({}, **{
+    wsgi_app = main({}, **{
         'redis.url': REDIS_URL,
         'redis.sessions.secret': 'sekrit',
 
@@ -140,8 +147,7 @@ def app(request):
         'debugtoolbar.enabled': True,
         'pyramid.debug_all': True,
 
-        'webassets.debug': False,
-        'webassets.auto_build': False,
+        'webassets.debug': True,
 
         'occams.apps': 'occams_lims',
 
@@ -149,8 +155,26 @@ def app(request):
         'occams.groups': [],
 
         'roster.db.url': 'sqlite://',
-    }))
+    })
 
+    who_ini.close()
+
+    return wsgi_app
+
+
+@pytest.yield_fixture
+def app(wsgi):
+    """
+    Initiates a user request against a WSGI stack for functional testing
+    """
+
+    import transaction
+    from webtest import TestApp
+    from zope.sqlalchemy import mark_changed
+
+    from occams import Session
+
+    testapp = TestApp(wsgi)
     yield testapp
 
     with transaction.manager:
@@ -165,7 +189,6 @@ def app(request):
         Session.execute('DELETE FROM "user" CASCADE')
         mark_changed(Session())
     Session.remove()
-    who_ini.close()
 
 
 def make_environ(userid=USERID, properties={}, groups=()):
