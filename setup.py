@@ -18,13 +18,12 @@ REQUIRES = [
 
 EXTRAS = {
     'test': [
-        'nose',
-        'nose-testconfig',
-        'coverage',
+        'pytest',
+        'pytest-cov',
         'WebTest',
         'beautifulsoup4',
-        'mock',
-        'ddt'],
+        'mock'
+    ]
 }
 
 

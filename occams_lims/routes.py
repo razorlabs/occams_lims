@@ -20,7 +20,6 @@ def includeme(config):
     config.add_route('lims.lab_specimen_add',             '/lims/{lab}/addspecimen',               factory=models.LabFactory, traverse='/{lab}')
     config.add_route('lims.lab_specimen_labels',          '/lims/{lab}/specimen_labels',           factory=models.LabFactory, traverse='/{lab}')
     config.add_route('lims.lab_aliquot_labels',           '/lims/{lab}/aliquot_labels',            factory=models.LabFactory, traverse='/{lab}')
-    config.add_route('lims.lab_batched',                  '/lims/{lab}/batched',                   factory=models.LabFactory, traverse='/{lab}')
     config.add_route('lims.lab_ready',                    '/lims/{lab}/ready',                     factory=models.LabFactory, traverse='/{lab}')
     config.add_route('lims.lab_checkout',                 '/lims/{lab}/checkout',                  factory=models.LabFactory, traverse='/{lab}')
     config.add_route('lims.lab_checkout_update',          '/lims/{lab}/bulkupdate',                factory=models.LabFactory, traverse='/{lab}')
