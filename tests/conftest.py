@@ -154,6 +154,10 @@ def wsgi(db_url):
         'occams.db.url': Session.bind,
         'occams.groups': [],
 
+        'celery.broker.url': REDIS_URL,
+        'celery.backend.url': REDIS_URL,
+        'celery.blame': 'celery@localhost',
+
         'roster.db.url': 'sqlite://',
     })
 
