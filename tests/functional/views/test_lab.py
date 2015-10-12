@@ -398,35 +398,6 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker'])
-    def test_lab_batched(self, group, app):
-        url = '/lims/test_location/batched'
-
-        environ = make_environ(userid=USERID, groups=[group])
-
-        response = app.get(url, extra_environ=environ, status='*')
-
-        assert response.status_code == 200
-
-    @pytest.mark.parametrize('group', [
-        'test_location:member', 'fake_location:worker'])
-    def test_not_allowed_lab_batched(self, group, app):
-        url = '/lims/test_location/batched'
-
-        environ = make_environ(userid=USERID, groups=[group])
-
-        response = app.get(url, extra_environ=environ, status='*')
-
-        assert response.status_code == 403
-
-    def test_not_authenticated_batched(self, app):
-        url = '/lims/test_location/batched'
-
-        response = app.get(url, status='*')
-
-        assert response.status_code == 401
-
-    @pytest.mark.parametrize('group', [
-        'administrator', 'manager', 'test_location:worker'])
     def test_lab_ready(self, group, app):
         url = '/lims/test_location/ready'
 
