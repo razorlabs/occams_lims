@@ -12,8 +12,6 @@ from occams_datastore.models import (
     ModelClass, Referenceable, Describeable, Modifiable, Auditable)
 from occams_studies.models import Site, Patient, Study, Cycle, Visit
 
-from . import Session
-
 Base = ModelClass('Base')
 
 
@@ -57,8 +55,9 @@ class LabFactory(dict):
         self.request = request
 
     def __getitem__(self, key):
+        db_session = self.request.db_session
         try:
-            lab = Session.query(Location).filter_by(name=key).one()
+            lab = db_session.query(Location).filter_by(name=key).one()
         except orm.exc.NoResultFound:
             raise KeyError
 
@@ -76,8 +75,9 @@ class SpecimenFactory(dict):
         self.request = request
 
     def __getitem__(self, key):
+        db_session = self.request.db_session
         try:
-            specimen = Session.query(Specimen).filter_by(id=key).one()
+            specimen = db_session.query(Specimen).filter_by(id=key).one()
         except orm.exc.NoResultFound:
             raise KeyError
         specimen.__parent__ = self
@@ -95,8 +95,9 @@ class AliquotFactory(dict):
         self.request = request
 
     def __getitem__(self, key):
+        db_session = self.request.db_session
         try:
-            aliquot = Session.query(Aliquot).filter_by(id=key).one()
+            aliquot = db_session.query(Aliquot).filter_by(id=key).one()
         except orm.exc.NoResultFound:
             raise KeyError
         aliquot.__parent__ = self

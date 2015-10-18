@@ -3,7 +3,14 @@ Testing fixtures
 
 To run the tests you'll then need to run the following command:
 
-    py.test --db postgresql://user:pass@host/db --cov occams_lims tests
+    py.test --db=postgres://user:pass@host/db
+
+Also, you can reuse a database:
+
+    py.test --db=postgres://user:pass@host/db --reuse
+
+This is particularly handing while developing as it saves about a minute
+each time the tests are run.
 
 """
 
@@ -21,13 +28,12 @@ USERID = 'test_user'
 def pytest_addoption(parser):
     """
     Registers a command line argument for a database URL connection string
+
+    :param parser: The pytest command-line parser
     """
     parser.addoption('--db', action='store', help='db string for testing')
-
-
-@pytest.fixture(scope='session')
-def db_url(request):
-    return request.config.getoption("--db")
+    parser.addoption('--reuse', action='store_true',
+                     help='Reuses existing database')
 
 
 @compiles(CreateTable, 'postgresql')
@@ -51,77 +57,142 @@ def compile_unlogged(create, compiler, **kwargs):
         return compiler.visit_create_table(create)
 
 
-@pytest.yield_fixture(scope='session', autouse=True)
-def create_tables(db_url):
+@pytest.fixture(scope='session', autouse=True)
+def create_tables(request):
     """
     Creates the database tables for the entire testing session
 
-    :param request: the testing context
+    :param request: The pytest context
+
+    :returns: configured database session
     """
     import os
     from sqlalchemy import create_engine
     from occams_datastore import models as datastore
-    from occams_studies import Session, models
-    from occams_lims import models as lims
-    from occams_roster import models as roster, Session as RosterSession
+    from occams_lims import models
+
+    db_url = request.config.getoption('--db')
+    reuse = request.config.getoption('--reuse')
 
     engine = create_engine(db_url)
     url = engine.url
 
-    Session.configure(bind=engine)
+    if not reuse:
+        # This is very similar to the init_db script: create tables
+        # and pre-populate with expected data
+        datastore.DataStoreModel.metadata.create_all(engine)
+        models.Base.metadata.create_all(engine)
 
-    datastore.DataStoreModel.metadata.create_all(engine)
-    models.Base.metadata.create_all(engine)
-    lims.Base.metadata.create_all(engine)
+    def drop_tables():
+        if url.drivername == 'sqlite':
+            if url.database not in ('', ':memory:'):
+                os.unlink(url.database)
+        elif not reuse:
+            models.Base.metadata.drop_all(engine)
+            datastore.DataStoreModel.metadata.drop_all(engine)
 
-    roster_engine = create_engine('sqlite://')
-    RosterSession.configure(bind=roster_engine)
-    roster.Base.metadata.create_all(RosterSession.bind)
-
-    yield
-
-    if url.drivername == 'sqlite' and url.database not in ('', ':memory:'):
-        os.unlink(url.database)
-    else:
-        lims.Base.metadata.drop_all(engine)
-        models.Base.metadata.drop_all(engine)
-        datastore.DataStoreModel.metadata.drop_all(engine)
+    request.addfinalizer(drop_tables)
 
 
 @pytest.yield_fixture
-def config():
+def config(request):
     """
-    Conguration for integration testing
+    (Integration Testing) Instantiates a Pyramid testing configuration
+
+    :param request: The pytest context
     """
 
     from pyramid import testing
     import transaction
-    from occams_forms import models, Session
 
-    testconfig = testing.setUp()
+    db_url = request.config.getoption('--db')
 
-    blame = models.User(key=u'tester')
-    Session.add(blame)
-    Session.flush()
-    Session.info['blame'] = blame
+    test_config = testing.setUp(settings={
+        'occams.db.url': db_url
+    })
 
-    yield testconfig
+    # Load mimimum set of plugins
+    test_config.include('occams.models')
+    test_config.include('occams_lims.routes')
+
+    yield test_config
 
     testing.tearDown()
     transaction.abort()
-    Session.remove()
+
+
+@pytest.fixture
+def db_session(config):
+    """
+    (Integartion Testing) Instantiates a database session.
+
+    :param config: The pyramid testing configuartion
+
+    :returns: An instantiated sqalchemy database session
+    """
+    from occams_datastore import models as datastore
+
+    db_session = config.registry['db_sessionmaker']()
+
+    # Pre-configure with a blame user
+    blame = datastore.User(key=USERID)
+    db_session.add(blame)
+    db_session.flush()
+    db_session.info['blame'] = blame
+
+    # Other expected settings
+    db_session.info['settings'] = config.registry.settings
+
+    return db_session
+
+
+@pytest.fixture
+def req(db_session):
+    """
+    (Integration Testing) Creates a dummy request
+
+    The request is setup with configuration CSRF values and the expected
+    ``db_session`` property, the goal being to be be as close to a real
+    database session as possible.
+
+    Note that we must called it "req" as "request" is reserved by pytest.
+
+    :param db_session: The testing database session
+
+    :returns: a configured request object
+    """
+    import uuid
+    import mock
+    from pyramid.testing import DummyRequest
+
+    dummy_request = DummyRequest()
+
+    # Configurable csrf token
+    csrf_token = str(uuid.uuid4())
+    get_csrf_token = mock.Mock(return_value=csrf_token)
+    dummy_request.session.get_csrf_token = get_csrf_token
+    dummy_request.headers['X-CSRF-Token'] = csrf_token
+
+    # Attach database session for expected behavior
+    dummy_request.db_session = db_session
+    db_session.info['request'] = dummy_request
+
+    return dummy_request
 
 
 @pytest.fixture(scope='session')
-def wsgi(db_url):
+def wsgi(request):
     """
-    Initializes a singleton full WSGI stack for functional testing
-    """
+    (Functional Testing) Sets up a full-stacked singleton WSGI app
 
+    :param request: The pytest context
+
+    :returns: a WSGI application
+    """
     import tempfile
+    import shutil
     import six
-
-    from occams import main, Session
+    from occams import main
 
     # The pyramid_who plugin requires a who file, so let's create a
     # barebones files for it...
@@ -136,7 +207,11 @@ def wsgi(db_url):
     who.write(who_ini)
     who_ini.flush()
 
-    wsgi_app = main({}, **{
+    db_url = request.config.getoption('--db')
+
+    tmp_dir = tempfile.mkdtemp()
+
+    wsgi = main({}, **{
         'redis.url': REDIS_URL,
         'redis.sessions.secret': 'sekrit',
 
@@ -151,75 +226,51 @@ def wsgi(db_url):
 
         'occams.apps': 'occams_lims',
 
-        'occams.db.url': Session.bind,
+        'occams.db.url': db_url,
         'occams.groups': [],
 
         'celery.broker.url': REDIS_URL,
         'celery.backend.url': REDIS_URL,
         'celery.blame': 'celery@localhost',
-
-        'roster.db.url': 'sqlite://',
     })
 
     who_ini.close()
 
-    return wsgi_app
+    def cleanup():
+        shutil.rmtree(tmp_dir)
+
+    request.addfinalizer(cleanup)
+
+    return wsgi
 
 
 @pytest.yield_fixture
-def app(wsgi):
+def app(request, wsgi, db_session):
     """
-    Initiates a user request against a WSGI stack for functional testing
-    """
+    (Functional Testing) Initiates a user request against a WSGI stack
 
+    :param request: The pytest context
+    :param wsgi: An initialized WSGI stack
+    :param db_session: A database session for seting up pre-existing data
+
+    :returns: a test app request against the WSGI instance
+    """
     import transaction
     from webtest import TestApp
     from zope.sqlalchemy import mark_changed
 
-    from occams import Session
+    app = TestApp(wsgi)
 
-    testapp = TestApp(wsgi)
-    yield testapp
+    yield app
 
     with transaction.manager:
-        # DELETE is significantly faster than TRUNCATE
+        # DELETE is dramatically faster than TRUNCATE
         # http://stackoverflow.com/a/11423886/148781
         # We also have to do this as a raw query becuase SA does
         # not have a way to invoke server-side cascade
-        Session.execute('DELETE FROM "location" CASCADE')
-        Session.execute('DELETE FROM "site" CASCADE')
-        Session.execute('DELETE FROM "study" CASCADE')
-        Session.execute('DELETE FROM "specimentype" CASCADE')
-        Session.execute('DELETE FROM "user" CASCADE')
-        mark_changed(Session())
-    Session.remove()
-
-
-def make_environ(userid=USERID, properties={}, groups=()):
-    """
-    Creates dummy environ variables for mock-authentication
-
-    :param userid:      The currently authenticated userid
-    :param properties:  Additional identity properties
-    :param groups:      Optional group memberships
-    """
-    if userid:
-        return {
-            'REMOTE_USER': userid,
-            'repoze.who.identity': {
-                'repoze.who.userid': userid,
-                'properties': properties,
-                'groups': groups}}
-
-
-def get_csrf_token(app, environ=None):
-    """
-    Request the app so csrf cookie is available
-
-    :param app:     The testing application
-    :param environ: The environ variables (if the user is logged in)
-                    Default: None
-    """
-    app.get('/', extra_environ=environ)
-
-    return app.cookies['csrf_token']
+        db_session.execute('DELETE FROM "location" CASCADE')
+        db_session.execute('DELETE FROM "site" CASCADE')
+        db_session.execute('DELETE FROM "study" CASCADE')
+        db_session.execute('DELETE FROM "specimentype" CASCADE')
+        db_session.execute('DELETE FROM "user" CASCADE')
+        mark_changed(db_session)

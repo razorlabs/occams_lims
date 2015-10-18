@@ -12,7 +12,7 @@ from wtforms_components import TimeField
 from occams.utils.forms import apply_changes
 from occams.utils.pagination import Pagination
 
-from .. import _, models, Session
+from .. import _, models
 from ..labels import (
     printLabelSheet,
     LabeledSpecimen,
@@ -37,15 +37,16 @@ def list_(context, request):
          All other locations will also be listed only in sample
          destination options when editing.
     """
+    db_session = request.db_session
 
     # We need to know which sites the user has access
-    query = Session.query(models.Location)
+    query = db_session.query(models.Location)
     location_ids = [l.id for l in query if request.has_permission('view', l)]
 
     if location_ids:
 
         locations = (
-            Session.query(models.Location)
+            db_session.query(models.Location)
             .filter_by(active=True)
             .filter(models.Location.id.in_(location_ids))
             .join(models.Location.sites)
@@ -70,13 +71,14 @@ def get_processing_location(context):
     This is a stupid hack to get this launched already
     the original version depends on having a default destination
     """
+    db_session = orm.object_session(context)
 
-    if 'aeh' in Session.bind.url.database:
+    if 'aeh' in db_session.bind.url.database:
         processing_location_name = {
             'richman lab': 'richman lab',
             'avrc': 'richman lab'
         }.get(context.name)
-    elif 'cctg' in Session.bind.url.database:
+    elif 'cctg' in db_session.bind.url.database:
         processing_location_name = {
             'harbor-ucla-clinic': 'harbor-ucla-clinic',
             'long-beach-clinic': 'long_beach_lab',
@@ -85,7 +87,7 @@ def get_processing_location(context):
             'usc-lab': 'usc-lab',
             'avrc': 'avrc',
         }.get(context.name)
-    elif 'mhealth' in Session.bind.url.database:
+    elif 'mhealth' in db_session.bind.url.database:
         processing_location_name = {
             'avrc': 'avrc',
         }.get(context.name)
@@ -94,16 +96,17 @@ def get_processing_location(context):
 
     if processing_location_name:
         return (
-            Session.query(models.Location)
+            db_session.query(models.Location)
             .filter_by(name=processing_location_name)
             .one())
 
 
 def build_crud_form(context, request):
+    db_session = request.db_session
 
     # We can send to any location, we don't need access
     locations_query = (
-        Session.query(models.Location)
+        db_session.query(models.Location)
         .filter_by(active=True)
         .order_by(models.Location.title))
 
@@ -146,6 +149,7 @@ def build_crud_form(context, request):
     permission='view',
     renderer='../templates/lab/inbox.pt')
 def inbox(context, request):
+    db_session = request.db_session
 
     vals = filter_specimen(context, request, state=u'pending-draw')
     specimen = vals['specimen']
@@ -184,7 +188,7 @@ def inbox(context, request):
             for i, subform in enumerate(form.specimen.entries):
                 if apply_changes(subform.form, specimen[i]):
                     updated_count += 1
-            Session.flush()
+            db_session.flush()
             if updated_count:
                 request.session.flash(u'Changes saved', 'success')
             else:
@@ -213,7 +217,7 @@ def inbox(context, request):
         for state_name in ('cancel-draw', 'pending-aliquot'):
             if state_name in request.POST:
                 state = (
-                    Session.query(models.SpecimenState)
+                    db_session.query(models.SpecimenState)
                     .filter_by(name=state_name)
                     .one())
                 transitioned_count = 0
@@ -224,7 +228,7 @@ def inbox(context, request):
                         transitioned_count += 1
                     if apply_changes(subform.form, specimen[i]):
                         updated_count += 1
-                Session.flush()
+                db_session.flush()
                 if transitioned_count:
                     request.session.flash(
                         u'%d Specimen have been changed to the status of %s.'
@@ -248,6 +252,7 @@ def inbox(context, request):
     permission='view',
     renderer='../templates/lab/modal-labels.pt')
 def specimen_labels(context, request):
+    db_session = request.db_session
 
     label_queue = request.session.setdefault(SPECIMEN_LABEL_QUEUE, set())
 
@@ -270,7 +275,7 @@ def specimen_labels(context, request):
         if 'print' in request.POST and form.validate():
             if label_queue:
                 query = (
-                    Session.query(models.Specimen)
+                    db_session.query(models.Specimen)
                     .filter(models.Specimen.id.in_(label_queue))
                     .order_by(
                         models.Specimen.patient_id,
@@ -320,6 +325,7 @@ def specimen_labels(context, request):
     permission='view',
     renderer='../templates/lab/modal-labels.pt')
 def aliquot_labels(context, request):
+    db_session = request.db_session
 
     label_queue = request.session.setdefault(ALIQUOT_LABEL_QUEUE, set())
 
@@ -342,7 +348,7 @@ def aliquot_labels(context, request):
         if 'print' in request.POST and form.validate():
             if label_queue:
                 query = (
-                    Session.query(models.Aliquot)
+                    db_session.query(models.Aliquot)
                     .join(models.Specimen)
                     .filter(models.Aliquot.id.in_(label_queue))
                     .order_by(
@@ -385,9 +391,10 @@ def aliquot_labels(context, request):
 
 
 def build_add_form(context, request):
+    db_session = request.db_session
 
     cycles_query = (
-        Session.query(models.Cycle)
+        db_session.query(models.Cycle)
         .join(models.Study)
         .filter(models.Study.start_date != sa.null())
         .order_by(
@@ -398,7 +405,7 @@ def build_add_form(context, request):
         + [(c.id, c.title) for c in cycles_query]
 
     types_query = (
-        Session.query(models.SpecimenType)
+        db_session.query(models.SpecimenType)
         .order_by(
             models.SpecimenType.title))
 
@@ -408,8 +415,8 @@ def build_add_form(context, request):
     def check_patient_exists(form, field):
         pid = field.data
         exists = (
-            Session.query(
-                Session.query(models.Patient)
+            db_session.query(
+                db_session.query(models.Patient)
                 .filter_by(pid=pid)
                 .exists())
             .scalar())
@@ -425,8 +432,8 @@ def build_add_form(context, request):
             return
 
         exists = (
-            Session.query(
-                Session.query(models.Visit)
+            db_session.query(
+                db_session.query(models.Visit)
                 .filter(models.Visit.patient.has(pid=pid))
                 .filter(models.Visit.cycles.any(id=cycle_id))
                 .exists())
@@ -472,6 +479,7 @@ def build_add_form(context, request):
     permission='process',
     renderer='../templates/lab/modal-specimen-add.pt')
 def add(context, request):
+    db_session = request.db_session
     Form = build_add_form(context, request)
     form = Form(request.POST)
 
@@ -479,22 +487,22 @@ def add(context, request):
             and check_csrf_token(request)
             and form.validate()):
         state = (
-            Session.query(models.SpecimenState)
+            db_session.query(models.SpecimenState)
             .filter_by(name=u'pending-draw')
             .one())
         patient = (
-            Session.query(models.Patient)
+            db_session.query(models.Patient)
             .filter_by(pid=form.pid.data)
             .one())
-        cycle = Session.query(models.Cycle).get(form.cycle_id.data)
+        cycle = db_session.query(models.Cycle).get(form.cycle_id.data)
         type_ = \
-            Session.query(models.SpecimenType).get(form.specimen_type_id.data)
+            db_session.query(models.SpecimenType).get(form.specimen_type_id.data)
         visit = (
-            Session.query(models.Visit)
+            db_session.query(models.Visit)
             .filter(models.Visit.patient_id == patient.id)
             .filter(models.Visit.cycles.any(id=form.cycle_id.data))
             .one())
-        Session.add(models.Specimen(
+        db_session.add(models.Specimen(
             patient=patient,
             cycle=cycle,
             specimen_type=type_,
@@ -502,7 +510,7 @@ def add(context, request):
             collect_date=visit.visit_date,
             location=context,
             tubes=type_.default_tubes))
-        Session.flush()
+        db_session.flush()
         request.session.flash(
             _(u'Specimen added for ${pid}', mapping={'pid': form.pid.data}),
             'success')
@@ -515,13 +523,14 @@ def add(context, request):
 
 
 def filter_specimen(context, request, state, page_key='page', omit=None):
+    db_session = request.db_session
 
     omit = set(omit or [])
 
-    types_query = Session.query(models.SpecimenType).order_by('title')
+    types_query = db_session.query(models.SpecimenType).order_by('title')
     available_types = [(t.id, t.title) for t in types_query]
 
-    states_query = Session.query(models.SpecimenState).order_by('title')
+    states_query = db_session.query(models.SpecimenState).order_by('title')
     available_states = [(s.id, s.title) for s in states_query]
 
     class FilterForm(wtforms.Form):
@@ -559,7 +568,7 @@ def filter_specimen(context, request, state, page_key='page', omit=None):
     #       updated between requests, we need to make sure the same
     #       listing is repeatable...
     query = (
-        Session.query(models.Specimen)
+        db_session.query(models.Specimen)
         .filter(
             (models.Specimen.location == context)
             | (models.Specimen.previous_location == context))
@@ -605,13 +614,14 @@ def filter_specimen(context, request, state, page_key='page', omit=None):
 
 
 def filter_aliquot(context, request, state, page_key='page', omit=None):
+    db_session = request.db_session
 
     omit = set(omit or [])
 
-    types_query = Session.query(models.AliquotType).order_by('title')
+    types_query = db_session.query(models.AliquotType).order_by('title')
     available_types = [(t.id, t.title) for t in types_query]
 
-    states_query = Session.query(models.AliquotState).order_by('title')
+    states_query = db_session.query(models.AliquotState).order_by('title')
     available_states = [(s.id, s.title) for s in states_query]
 
     class FilterForm(wtforms.Form):
@@ -661,7 +671,7 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
     #       updated between requests, we need to make sure the same
     #       listing is repeatable...
     query = (
-        Session.query(models.Aliquot)
+        db_session.query(models.Aliquot)
         .join(models.Aliquot.specimen)
         .join(models.Specimen.patient)
         .join(models.Aliquot.aliquot_type)
@@ -726,6 +736,7 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
     permission='process',
     renderer='../templates/lab/ready.pt')
 def ready(context, request):
+    db_session = request.db_session
     specimen_vals = filter_specimen(context, request, page_key='specimenpage', state='pending-aliquot')
     specimen = specimen_vals['specimen']
 
@@ -734,7 +745,7 @@ def ready(context, request):
 
     available_instructions = [
         (i.id, i.title)
-        for i in Session.query(models.SpecialInstruction).order_by('title')]
+        for i in db_session.query(models.SpecialInstruction).order_by('title')]
 
     label_queue = request.session.setdefault(ALIQUOT_LABEL_QUEUE, set())
 
@@ -815,7 +826,7 @@ def ready(context, request):
 
         if 'aliquot' in request.POST and specimen_form.validate():
             state = (
-                Session.query(models.AliquotState)
+                db_session.query(models.AliquotState)
                 .filter_by(name='pending')
                 .one())
             location = context
@@ -843,8 +854,8 @@ def ready(context, request):
 
                 count = subform.count.data
                 samples = [models.Aliquot(**kw) for i in range(count)]
-                Session.add_all(aliquot)
-                Session.flush()
+                db_session.add_all(aliquot)
+                db_session.flush()
 
                 processed_count += len(samples)
                 label_queue.update(s.id for s in samples)
@@ -861,7 +872,7 @@ def ready(context, request):
         elif 'aliquoted' in request.POST:
             state_name = 'aliquoted'
             state = (
-                Session.query(models.SpecimenState)
+                db_session.query(models.SpecimenState)
                 .filter_by(name=state_name)
                 .one())
             transitioned_count = 0
@@ -870,7 +881,7 @@ def ready(context, request):
                     specimen[i].state = state
                     transitioned_count += 1
             if transitioned_count:
-                Session.flush()
+                db_session.flush()
                 request.session.flash(
                     _(u'${count} specimen have been changed to the status of ${state}.',
                         mapping={'count': transitioned_count,
@@ -908,7 +919,7 @@ def ready(context, request):
         elif 'checkin' in request.POST and aliquot_form.validate():
             transitioned_count = 0
             state = (
-                Session.query(models.AliquotState)
+                db_session.query(models.AliquotState)
                 .filter_by(name='checked-in')
                 .one())
             for i, entry in enumerate(aliquot_form.aliquot.entries):
@@ -929,7 +940,7 @@ def ready(context, request):
 
         elif 'checkout' in request.POST and aliquot_form.validate():
             state = (
-                Session.query(models.AliquotState)
+                db_session.query(models.AliquotState)
                 .filter_by(name='pending-checkout')
                 .one())
             transitioned_count = 0
@@ -955,7 +966,7 @@ def ready(context, request):
                 apply_changes(entry.form, aliquot[i])
                 if entry.ui_selected.data:
                     deleted_count += 1
-                    Session.delete(aliquot[i])
+                    db_session.delete(aliquot[i])
             update_print_queue()
             if deleted_count > 0:
                 request.session.flash(
@@ -990,12 +1001,13 @@ def ready(context, request):
     permission='process',
     renderer='../templates/lab/checkout.pt')
 def checkout(context, request):
+    db_session = request.db_session
     vals = filter_aliquot(context, request, state='pending-checkout')
     aliquot = vals['aliquot']
 
     available_locations = [
         (l.id, l.title)
-        for l in Session.query(models.Location).order_by('title')]
+        for l in db_session.query(models.Location).order_by('title')]
 
     # TODO: the values in this form really should be in the crud form
     # since the receipt depends on the sent loation being unique.
@@ -1031,7 +1043,7 @@ def checkout(context, request):
 
         elif 'return' in request.POST and form.validate():
             state = (
-                Session.query(models.AliquotState)
+                db_session.query(models.AliquotState)
                 .filter_by(name='checked-in')
                 .one())
             updated_count = 0
@@ -1041,7 +1053,7 @@ def checkout(context, request):
                     aliquot[i].location = context
                     aliquot[i].state = state
                     updated_count += 1
-            Session.flush()
+            db_session.flush()
             if updated_count:
                 request.session.flash(
                     _(u'${count} aliquot have been changed to the status of ${state}',
@@ -1053,7 +1065,7 @@ def checkout(context, request):
 
         elif 'complete' in request.POST and form.validate():
             state = (
-                Session.query(models.AliquotState)
+                db_session.query(models.AliquotState)
                 .filter_by(name='checked-out')
                 .one())
             updated_count = 0
@@ -1062,7 +1074,7 @@ def checkout(context, request):
                 if entry.ui_selected.data:
                     aliquot[i].state = state
                     updated_count += 1
-            Session.flush()
+            db_session.flush()
             if updated_count:
                 request.session.flash(
                     _(u'${count} aliquot have been changed to the status of ${state}',
@@ -1084,11 +1096,12 @@ def checkout(context, request):
     permission='process',
     renderer='../templates/lab/modal-checkout-bulk-update.pt')
 def checkout_update(context, request):
+    db_session = request.db_session
     vals = filter_aliquot(context, request, state='pending-checkout')
 
     available_locations = [
         (l.id, l.title)
-        for l in Session.query(models.Location).order_by('title')]
+        for l in db_session.query(models.Location).order_by('title')]
 
     class CheckoutForm(wtforms.Form):
         location_id = wtforms.SelectField(
@@ -1136,11 +1149,12 @@ def checkout_update(context, request):
     permission='process',
     renderer='../templates/lab/receipt.pt')
 def checkout_receipt(context, request):
+    db_session = request.db_session
     vals = filter_aliquot(context, request, state='pending-checkout')
 
     try:
         sent_name = (
-            Session.query(sa.distinct(models.Aliquot.sent_name))
+            db_session.query(sa.distinct(models.Aliquot.sent_name))
             .select_from(vals['full_query'].subquery())
             .scalar())
     except orm.exc.MultipleResultsFound:
@@ -1148,7 +1162,7 @@ def checkout_receipt(context, request):
 
     try:
         location = (
-            Session.query(models.Location)
+            db_session.query(models.Location)
             .join(vals['full_query'].subquery(), models.Location.aliquot)
             .one())
     except orm.exc.NoResultFound:
@@ -1169,12 +1183,13 @@ def checkout_receipt(context, request):
     permission='process',
     renderer='../templates/lab/checkin.pt')
 def checkin(context, request):
+    db_session = request.db_session
     vals = filter_aliquot(context, request, state='checked-out')
     aliquot = vals['aliquot']
 
     available_locations = [
         (l.id, l.title)
-        for l in Session.query(models.Location).order_by('title')]
+        for l in db_session.query(models.Location).order_by('title')]
 
     class CheckinForm(wtforms.Form):
         ui_selected = wtforms.BooleanField()
@@ -1216,7 +1231,7 @@ def checkin(context, request):
 
         elif 'checkin' in request.POST and form.validate():
             state = (
-                Session.query(models.AliquotState)
+                db_session.query(models.AliquotState)
                 .filter_by(name='checked-in')
                 .one())
             updated_count = 0
@@ -1226,7 +1241,7 @@ def checkin(context, request):
                     aliquot[i].location = context
                     aliquot[i].state = state
                     updated_count += 1
-            Session.flush()
+            db_session.flush()
             if updated_count:
                 request.session.flash(
                     _(u'${count} aliquot have been changed to the status of ${state}',
