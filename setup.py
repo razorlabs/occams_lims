@@ -88,6 +88,9 @@ setup(
     install_requires=REQUIRES,
     extras_require=EXTRAS,
     tests_require=EXTRAS['test'],
-    test_suite='nose.collector',
     cmdclass={'develop': _custom_develop},
+    entry_points="""\
+    [console_scripts]
+    ol_initdb = occams_lims.scripts.initdb:main
+    """,
 )
