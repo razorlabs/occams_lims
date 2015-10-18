@@ -7,23 +7,14 @@ import sys
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 REQUIRES = [
-    'alembic',                          # Database table upgrades
-    'humanize',                         # human readable measurements
     'reportlab',
-    'six',                              # Py 2 & 3 compatibilty
 
     'occams',
     'occams_studies'
 ]
 
 EXTRAS = {
-    'test': [
-        'pytest',
-        'pytest-cov',
-        'WebTest',
-        'beautifulsoup4',
-        'mock'
-    ]
+    'test': []
 }
 
 
@@ -78,9 +69,9 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
     ],
     keywords='',
-    author='BEAST Core Development Team',
-    author_email='bitcore@ucsd.edu',
-    url='https://bitbucket.org/ucsdbitcore/occams_lims',
+    author='Young Labs',
+    author_email='younglabs@ucsd.edu',
+    url='https://github.com/younglabs/occams_lims',
     license='GPL',
     packages=find_packages(),
     include_package_data=True,
