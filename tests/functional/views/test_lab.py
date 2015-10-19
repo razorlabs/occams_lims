@@ -1,17 +1,16 @@
 import pytest
 
-from tests.conftest import make_environ, USERID, get_csrf_token
+from occams.testing import make_environ, USERID, get_csrf_token
 
 
 class TestPermissions:
 
     @pytest.fixture(autouse=True)
-    def transact(self, app):
+    def transact(self, app, db_session):
 
         from datetime import date
 
         import transaction
-        from occams import Session
         from occams_studies import models as studies
         from occams_datastore import models as datastore
         from occams_lims import models as lims
@@ -20,9 +19,9 @@ class TestPermissions:
         # Webtests will use a different scope for its transaction
         with transaction.manager:
             user = datastore.User(key=USERID)
-            Session.info['blame'] = user
-            Session.add(user)
-            Session.flush()
+            db_session.info['blame'] = user
+            db_session.add(user)
+            db_session.flush()
 
             site = studies.Site(
                 name=u'UCSD',
@@ -31,7 +30,7 @@ class TestPermissions:
                 create_date=date.today()
             )
 
-            Session.add(lims.Location(
+            db_session.add(lims.Location(
                 name=u'test_location',
                 title=u'test_location_title',
                 description=u'test_description',
@@ -56,7 +55,7 @@ class TestPermissions:
                 start_date=date(2014, 12, 12)
             )
 
-            Session.add(studies.Enrollment(
+            db_session.add(studies.Enrollment(
                 patient=patient,
                 study=study,
                 consent_date=date(2014, 12, 22)
@@ -75,22 +74,22 @@ class TestPermissions:
                 visit_date='2015-01-01'
             )
 
-            Session.add(lims.SpecimenType(
+            db_session.add(lims.SpecimenType(
                 name=u'test_specimen',
                 title=u'test_specimen',
                 studies=set([study]),
                 cycles=set([cycle])
             ))
 
-            Session.add(visit)
+            db_session.add(visit)
 
-            Session.flush()
+            db_session.flush()
 
     @pytest.mark.parametrize('group', [
         'administrator', 'manager',
         'test_location:worker', 'test_location:member',
         None])
-    def test_lims_view_list(self, group, app):
+    def test_lims_view_list(self, app, group):
         url = '/lims'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -108,7 +107,7 @@ class TestPermissions:
     @pytest.mark.parametrize('group', [
         'administrator', 'manager',
         'test_location:worker', 'test_location:member'])
-    def test_lims_lab_view(self, group, app):
+    def test_lims_lab_view(self, app, group):
         url = '/lims/test_location'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -117,7 +116,7 @@ class TestPermissions:
         assert response.status_code == 200
 
     @pytest.mark.parametrize('group', ['fake_location:member'])
-    def test_not_allowed_lims_lab_view(self, group, app):
+    def test_not_allowed_lims_lab_view(self, app, group):
         url = '/lims/test_location'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -133,7 +132,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker'])
-    def test_lims_lab_post(self, group, app):
+    def test_lims_lab_post(self, app, group):
         url = '/lims/test_location'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -152,7 +151,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'test_location:member', 'fake_location:member'])
-    def test_not_allowed_lims_lab_post(self, group, app):
+    def test_not_allowed_lims_lab_post(self, app, group):
         url = '/lims/test_location'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -177,8 +176,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker'])
-    def test_specimen_add(self, group, app):
-        from occams import Session
+    def test_specimen_add(self, app, db_session, group):
         from occams_studies import models as studies
         from occams_lims import models as lims
 
@@ -187,10 +185,10 @@ class TestPermissions:
         environ = make_environ(userid=USERID, groups=[group])
         csrf_token = get_csrf_token(app, environ)
 
-        cycle_id = Session.query(studies.Cycle.id).filter(
+        cycle_id = db_session.query(studies.Cycle.id).filter(
             studies.Cycle.name == u'test_cycle').scalar()
 
-        specimen_id = Session.query(lims.SpecimenType.id).filter(
+        specimen_id = db_session.query(lims.SpecimenType.id).filter(
             lims.SpecimenType.name == u'test_specimen').scalar()
 
         data = {
@@ -213,8 +211,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'test_location:member', 'fake_location:worker'])
-    def test_not_allowed_specimen_add(self, group, app):
-        from occams import Session
+    def test_not_allowed_specimen_add(self, app, db_session, group):
         from occams_studies import models as studies
         from occams_lims import models as lims
 
@@ -223,10 +220,10 @@ class TestPermissions:
         environ = make_environ(userid=USERID, groups=[group])
         csrf_token = get_csrf_token(app, environ)
 
-        cycle_id = Session.query(studies.Cycle.id).filter(
+        cycle_id = db_session.query(studies.Cycle.id).filter(
             studies.Cycle.name == u'test_cycle').scalar()
 
-        specimen_id = Session.query(lims.SpecimenType.id).filter(
+        specimen_id = db_session.query(lims.SpecimenType.id).filter(
             lims.SpecimenType.name == u'test_specimen').scalar()
 
         data = {
@@ -255,7 +252,7 @@ class TestPermissions:
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker',
         'test_location:member'])
-    def test_specimen_labels(self, group, app):
+    def test_specimen_labels(self, app, group):
         url = '/lims/test_location/specimen_labels'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -264,7 +261,7 @@ class TestPermissions:
         assert response.status_code == 200
 
     @pytest.mark.parametrize('group', ['fake_location:worker'])
-    def test_not_allowed_specimen_labels(self, group, app):
+    def test_not_allowed_specimen_labels(self, app, group):
         url = '/lims/test_location/specimen_labels'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -281,7 +278,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker'])
-    def test_specimen_labels_post(self, group, app):
+    def test_specimen_labels_post(self, app, group):
         url = '/lims/test_location/specimen_labels'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -300,7 +297,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'test_location:member', 'fake_location:member'])
-    def test_not_allowed_specimen_labels_post(self, group, app):
+    def test_not_allowed_specimen_labels_post(self, app, group):
         url = '/lims/test_location/specimen_labels'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -327,7 +324,7 @@ class TestPermissions:
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker',
         'test_location:member'])
-    def test_aliquot_labels(self, group, app):
+    def test_aliquot_labels(self, app, group):
         url = '/lims/test_location/aliquot_labels'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -336,7 +333,7 @@ class TestPermissions:
         assert response.status_code == 200
 
     @pytest.mark.parametrize('group', ['fake_location:worker'])
-    def test_not_allowed_aliquot_labels(self, group, app):
+    def test_not_allowed_aliquot_labels(self, app, group):
         url = '/lims/test_location/aliquot_labels'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -353,7 +350,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker'])
-    def test_aliquot_labels_post(self, group, app):
+    def test_aliquot_labels_post(self, app, group):
         url = '/lims/test_location/aliquot_labels'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -372,7 +369,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'test_location:member', 'fake_location:member'])
-    def test_not_allowed_aliquot_labels_post(self, group, app):
+    def test_not_allowed_aliquot_labels_post(self, app, group):
         url = '/lims/test_location/aliquot_labels'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -398,7 +395,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker'])
-    def test_lab_ready(self, group, app):
+    def test_lab_ready(self, app, group):
         url = '/lims/test_location/ready'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -409,7 +406,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'test_location:member', 'fake_location:worker'])
-    def test_not_allowed_lab_ready(self, group, app):
+    def test_not_allowed_lab_ready(self, app, group):
         url = '/lims/test_location/ready'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -427,7 +424,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker'])
-    def test_lab_checkout(self, group, app):
+    def test_lab_checkout(self, app, group):
         url = '/lims/test_location/checkout'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -438,7 +435,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'test_location:member', 'fake_location:worker'])
-    def test_not_allowed_lab_checkout(self, group, app):
+    def test_not_allowed_lab_checkout(self, app, group):
         url = '/lims/test_location/checkout'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -456,7 +453,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker'])
-    def test_lab_checkout_update(self, group, app):
+    def test_lab_checkout_update(self, app, group):
         url = '/lims/test_location/bulkupdate'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -467,7 +464,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'test_location:member', 'fake_location:worker'])
-    def test_not_allowed_lab_checkout_update(self, group, app):
+    def test_not_allowed_lab_checkout_update(self, app, group):
         url = '/lims/test_location/bulkupdate'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -485,7 +482,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker'])
-    def test_lab_checkout_receipt(self, group, app):
+    def test_lab_checkout_receipt(self, app, group):
         url = '/lims/test_location/checkoutreceipt'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -496,7 +493,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'test_location:member', 'fake_location:member'])
-    def test_not_allowed_lab_checkout_receipt(self, group, app):
+    def test_not_allowed_lab_checkout_receipt(self, app, group):
         url = '/lims/test_location/checkoutreceipt'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -514,7 +511,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'administrator', 'manager', 'test_location:worker'])
-    def test_lab_checkin(self, group, app):
+    def test_lab_checkin(self, app, group):
         url = '/lims/test_location/checkin'
 
         environ = make_environ(userid=USERID, groups=[group])
@@ -525,7 +522,7 @@ class TestPermissions:
 
     @pytest.mark.parametrize('group', [
         'test_location:member', 'fake_location:worker'])
-    def test_not_allowed_lab_checkin(self, group, app):
+    def test_not_allowed_lab_checkin(self, app, group):
         url = '/lims/test_location/checkin'
 
         environ = make_environ(userid=USERID, groups=[group])
