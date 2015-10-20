@@ -126,6 +126,8 @@ def build_crud_form(context, request):
         collect_date = DateField(
             validators=[wtforms.validators.Optional()])
 
+        # There doesn't seem to be a nice way to add the colon if the
+        # user forgets to do so, might need to make our own Field type
         collect_time = TimeField(
             format='%H:%M',
             validators=[wtforms.validators.Optional()])
