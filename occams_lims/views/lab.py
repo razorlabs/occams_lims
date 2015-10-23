@@ -39,29 +39,15 @@ def list_(context, request):
     """
     db_session = request.db_session
 
-    # We need to know which sites the user has access
-    query = db_session.query(models.Location)
-    location_ids = [l.id for l in query if request.has_permission('view', l)]
+    query = (
+        db_session.query(models.Location)
+        .filter_by(is_enabled=True)
+        .order_by(models.Location.title))
 
-    if location_ids:
-
-        locations = (
-            db_session.query(models.Location)
-            .filter_by(active=True)
-            .filter(models.Location.id.in_(location_ids))
-            .join(models.Location.sites)
-            .order_by(models.Location.title)
-            .all())
-
-        locations_count = len(locations)
-
-    else:
-
-        locations = []
-        locations_count = 0
+    locations_count = query.count()
 
     return {
-        'labs': locations,
+        'labs': query,
         'labs_count': locations_count
     }
 

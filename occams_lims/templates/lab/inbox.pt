@@ -24,19 +24,19 @@
           <tr>
             <!-- TODO remove hardcoded styling -->
             <th style="width: 2%"><input type="checkbox" data-toggle='selectall'/></th>
-            <th style="width: 4%" i18n:translate="">ID</th>
+            <th style="width: 3%" i18n:translate=""><span class="fa fa-print"></span></th>
+            <th style="width: 5%" i18n:translate="">ID</th>
             <th style="width: 9%" i18n:translate="">State</th>
-            <th style="width: 9%" i18n:translate="">Label Queue</th>
             <th style="width: 5%" i18n:translate="">Patient</th>
             <th style="width: 5%" i18n:translate="">Study/Cycle</th>
-            <th style="width: 9%" i18n:translate="">Visit</th>
+            <th style="width: 8%" i18n:translate="">Visit</th>
             <th style="width: 9%" i18n:translate="">Tube Type</th>
             <th style="width: 9%" i18n:translate="">Type</th>
             <th style="width: 4%" i18n:translate="">Tubes</th>
-            <th style="width: 9%" i18n:translate="">Collect Date</th>
+            <th style="width: 10%" i18n:translate="">Collect Date</th>
             <th style="width: 7%" i18n:translate="">Collect Time</th>
             <th style="width: 9%" i18n:translate="">Location</th>
-            <th style="width: 10%" i18n:translate="">Notes</th>
+            <th style="width: 15%" i18n:translate="">Notes</th>
           </tr>
         </thead>
         <tbody>
@@ -45,9 +45,9 @@
               subform form.specimen.entries[repeat['draw'].index];
               disabled not:request.has_permission('process')">
               <td><tal:select condition="not:disabled">${subform.ui_selected(**{'data-toggle': 'select'})}</tal:select></td>
+              <td>${(draw.tubes and draw.tubes or 0) if draw.id in label_queue else None}</td>
               <td><code>${draw.id}</code></td>
               <td><span tal:define="state draw.state" metal:use-macro="load: pretty-state.pt"></span></td>
-              <td>${(draw.tubes and draw.tubes or 0) if draw.id in label_queue else None}</td>
               <td><code>${draw.patient.pid}</code></td>
               <td>${draw.cycle.study.short_title} - ${draw.cycle.week}</td>
               <td><code>${draw.visit_date}</code></td>

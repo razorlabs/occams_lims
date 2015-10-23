@@ -1,6 +1,6 @@
 <form method="GET" class="form-inline" tal:define="form filter_form">
   <div tal:define="field form.pid|nothing" tal:condition="field" class="form-group">
-    ${field(class_='form-control', placeholder=field.label.text)}
+    ${field(class_='form-control', placeholder=field.label.text, size=10)}
   </div>
   <!--! select2 doesn't play nicely with inline forms so we must manually set a min-width -->
   <div tal:define="field form.aliquot_types|nothing" tal:condition="field" class="form-group" style="min-width: 200px">
@@ -11,19 +11,19 @@
     ${field(class_='form-control js-select2', placeholder=field.label.text)}
   </div>
   <div tal:define="field form.from_|nothing" tal:condition="field" class="form-group">
-    ${field(class_='form-control js-date', placeholder=field.label.text)}
+    ${field(class_='form-control js-date', placeholder=field.label.text, size=10)}
   </div>
   <div tal:define="field form.to|nothing" tal:condition="field" class="form-group">
-    ${field(class_='form-control js-date', placeholder=field.label.text)}
+    ${field(class_='form-control js-date', placeholder=field.label.text, size=10)}
   </div>
   <div tal:define="field form.freezer|nothing" tal:condition="field" class="form-group">
-    ${field(class_='form-control', placeholder=field.label.text)}
+    ${field(class_='form-control', placeholder=field.label.text, size=2)}
   </div>
   <div tal:define="field form.rack|nothing" tal:condition="field" class="form-group">
-    ${field(class_='form-control', placeholder=field.label.text)}
+    ${field(class_='form-control', placeholder=field.label.text, size=2)}
   </div>
   <div tal:define="field form.box|nothing" tal:condition="field" class="form-group">
-    ${field(class_='form-control', placeholder=field.label.text)}
+    ${field(class_='form-control', placeholder=field.label.text, size=2)}
   </div>
   <span class="form-actions">
     <a href="${request.current_route_path(_query='')}" class="btn btn-default" i18n:translate="">Clear</a>

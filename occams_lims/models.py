@@ -197,7 +197,7 @@ class Location(Base, Describeable, Referenceable, Modifiable):
     def __acl__(self):
         acl = [
             (Allow, groups.administrator(), ALL_PERMISSIONS),
-            (Allow, groups.manager(), ('view', 'process')),
+            (Allow, groups.manager(), ('view', 'edit', 'delete', 'process')),
             (Allow, groups.worker(self), ('view', 'process')),
             (Allow, groups.member(self), 'view')
         ]
@@ -211,9 +211,13 @@ class Location(Base, Describeable, Referenceable, Modifiable):
             name='lab_location',
             uselist=False))
 
+    is_enabled = Column(
+        Boolean,
+        doc='Indicates that this lab manages samples through the app')
+
     active = Column(
         Boolean,
-        doc='Flag indicating this location is still active')
+        doc='Indicates that this samples can be sent to this location')
 
     long_title1 = Column(Unicode, doc='Address Line 1')
 
