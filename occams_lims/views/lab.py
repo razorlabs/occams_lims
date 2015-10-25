@@ -321,11 +321,11 @@ def aliquot_labels(context, request):
         startcol = wtforms.IntegerField(
             u'Starting Column Position',
             default=1,
-            validators=[wtforms.validators.InputRequired()])
+            validators=[wtforms.validators.Optional()])
         startrow = wtforms.IntegerField(
             u'String Row Position',
             default=1,
-            validators=[wtforms.validators.InputRequired()])
+            validators=[wtforms.validators.Optional()])
 
     form = PrintForm(request.POST)
 
