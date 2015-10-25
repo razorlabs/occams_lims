@@ -1,6 +1,6 @@
-from cStringIO import StringIO
 from datetime import date
 
+import six
 from reportlab.graphics.barcode import code39
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
@@ -87,9 +87,10 @@ class LabeledSpecimen(object):
         """
         Generate the lines for a Specimen Label
         """
-        line1 = unicode(' '.join([self.context.patient.pid, self.sample_date]))
-        line2 = unicode(self.cycle_title)
-        line3 = unicode(self.sample_type)
+        line1 = six.text_type(
+            ' '.join([self.context.patient.pid, self.sample_date]))
+        line2 = six.text_type(self.cycle_title)
+        line3 = six.text_type(self.sample_type)
         return [line1, line2, line3]
 
 
@@ -140,10 +141,10 @@ class LabeledAliquot(object):
         Generate the lines for an Aliquot Label
         """
         # Barcode Line
-        line1 = unicode(self.id)
-        line2 = unicode('%s OUR# %s ' % (self.id, self.patient_title))
-        line3 = unicode(self.sample_date)
-        line4 = unicode('%s - %s' % (self.cycle_title, self.sample_type))
+        line1 = six.text_type(self.id)
+        line2 = six.text_type('%s OUR# %s ' % (self.id, self.patient_title))
+        line3 = six.text_type(self.sample_date)
+        line4 = six.text_type('%s - %s' % (self.cycle_title, self.sample_type))
         return [line1, line2, line3, line4]
 
 
@@ -151,13 +152,13 @@ def printLabelSheet(lab, labels, settings, startcol=None, startrow=None):
     """
     Create the label page, and output
     """
-    stream = StringIO()
+    stream = six.StringIO()
     labelWriter = LabelGenerator(lab, settings, stream)
 
-    if startcol and startcol > 1:
+    if startcol > 1:
         labelWriter.column = startcol - 2
 
-    if startrow and startrow > 1:
+    if startrow > 1:
         labelWriter.row = startrow - 1
 
     for label in labels:
@@ -301,7 +302,8 @@ class LabelGenerator(object):
         self.canvas.showPage()
         self.canvas.save()
 
-    def createLabel(self, labelines, barcodeline=None, startcol=None, startrow=None):
+    def createLabel(
+            self, labelines, barcodeline=None, startcol=None, startrow=None):
         """
         Take a set of brains from the catalog and create the labels from that
         set of brains
@@ -354,7 +356,10 @@ class LabelGenerator(object):
                     elementWidth = 7 + 2.2 * 3
                     barcode = code39.Standard39(
                         aLine,
-                        barWidth=(availableWidth - 3) / elementWidth / (3 + len(aLine)),
+                        barWidth=(
+                            (availableWidth - 3) /
+                            elementWidth /
+                            (3 + len(aLine))),
                         ratio=ratio,
                         barHeight=2 * fontSize,
                         humanReadable=False,
@@ -364,7 +369,8 @@ class LabelGenerator(object):
 
                     barcode.drawOn(self.canvas, theBox[0] + margin, current_y)
                 else:
-                    self.canvas.drawString(theBox[0] + margin, current_y, aLine)
+                    self.canvas.drawString(
+                        theBox[0] + margin, current_y, aLine)
                 current_y -= fontSize
                 self.canvas.setFontSize(fontSize - 1)
 
