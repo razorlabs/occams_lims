@@ -274,3 +274,24 @@ def app(request, wsgi, db_session):
         db_session.execute('DELETE FROM "specimentype" CASCADE')
         db_session.execute('DELETE FROM "user" CASCADE')
         mark_changed(db_session)
+
+
+@pytest.fixture
+def factories(db_session):
+    """
+    Configures the data factories
+
+    :param db_session: testing session fixture
+    :returns: the configured factories module
+    """
+
+    import inspect
+    from . import factories
+
+    classes = inspect.getmembers(factories, inspect.isclass)
+
+    for class_name, class_ in classes:
+        if hasattr(class_, '_meta') and hasattr(class_._meta, 'model'):
+            class_._meta.sqlalchemy_session = db_session
+
+    return factories
