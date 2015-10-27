@@ -21,7 +21,7 @@ def includeme(config):
         'name': 'lims',
         'title': _(u'LIMS'),
         'package': 'occams_lims',
-        'route': 'lims.main',
+        'route': 'lims.index',
         'version': __version__
     }
 

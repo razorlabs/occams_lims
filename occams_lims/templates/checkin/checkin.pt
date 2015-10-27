@@ -1,13 +1,12 @@
 <html i18n:domain="occams.studies" metal:use-macro="load:../master.pt">
   <metal:content-slot fill-slot="content-slot">
 
-    <h1>${context.title}</h1>
+    <header class="page-header">
+      <h1>${context.title}</h1>
+      <nav metal:use-macro="load: ../header-nav.pt"></nav>
+    </header>
 
-    <nav metal:use-macro="load: header-nav.pt"></nav>
-
-    <br />
-
-    <form metal:use-macro="load: filter-aliquot.pt"></form>
+    <form metal:use-macro="load: ../aliquot/filter-aliquot.pt"></form>
 
     <hr />
 
@@ -16,33 +15,34 @@
       <p i18n:translate="">Please refine your search</p>
     </div>
 
-    <form method="POST">
+    <form method="POST" action="${request.current_route_path()}">
       <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
 
       <table class="table table-bordered table-hover table-striped" tal:condition="has_aliquot">
+        <colgroup>
+          <col class="select"></col>
+          <col class="id"></col>
+          <col class="aliquot"></col>
+          <col class="amount"></col>
+          <col class="freezer"></col>
+          <col class="rack"></col>
+          <col class="box"></col>
+          <col class="thaw_count"></col>
+          <col class="previous_location"></col>
+          <col class="notes"></col>
+        </colgroup>
         <thead>
           <tr>
-            <!-- TODO remove hardcoded styling -->
-            <th style="width: 2%"><input type="checkbox" data-toggle='selectall'/></th>
-            <th style="width: 4%" i18n:translate="">ID</th>
-            <th style="width: 5%" i18n:translate="">Patient</th>
-            <th style="width: 5%" i18n:translate="">Study/Cycle</th>
-            <th style="width: 9%" i18n:translate="">Type</th>
-            <th style="width: 9%" i18n:translate="">Storage Date</th>
-            <th style="width: 7%" i18n:translate="">Special Instructions</th>
-
-            <th style="width: 9%" i18n:translate="">Volume</th>
-            <th style="width: 9%" i18n:translate="">Cell Count</th>
-            <th style="width: 4%" i18n:translate="">Freezer</th>
-            <th style="width: 4%" i18n:translate="">Rack</th>
-            <th style="width: 4%" i18n:translate="">Box</th>
-            <th style="width: 4%" i18n:translate="">Thawed Count</th>
-            <th style="width: 10%" i18n:translate="">Location</th>
-            <th style="width: 10%" i18n:translate="">Notes</th>
-
-            <th style="width: 10%" i18n:translate="">Sent Date</th>
-            <th style="width: 10%" i18n:translate="">Recipient</th>
-            <th style="width: 10%" i18n:translate="">Sent Notes</th>
+            <th><input type="checkbox" data-toggle='selectall'/></th>
+            <th i18n:translate="">ID</th>
+            <th i18n:translate="">Aliquot</th>
+            <th i18n:translate="">Amount</th>
+            <th i18n:translate="">Freezer</th>
+            <th i18n:translate="">Rack</th>
+            <th i18n:translate="">Box</th>
+            <th i18n:translate="">Thawed Count</th>
+            <th i18n:translate="">Location</th>
+            <th i18n:translate="">Notes</th>
           </tr>
         </thead>
         <tbody>
@@ -50,17 +50,25 @@
             <tr tal:define="subform form.aliquot.entries[repeat['sample'].index]">
               <td>${subform.ui_selected(**{'data-toggle': 'select'})}</td>
               <td><code>${sample.id}</code></td>
-              <td><code>${sample.specimen.patient.pid}</code></td>
-              <td>${sample.specimen.cycle.study.short_title} - ${sample.specimen.cycle.week}</td>
-              <td>${sample.aliquot_type.title}</td>
-              <td>${sample.store_date}</td>
-              <td>${sample.special_instruction}</td>
-
-              <td tal:define="field subform.volume">
-                ${field(class_='form-control')}
-                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              <td>
+                <div class="pull-right"><code>${sample.store_date}</code></div>
+                <div><code>${sample.specimen.patient.pid}</code></div>
+                <div><strong>${sample.specimen.cycle.study.short_title} - ${sample.specimen.cycle.week}</strong></div>
+                <div>${sample.aliquot_type.title}</div>
+                <tal:sp condition="sample.special_instruction">
+                  <hr />
+                  <div>${sample.special_instruction}</div>
+                </tal:sp>
+                <hr />
+                <div class="text-muted">
+                <div class="pull-right"><code>${sample.sent_date}</code></div>
+                <div><strong>${sample.sent_name}</strong></div>
+                <div tal:condition="sample.sent_notes">
+                  <span tal:omit-tag="" tal:repeat="line sample.sent_notes.splitlines()">${line}<br /></span></div>
+                </div>
               </td>
-              <td tal:define="field subform.cell_amount">
+
+              <td tal:define="field subform.amount">
                 ${field(class_='form-control')}
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
@@ -89,26 +97,13 @@
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
 
-              <td>${sample.sent_date}</td>
-              <td>${sample.sent_name}</td>
-              <td>${sample.sent_notes}</td>
             </tr>
           </tal:draw>
-        <tbody>
+        </tbody>
       </table>
 
-      <nav metal:use-macro="load: specimen-pager.pt"></nav>
+      <nav metal:use-macro="load: ../pager.pt"></nav>
 
-      <button
-          type="submit"
-          class="btn btn-default"
-          name="save"
-          tal:attributes="disabled not:has_aliquot"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-content="Saves all of the changes entered to the database. This applies to all aliquot, not just selected aliquot."
-          >Save Changes</button>
       <button
           type="submit"
           class="btn btn-default"
@@ -119,7 +114,17 @@
           data-placement="top"
           data-html="true"
           data-content="Return the selected aliquot to a 'checked in' state. This will reset the location to the current lab location."
-          >Check In Aliquot</button>
+          >Check In</button>
+      <button
+          type="submit"
+          class="btn btn-primary"
+          name="save"
+          tal:attributes="disabled not:has_aliquot"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-content="Saves all of the changes entered to the database. This applies to all aliquot, not just selected aliquot."
+          >Save Changes</button>
 
     </form>
 

@@ -122,10 +122,11 @@ class LabeledAliquot(object):
     @property
     def sample_type(self):
         parts = [self.context.aliquot_type.name, ]
-        if self.context.cell_amount:
-            parts.append('%sx10^6' % self.context.cell_amount)
-        elif self.context.volume:
-            parts.append('%smL' % self.context.volume)
+        # Use the actual amount
+        if self.context._cell_amount:
+            parts.append('%sx10^6' % self.context._cell_amount)
+        elif self.context._volume:
+            parts.append('%smL' % self.context._volume)
         if (self.context.special_instruction
                 and self.context.special_instruction.name != u'na'):
             parts.append(self.context.special_instruction.name)
@@ -148,11 +149,11 @@ class LabeledAliquot(object):
         return [line1, line2, line3, line4]
 
 
-def printLabelSheet(lab, labels, settings, startcol=None, startrow=None):
+def printLabelSheet(
+        stream, lab, labels, settings, startcol=None, startrow=None):
     """
     Create the label page, and output
     """
-    stream = six.StringIO()
     labelWriter = LabelGenerator(lab, settings, stream)
 
     if startcol > 1:
@@ -165,11 +166,6 @@ def printLabelSheet(lab, labels, settings, startcol=None, startrow=None):
         labelWriter.createLabel(label.label_lines, label.barcodeline)
 
     labelWriter.writeLabels()
-    content = stream.getvalue()
-
-    stream.close()
-
-    return content
 
 
 class LabelGenerator(object):

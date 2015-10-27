@@ -204,6 +204,7 @@ class Location(Base, Describeable, Referenceable, Modifiable):
 
         return acl
 
+    # TODO: Seems like this was ever meant to be 1:1
     sites = relationship(
         Site,
         secondary=site_lab_location_table,
@@ -485,9 +486,19 @@ class Aliquot(Base, Referenceable, Auditable, Modifiable):
 
     labbook = Column(Unicode, doc='Lab Book number')
 
-    volume = Column(Float, doc='Volume of liquot aliquot')
+    _volume = Column('volume', Float, doc='Volume of liquot aliquot')
 
-    cell_amount = Column(Float, doc='Cell count of an aliquot')
+    _cell_amount = Column('cell_amount', Float, doc='Cell count of an aliquot')
+
+    @property
+    def amount(self):
+        # TODO Check aliquot type for this
+        return self._volume or self._cell_amount
+
+    @amount.setter
+    def amount(self, value):
+        # TODO Check aliquot type for this
+        self.volume = value
 
     store_date = Column(Date)
 

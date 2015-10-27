@@ -1,0 +1,29 @@
+<nav>
+  <ul class="nav nav-header"
+      tal:define="tab tab|request.matched_route.name">
+    <li role="presentation"
+        class="${'active' if tab == view else ''}"
+        tal:define="view string:lims.specimen"
+        tal:condition="request.has_permission('view')">
+      <a href="${request.current_route_path(_route_name=view)}" i18n:translate="">Specimen</a>
+    </li>
+    <li role="presentation"
+        class="${'active' if tab == view else ''}"
+        tal:define="view string:lims.aliquot"
+        tal:condition="request.has_permission('process')">
+      <a href="${request.current_route_path(_route_name=view)}" i18n:translate="">Aliquot</a>
+    </li>
+    <li role="presentation"
+        class="${'active' if tab == view else ''}"
+        tal:define="view string:lims.checkout"
+        tal:condition="request.has_permission('process')">
+      <a href="${request.current_route_path(_route_name=view)}" i18n:translate="">Check-out Queue</a>
+    </li>
+    <li role="presentation"
+        class="${'active' if tab == view else ''}"
+        tal:define="view string:lims.checkin"
+        tal:condition="request.has_permission('process')">
+      <a href="${request.current_route_path(_route_name=view)}" i18n:translate="">Check-in</a>
+    </li>
+  </ul>
+</nav>

@@ -122,7 +122,7 @@ def test_specimen_add(app, db_session, group):
     from occams_studies import models as studies
     from occams_lims import models as lims
 
-    url = '/lims/test_location/addspecimen'
+    url = '/lims/test_location/add'
 
     environ = make_environ(userid=USERID, groups=[group])
     csrf_token = get_csrf_token(app, environ)
@@ -158,7 +158,7 @@ def test_not_allowed_specimen_add(app, db_session, group):
     from occams_studies import models as studies
     from occams_lims import models as lims
 
-    url = '/lims/test_location/addspecimen'
+    url = '/lims/test_location/add'
 
     environ = make_environ(userid=USERID, groups=[group])
     csrf_token = get_csrf_token(app, environ)
@@ -189,7 +189,7 @@ def test_not_allowed_specimen_add(app, db_session, group):
 
 
 def test_not_authenticated_specimen_add(app):
-    url = '/lims/test_location/addspecimen'
+    url = '/lims/test_location/add'
     app.post(url, status=401)
 
 
@@ -323,8 +323,8 @@ def test_not_authenticated_aliquot_labels_post(app):
 
 @pytest.mark.parametrize('group', [
     'administrator', 'manager', 'test_location:worker'])
-def test_lab_ready(app, group):
-    url = '/lims/test_location/ready'
+def test_lab_aliquot(app, group):
+    url = '/lims/test_location/aliquot'
     environ = make_environ(userid=USERID, groups=[group])
     res = app.get(url, extra_environ=environ, status='*')
     assert res.status_code == 200
@@ -332,15 +332,15 @@ def test_lab_ready(app, group):
 
 @pytest.mark.parametrize('group', [
     'test_location:member', 'fake_location:worker'])
-def test_not_allowed_lab_ready(app, group):
-    url = '/lims/test_location/ready'
+def test_not_allowed_lab_aliquot(app, group):
+    url = '/lims/test_location/aliquot'
     environ = make_environ(userid=USERID, groups=[group])
     res = app.get(url, extra_environ=environ, status='*')
     assert res.status_code == 403
 
 
-def test_not_authenticated_lab_ready(app):
-    url = '/lims/test_location/ready'
+def test_not_authenticated_lab_aliquot(app):
+    url = '/lims/test_location/aliquot'
     res = app.get(url, status='*')
     assert res.status_code == 401
 

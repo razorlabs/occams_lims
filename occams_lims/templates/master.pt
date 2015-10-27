@@ -10,7 +10,7 @@
 
   <metal:navbar-header-slot fill-slot="navbar-header-slot">
     <a class="navbar-brand"
-        href="${request.route_path('lims.main')}">OCCAMS LIMS</a>
+        href="${request.route_path('lims.index')}">OCCAMS LIMS</a>
   </metal:navbar-header-slot>
 
   <metal:navbar-nav-slot fill-slot="navbar-nav-slot">
@@ -20,7 +20,7 @@
       <li tal:define="
             factory import:occams_lims.models.LabFactory;
             labs factory(request);
-            url request.route_path('lims.main');
+            url request.route_path('lims.index');
             current_lab request.matchdict['lab']|nothing;
             active request.matched_route.name.startswith('lims.lab');"
           tal:attributes="class python:'active' if active else ''"
@@ -40,7 +40,7 @@
                 class="js-lab-option"
                 data-id="${lab.id}"
                 tabindex="-1"
-                href="${request.route_path('lims.lab', lab=lab.name)}">${lab.title}</a>
+                href="${request.route_path('lims.specimen', lab=lab.name)}">${lab.title}</a>
           </li>
         </ul>
       </li> <!-- /#labs-menu -->

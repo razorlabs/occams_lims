@@ -6,7 +6,7 @@
         <div class="col-sm-6 col-sm-offset-3">
           <div class="list-group" tal:condition="labs_count">
             <tal:lab repeat="lab labs">
-              <a href="${request.route_path('lims.lab', lab=lab.name)}" class="list-group-item">${lab.title}</a>
+              <a href="${request.route_path('lims.specimen', lab=lab.name)}" class="list-group-item">${lab.title}</a>
             </tal:lab>
           </div>
         </div><!-- ./col -->

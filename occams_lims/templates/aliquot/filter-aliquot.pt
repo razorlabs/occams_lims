@@ -1,4 +1,4 @@
-<form method="GET" class="form-inline" tal:define="form filter_form">
+<form id="filter-aliquot" method="GET" class="form-inline" tal:define="form filter_form">
   <div tal:define="field form.pid|nothing" tal:condition="field" class="form-group">
     ${field(class_='form-control', placeholder=field.label.text, size=10)}
   </div>
