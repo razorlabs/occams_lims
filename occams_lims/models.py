@@ -1,11 +1,7 @@
 from pyramid.security import Allow, Authenticated, ALL_PERMISSIONS
+import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy import (
-    Table, Column,
-    ForeignKey, ForeignKeyConstraint, UniqueConstraint, Index,
-    Boolean, Date, Time, Float, Integer, Unicode)
-from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from occams_datastore.models import (
@@ -104,54 +100,66 @@ class AliquotFactory(dict):
         return aliquot
 
 
-specimentype_study_table = Table(
+specimentype_study_table = sa.Table(
     'specimentype_study',
     Base.metadata,
-    Column('study_id',
-           Integer,
-           ForeignKey(Study.id,
-                      name='fk_specimentype_study_study_id',
-                      ondelete='CASCADE'),
-           primary_key=True),
-    Column('specimentype_id',
-           Integer,
-           ForeignKey('specimentype.id',
-                      name='fk_specimentype_study_specimentype_id',
-                      ondelete='CASCADE'),
-           primary_key=True))
+    sa.Column(
+        'study_id',
+        sa.Integer,
+        sa.ForeignKey(
+            Study.id,
+            name='fk_specimentype_study_study_id',
+            ondelete='CASCADE'),
+        primary_key=True),
+    sa.Column(
+        'specimentype_id',
+        sa.Integer,
+        sa.ForeignKey(
+            'specimentype.id',
+            name='fk_specimentype_study_specimentype_id',
+            ondelete='CASCADE'),
+        primary_key=True))
 
 
-specimentype_cycle_table = Table(
+specimentype_cycle_table = sa.Table(
     'specimentype_cycle',
     Base.metadata,
-    Column('cycle_id',
-           Integer,
-           ForeignKey(Cycle.id,
-                      name='fk_specimentype_cycle_cycle_id',
-                      ondelete='CASCADE'),
-           primary_key=True),
-    Column('specimentype_id',
-           Integer,
-           ForeignKey('specimentype.id',
-                      name='fk_specimentype_cycle_specimentype_id',
-                      ondelete='CASCADE',),
-           primary_key=True))
+    sa.Column(
+        'cycle_id',
+        sa.Integer,
+        sa.ForeignKey(
+            Cycle.id,
+            name='fk_specimentype_cycle_cycle_id',
+            ondelete='CASCADE'),
+        primary_key=True),
+    sa.Column(
+        'specimentype_id',
+        sa.Integer,
+        sa.ForeignKey(
+            'specimentype.id',
+            name='fk_specimentype_cycle_specimentype_id',
+            ondelete='CASCADE',),
+        primary_key=True))
 
 
-site_lab_location_table = Table(
+site_lab_location_table = sa.Table(
     'site_lab_location',
     Base.metadata,
-    Column('site_id',
-           Integer,
-           ForeignKey(Site.id,
-                      name='fk_site_lab_location_site_id',
-                      ondelete='CASCADE'),
-           primary_key=True),
-    Column('location_id',
-           Integer,
-           ForeignKey('location.id',
-                      name='fk_site_lab_location_location_id',
-                      ondelete='CASCADE')))
+    sa.Column(
+        'site_id',
+        sa.Integer,
+        sa.ForeignKey(
+            Site.id,
+            name='fk_site_lab_location_site_id',
+            ondelete='CASCADE'),
+        primary_key=True),
+    sa.Column(
+        'location_id',
+        sa.Integer,
+        sa.ForeignKey(
+            'location.id',
+            name='fk_site_lab_location_location_id',
+            ondelete='CASCADE')))
 
 
 class SpecimenState(Base, Describeable, Referenceable, Modifiable):
@@ -166,7 +174,7 @@ class SpecimenState(Base, Describeable, Referenceable, Modifiable):
     @declared_attr
     def __table_args__(cls):
         return (
-            UniqueConstraint('name'),)
+            sa.UniqueConstraint('name'),)
 
 
 class AliquotState(Base, Describeable, Referenceable, Modifiable):
@@ -181,7 +189,7 @@ class AliquotState(Base, Describeable, Referenceable, Modifiable):
     @declared_attr
     def __table_args__(cls):
         return (
-            UniqueConstraint('name'),)
+            sa.UniqueConstraint('name'),)
 
 
 class Location(Base, Describeable, Referenceable, Modifiable):
@@ -205,42 +213,42 @@ class Location(Base, Describeable, Referenceable, Modifiable):
         return acl
 
     # TODO: Seems like this was ever meant to be 1:1
-    sites = relationship(
+    sites = orm.relationship(
         Site,
         secondary=site_lab_location_table,
-        backref=backref(
+        backref=orm.backref(
             name='lab_location',
             uselist=False))
 
-    is_enabled = Column(
-        Boolean,
+    is_enabled = sa.Column(
+        sa.Boolean,
         doc='Indicates that this lab manages samples through the app')
 
-    active = Column(
-        Boolean,
+    active = sa.Column(
+        sa.Boolean,
         doc='Indicates that this samples can be sent to this location')
 
-    long_title1 = Column(Unicode, doc='Address Line 1')
+    long_title1 = sa.Column(sa.Unicode, doc='Address Line 1')
 
-    long_title2 = Column(Unicode, doc='Address Line 2')
+    long_title2 = sa.Column(sa.Unicode, doc='Address Line 2')
 
-    address_street = Column(Unicode)
+    address_street = sa.Column(sa.Unicode)
 
-    address_city = Column(Unicode)
+    address_city = sa.Column(sa.Unicode)
 
-    address_state = Column(Unicode)
+    address_state = sa.Column(sa.Unicode)
 
-    address_zip = Column(Unicode)
+    address_zip = sa.Column(sa.Unicode)
 
-    phone_number = Column(Unicode)
+    phone_number = sa.Column(sa.Unicode)
 
-    fax_number = Column(Unicode)
+    fax_number = sa.Column(sa.Unicode)
 
     @declared_attr
     def __table_args__(cls):
         return (
-            UniqueConstraint('name'),
-            Index('ix_%s_active' % cls.__tablename__, 'active'))
+            sa.UniqueConstraint('name'),
+            sa.Index('ix_%s_active' % cls.__tablename__, 'active'))
 
 
 class SpecialInstruction(Base, Describeable, Referenceable, Modifiable):
@@ -254,32 +262,32 @@ class SpecialInstruction(Base, Describeable, Referenceable, Modifiable):
     @declared_attr
     def __table_args__(cls):
         return (
-            UniqueConstraint('name'), )
+            sa.UniqueConstraint('name'), )
 
 
 class SpecimenType(Base, Referenceable, Describeable, Modifiable):
 
     __tablename__ = 'specimentype'
 
-    tube_type = Column(
-        Unicode,
+    tube_type = sa.Column(
+        sa.Unicode,
         doc='The Type of tube used for this specimen type')
 
-    default_tubes = Column(Integer, doc='Default tubes count')
+    default_tubes = sa.Column(sa.Integer, doc='Default tubes count')
 
-    studies = relationship(
+    studies = orm.relationship(
         Study,
         secondary=specimentype_study_table,
         collection_class=set,
-        backref=backref(
+        backref=orm.backref(
             name='specimen_types',
             collection_class=set))
 
-    cycles = relationship(
+    cycles = orm.relationship(
         Cycle,
         secondary=specimentype_cycle_table,
         collection_class=set,
-        backref=backref(
+        backref=orm.backref(
             name='specimen_types',
             collection_class=set))
 
@@ -290,11 +298,11 @@ class AliquotType(Base, Referenceable, Describeable, Modifiable):
 
     __tablename__ = 'aliquottype'
 
-    specimen_type_id = Column(Integer, nullable=False)
+    specimen_type_id = sa.Column(sa.Integer, nullable=False)
 
-    specimen_type = relationship(
+    specimen_type = orm.relationship(
         SpecimenType,
-        backref=backref(
+        backref=orm.backref(
             name='aliquot_types',
             primaryjoin='SpecimenType.id == AliquotType.specimen_type_id',
             collection_class=attribute_mapped_collection('name'),
@@ -306,14 +314,15 @@ class AliquotType(Base, Referenceable, Describeable, Modifiable):
     @declared_attr
     def __table_args__(cls):
         return (
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['specimen_type_id'],
                 refcolumns=['specimentype.id'],
                 name='fk_%s_specimentype_id' % cls.__tablename__,
                 ondelete='CASCADE'),
-            UniqueConstraint('specimen_type_id', 'name'),
-            Index('ix_%s_specimen_type_id' % cls.__tablename__,
-                  'specimen_type_id'))
+            sa.UniqueConstraint('specimen_type_id', 'name'),
+            sa.Index(
+                'ix_%s_specimen_type_id' % cls.__tablename__,
+                'specimen_type_id'))
 
 
 class Specimen(Base, Referenceable, Auditable, Modifiable):
@@ -324,72 +333,72 @@ class Specimen(Base, Referenceable, Auditable, Modifiable):
 
     __tablename__ = 'specimen'
 
-    specimen_type_id = Column(Integer, nullable=False)
+    specimen_type_id = sa.Column(sa.Integer, nullable=False)
 
-    specimen_type = relationship(
+    specimen_type = orm.relationship(
         SpecimenType,
-        backref=backref(
+        backref=orm.backref(
             name='specimen',
             primaryjoin='SpecimenType.id == Specimen.specimen_type_id',
             cascade='all, delete, delete-orphan'),
         primaryjoin=(specimen_type_id == SpecimenType.id),
         doc='The Type specimen')
 
-    patient_id = Column(Integer, nullable=False)
+    patient_id = sa.Column(sa.Integer, nullable=False)
 
-    patient = relationship(
+    patient = orm.relationship(
         Patient,
-        backref=backref(
+        backref=orm.backref(
             name='specimen',
             primaryjoin='Patient.id==Specimen.patient_id',
             cascade='all, delete, delete-orphan'),
         primaryjoin=(patient_id == Patient.id),
         doc='The source patient')
 
-    cycle_id = Column(Integer)
+    cycle_id = sa.Column(sa.Integer)
 
-    cycle = relationship(
+    cycle = orm.relationship(
         Cycle,
-        backref=backref(
+        backref=orm.backref(
             name='specimen',
             primaryjoin='Cycle.id==Specimen.cycle_id',
             cascade='all, delete, delete-orphan'),
         primaryjoin=(cycle_id == Cycle.id),
         doc='The cycle for which this specimen was collected')
 
-    state_id = Column(Integer, nullable=False)
+    state_id = sa.Column(sa.Integer, nullable=False)
 
-    state = relationship(
+    state = orm.relationship(
         SpecimenState,
         primaryjoin=(state_id == SpecimenState.id))
 
-    collect_date = Column(Date)
+    collect_date = sa.Column(sa.Date)
 
-    collect_time = Column(Time)
+    collect_time = sa.Column(sa.Time)
 
-    location_id = Column(Integer)
+    location_id = sa.Column(sa.Integer)
 
-    location = relationship(
+    location = orm.relationship(
         Location,
-        backref=backref(
+        backref=orm.backref(
             name='specimen',
             primaryjoin='Location.id==Specimen.location_id'),
         primaryjoin=(location_id == Location.id),
         doc='The current location of the specimen')
 
-    previous_location_id = Column(Integer)
+    previous_location_id = sa.Column(sa.Integer)
 
-    previous_location = relationship(
+    previous_location = orm.relationship(
         Location,
-        backref=backref(
+        backref=orm.backref(
             name='previous_specimen',
             primaryjoin='Location.id==Specimen.previous_location_id'),
         primaryjoin=(previous_location_id == Location.id),
         doc='The processing location for the specimen')
 
-    tubes = Column(Integer)
+    tubes = sa.Column(sa.Integer)
 
-    notes = Column(Unicode)
+    notes = sa.Column(sa.Unicode)
 
     @property
     def visit_date(self):
@@ -410,44 +419,46 @@ class Specimen(Base, Referenceable, Auditable, Modifiable):
     @declared_attr
     def __table_args__(cls):
         return (
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['specimen_type_id'],
                 refcolumns=['specimentype.id'],
                 name='fk_%s_specimentype_id' % cls.__tablename__,
                 ondelete='CASCADE'),
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['patient_id'],
                 refcolumns=[Patient.id],
                 name='fk_%s_patient_id' % cls.__tablename__,
                 ondelete='CASCADE'),
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['cycle_id'],
                 refcolumns=[Cycle.id],
                 name='fk_%s_cycle_id' % cls.__tablename__,
                 ondelete='SET NULL'),
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['location_id'],
                 refcolumns=['location.id'],
                 name='fk_%s_location_id' % cls.__tablename__,
                 ondelete='SET NULL'),
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['previous_location_id'],
                 refcolumns=['location.id'],
                 name='fk_%s_previous_location_id' % cls.__tablename__,
                 ondelete='SET NULL'),
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['state_id'],
                 refcolumns=['specimenstate.id'],
                 name='fk_%s_specimenstate_id' % cls.__tablename__,
                 ondelete='SET NULL'),
-            Index('ix_%s_specimen_type_id' % cls.__tablename__,
-                  'specimen_type_id'),
-            Index('ix_%s_patient_id' % cls.__tablename__, 'patient_id'),
-            Index('ix_%s_cycle_id' % cls.__tablename__, 'cycle_id'),
-            Index('ix_%s_location_id' % cls.__tablename__, 'location_id'),
-            Index('ix_%s_previous_location_id' % cls.__tablename__,
-                  'previous_location_id'),
-            Index('ix_%s_state_id' % cls.__tablename__, 'state_id'))
+            sa.Index(
+                'ix_%s_specimen_type_id' % cls.__tablename__,
+                'specimen_type_id'),
+            sa.Index('ix_%s_patient_id' % cls.__tablename__, 'patient_id'),
+            sa.Index('ix_%s_cycle_id' % cls.__tablename__, 'cycle_id'),
+            sa.Index('ix_%s_location_id' % cls.__tablename__, 'location_id'),
+            sa.Index(
+                'ix_%s_previous_location_id' % cls.__tablename__,
+                'previous_location_id'),
+            sa.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'))
 
 
 class Aliquot(Base, Referenceable, Auditable, Modifiable):
@@ -457,130 +468,120 @@ class Aliquot(Base, Referenceable, Auditable, Modifiable):
 
     __tablename__ = 'aliquot'
 
-    specimen_id = Column(Integer, nullable=False)
+    specimen_id = sa.Column(sa.Integer, nullable=False)
 
-    specimen = relationship(
+    specimen = orm.relationship(
         Specimen,
-        backref=backref(
+        backref=orm.backref(
             name='aliquot',
             primaryjoin='Specimen.id == Aliquot.specimen_id',
             cascade='all, delete, delete-orphan'),
         primaryjoin=(specimen_id == Specimen.id),
         doc='The source specimen that this aliquot sample was extracted from')
 
-    aliquot_type_id = Column(Integer, nullable=False)
+    aliquot_type_id = sa.Column(sa.Integer, nullable=False)
 
-    aliquot_type = relationship(
+    aliquot_type = orm.relationship(
         AliquotType,
-        backref=backref(
+        backref=orm.backref(
             name='aliquot',
             primaryjoin='AliquotType.id == Aliquot.aliquot_type_id',
             cascade='all, delete, delete-orphan'),
         primaryjoin=(aliquot_type_id == AliquotType.id))
 
-    state_id = Column(Integer, nullable=False)
+    state_id = sa.Column(sa.Integer, nullable=False)
 
-    state = relationship(
+    state = orm.relationship(
         AliquotState,
         primaryjoin=(state_id == AliquotState.id))
 
-    labbook = Column(Unicode, doc='Lab Book number')
+    labbook = sa.Column(sa.Unicode, doc='Lab Book number')
 
-    _volume = Column('volume', Float, doc='Volume of liquot aliquot')
+    amount = sa.Column('amount', sa.Numeric)
 
-    _cell_amount = Column('cell_amount', Float, doc='Cell count of an aliquot')
+    store_date = sa.Column(sa.Date)
 
-    @property
-    def amount(self):
-        # TODO Check aliquot type for this
-        return self._volume or self._cell_amount
+    freezer = sa.Column(sa.Unicode)
 
-    @amount.setter
-    def amount(self, value):
-        # TODO Check aliquot type for this
-        self.volume = value
+    rack = sa.Column(sa.Unicode)
 
-    store_date = Column(Date)
+    box = sa.Column(sa.Unicode)
 
-    freezer = Column(Unicode)
+    location_id = sa.Column(sa.Integer)
 
-    rack = Column(Unicode)
-
-    box = Column(Unicode)
-
-    location_id = Column(Integer)
-
-    location = relationship(
+    location = orm.relationship(
         Location,
-        backref=backref(
+        backref=orm.backref(
             name='aliquot',
             primaryjoin='Aliquot.location_id == Location.id'),
         primaryjoin=(location_id == Location.id))
 
-    previous_location_id = Column(Integer)
+    previous_location_id = sa.Column(sa.Integer)
 
-    previous_location = relationship(
+    previous_location = orm.relationship(
         Location,
-        backref=backref(
+        backref=orm.backref(
             name='stored_aliquot',
             primaryjoin='Aliquot.previous_location_id == Location.id'),
         primaryjoin=(previous_location_id == Location.id))
 
-    thawed_num = Column(Integer)
+    thawed_num = sa.Column(sa.Integer)
 
-    inventory_date = Column(Date)
+    inventory_date = sa.Column(sa.Date)
 
-    sent_date = Column(Date, doc='Date sent for analysis')
+    sent_date = sa.Column(sa.Date, doc='Date sent for analysis')
 
-    sent_name = Column(Unicode)
+    sent_name = sa.Column(sa.Unicode)
 
-    sent_notes = Column(Unicode)
+    sent_notes = sa.Column(sa.Unicode)
 
-    notes = Column(Unicode)
+    notes = sa.Column(sa.Unicode)
 
-    special_instruction_id = Column(Integer)
+    special_instruction_id = sa.Column(sa.Integer)
 
-    special_instruction = relationship(
+    special_instruction = orm.relationship(
         SpecialInstruction,
         primaryjoin=(special_instruction_id == SpecialInstruction.id))
 
     @declared_attr
     def __table_args__(cls):
         return (
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['specimen_id'],
                 refcolumns=['specimen.id'],
                 name='fk_%s_specimen_id' % cls.__tablename__,
                 ondelete='CASCADE'),
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['aliquot_type_id'],
                 refcolumns=['aliquottype.id'],
                 name='fk_%s_aliquottype_id' % cls.__tablename__,
                 ondelete='CASCADE'),
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['location_id'],
                 refcolumns=['location.id'],
                 name='fk_%s_location_id' % cls.__tablename__,
                 ondelete='SET NULL'),
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['previous_location_id'],
                 refcolumns=['location.id'],
                 name='fk_%s_previous_location_id' % cls.__tablename__,
                 ondelete='SET NULL'),
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['special_instruction_id'],
                 refcolumns=['specialinstruction.id'],
                 name='fk_%s_specialinstruction_id' % cls.__tablename__,
                 ondelete='SET NULL'),
-            ForeignKeyConstraint(
+            sa.ForeignKeyConstraint(
                 columns=['state_id'],
                 refcolumns=['aliquotstate.id'],
                 name='fk_%s_aliquotstate_id' % cls.__tablename__,
                 ondelete='SET NULL'),
-            Index('ix_%s_specimen_id' % cls.__tablename__, 'specimen_id'),
-            Index('ix_%s_aliquot_type_id' % cls.__tablename__,
-                  'aliquot_type_id'),
-            Index('ix_%s_location_id' % cls.__tablename__, 'location_id'),
-            Index('ix_%s_previous_location_id' % cls.__tablename__,
-                  'previous_location_id'),
-            Index('ix_%s_state_id' % cls.__tablename__, 'state_id'))
+            sa.Index('ix_%s_specimen_id' % cls.__tablename__, 'specimen_id'),
+            sa.Index(
+                'ix_%s_aliquot_type_id' % cls.__tablename__,
+                'aliquot_type_id'),
+            sa.Index('ix_%s_location_id' % cls.__tablename__, 'location_id'),
+            sa.Index(
+                'ix_%s_previous_location_id' % cls.__tablename__,
+                'previous_location_id'),
+            sa.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'))
