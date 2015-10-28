@@ -54,7 +54,7 @@
                 <div class="pull-right"><code>${sample.store_date}</code></div>
                 <div><code>${sample.specimen.patient.pid}</code></div>
                 <div><strong>${sample.specimen.cycle.study.short_title} - ${sample.specimen.cycle.week}</strong></div>
-                <div><span>${sample.aliquot_type.title}<span> &bull; <span>${sample.amount or '--'}</span></div>
+                <div><span>${sample.aliquot_type.title}<span> &bull; <span>${sample.amount or '--'}${sample.amount and sample.aliquot_type.units}</span></div>
               </td>
               <td>${sample.freezer or '?'}/${sample.rack or '?'}/${sample.box or '?'}</td>
               <td>${sample.special_instruction}</td>

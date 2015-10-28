@@ -177,7 +177,14 @@
                 <div>${sample.aliquot_type.title}</div>
               </td>
               <td tal:define="field subform.amount">
-                ${field(class_='form-control')}
+                <div class="input-group"
+                     tal:define="units sample.aliquot_type.units"
+                     tal:omit-tag="not:units">
+                  ${field(class_='form-control')}
+                    <span class="input-group-addon"
+                          tal:condition="units"
+                      >${sample.aliquot_type.units}</span>
+                </div>
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
               <td tal:define="field subform.store_date">

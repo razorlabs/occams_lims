@@ -271,7 +271,9 @@ def checkout_receipt(context, request):
             sample.specimen.cycle.week),
         sample.store_date.isoformat(),
         sample.aliquot_type.title,
-        six.text_type(sample.amount or u'--'),
+        u'{0}{1}'.format(
+            six.text_type(sample.amount or u'--'),
+            sample.aliquot_type.units or u''),
         '{0}\n{1}'.format(sample.notes or '', sample.sent_notes or '')
         ] for sample in query
     ))

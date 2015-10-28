@@ -122,11 +122,9 @@ class LabeledAliquot(object):
     @property
     def sample_type(self):
         parts = [self.context.aliquot_type.name, ]
-        # Use the actual amount
-        if self.context._cell_amount:
-            parts.append('%sx10^6' % self.context._cell_amount)
-        elif self.context._volume:
-            parts.append('%smL' % self.context._volume)
+        if self.context.amount:
+            units = self.context.aliquot_type.units or ''
+            parts.append('{0}{1}'.format(self.context.amount, units))
         if (self.context.special_instruction
                 and self.context.special_instruction.name != u'na'):
             parts.append(self.context.special_instruction.name)

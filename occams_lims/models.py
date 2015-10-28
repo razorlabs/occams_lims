@@ -311,6 +311,8 @@ class AliquotType(Base, Referenceable, Describeable, Modifiable):
         primaryjoin=(specimen_type_id == SpecimenType.id),
         doc='The Type specimen from which this aliquot type is derived')
 
+    units = sa.Column(sa.Unicode, nullable=False)
+
     @declared_attr
     def __table_args__(cls):
         return (

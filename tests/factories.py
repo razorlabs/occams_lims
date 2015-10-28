@@ -7,8 +7,6 @@ Note that dependent structures are only implemented minimally.
 Do not import this module directly, we've setup a fixture for this.
 """
 
-from datetime import timedelta
-
 import factory
 from factory.alchemy import SQLAlchemyModelFactory
 
@@ -112,6 +110,7 @@ class AliquotTypeFactory(SQLAlchemyModelFactory, FakeDescribable):
     class Meta:
         model = models.AliquotType
     specimen_type = factory.SubFactory(SpecimenTypeFactory)
+    units = factory.Faker('random_element', elements=[u'mL', u'x10^6'])
 
 
 class AliquotStateFactory(SQLAlchemyModelFactory, FakeDescribable):
@@ -126,7 +125,7 @@ class AliquotFactory(SQLAlchemyModelFactory):
     aliquot_type = factory.SubFactory(AliquotTypeFactory)
     state = factory.SubFactory(AliquotStateFactory)
     labbook = factory.Faker('ean8')
-    amount = factory.Faker('pyfloat')
+    amount = factory.Faker('pydecimal')
     store_date = factory.Faker('date_time_this_year')
     freezer = factory.Faker('random_digit')
     rack = factory.Faker('random_digit')
