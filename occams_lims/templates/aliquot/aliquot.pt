@@ -39,8 +39,8 @@
               <th i18n:translate="">Specimen</th>
               <th class="required" i18n:translate="">Count</th>
               <th class="required" i18n:translate="">Aliquot Type</th>
-              <th class="required" i18n:translate="">Amount</th>
-              <th class="required" i18n:translate="">Storage Date</th>
+              <th i18n:translate="">Amount</th>
+              <th i18n:translate="">Storage Date</th>
               <th i18n:translate="">Freezer</th>
               <th i18n:translate="">Rack</th>
               <th i18n:translate="">Box</th>
