@@ -320,12 +320,11 @@ def make_aliquot_label(aliquot):
 
     # A major blunder of LIMS is to not store the enrollment info the
     # sample was collected for, so we take a best guess by finding
-    # a disinct active enrollment based on the sample
+    # a disinct enrollment based on the sample
     enrollment_query = (
         db_session.query(models.Enrollment)
         .filter_by(patient=patient, study=study)
         .filter(models.Enrollment.reference_number != sa.null())
-        .filter(models.Enrollment.termination_date == sa.null())
     )
 
     try:
