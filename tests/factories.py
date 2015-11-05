@@ -57,6 +57,16 @@ class CycleFactory(SQLAlchemyModelFactory, FakeDescribable):
     week = factory.Faker('pyint')
 
 
+class EnrollmentFactory(SQLAlchemyModelFactory):
+    class Meta:
+        model = studies.Enrollment
+    patient = factory.SubFactory(PatientFactory)
+    study = factory.SubFactory(StudyFactory)
+    reference_number = factory.Faker('ean8')
+    consent_date = factory.Faker('date_time_this_year')
+    latest_consent_date = factory.LazyAttribute(lambda o: o.consent_date)
+
+
 class LocationFactory(SQLAlchemyModelFactory, FakeDescribable):
     class Meta:
         model = models.Location

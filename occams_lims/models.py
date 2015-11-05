@@ -4,9 +4,10 @@ from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from occams_datastore.models import (
-    ModelClass, Referenceable, Describeable, Modifiable, Auditable)
-from occams_studies.models import Site, Patient, Study, Cycle, Visit
+from occams_datastore.models import \
+    ModelClass, Referenceable, Describeable, Modifiable, Auditable
+from occams_studies.models import \
+    Site, Patient, Enrollment, Study, Cycle, Visit
 
 Base = ModelClass('Base')
 

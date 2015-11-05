@@ -12,10 +12,29 @@ from occams.utils.forms import apply_changes
 from occams.utils.pagination import Pagination
 
 from .. import _, models
-from ..labels import printLabelSheet, LabeledSpecimen, SPECIMEN_LABEL_SETTINGS
+from ..labels import printLabelSheet
 
 
 SPECIMEN_LABEL_QUEUE = 'specimen_label_queue'
+
+
+class SPECIMEN_LABEL_SETTINGS:
+
+    page_height = 11.0
+    page_width = 8.5
+
+    top_margin = 0.5
+    side_margin = 0.187
+
+    vert_pitch = 1.0
+    horz_pitch = 2.75
+
+    label_height = 1.0
+    label_width = 2.625
+    label_round = 0.1
+
+    no_across = 3
+    no_down = 10
 
 
 @view_config(
@@ -144,6 +163,21 @@ def specimen(context, request):
     return vals
 
 
+def make_specimen_label(specimen):
+    pid = specimen.patient.pid
+    collect_date = specimen.collect_date
+    study_label = specimen.cycle.study.short_title
+    cycle_label = specimen.cycle.week or specimen.cycle.title
+    type_ = specimen.specimen_type
+    barcode = -1
+    lines = [
+        u'{}   {}'.format(pid, collect_date.strftime('%m/%d/%Y')),
+        u'{} - {}'.format(study_label, cycle_label),
+        u'{}'.format(type_.name)
+    ]
+    return barcode, lines
+
+
 @view_config(
     route_name='lims.specimen_labels',
     permission='view',
@@ -179,16 +213,16 @@ def specimen_labels(context, request):
                         models.Specimen.specimen_type_id,
                         models.Specimen.id))
 
-                printables = [
-                    LabeledSpecimen(s)
+                printables = iter(
+                    make_specimen_label(s)
                     for s in query
-                    for i in range(s.tubes)
-                    if s.tubes]
+                    for i in six.moves.range(s.tubes)
+                    if s.tubes)
 
                 stream = six.StringIO()
                 printLabelSheet(
                     stream,
-                    context,
+                    u'{} labels'.format(context.title),
                     printables,
                     SPECIMEN_LABEL_SETTINGS,
                     form.startcol.data,

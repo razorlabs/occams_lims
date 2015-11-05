@@ -3,6 +3,8 @@ from pyramid.httpexceptions import HTTPFound, HTTPOk, HTTPForbidden
 from pyramid.response import FileIter
 from pyramid.view import view_config
 from pyramid.session import check_csrf_token
+import sqlalchemy as sa
+from sqlalchemy import orm
 import wtforms
 from wtforms.ext.dateutil.fields import DateField
 
@@ -10,10 +12,31 @@ from occams.utils.forms import apply_changes
 from occams.utils.pagination import Pagination
 
 from .. import _, models
-from ..labels import printLabelSheet, LabeledAliquot, ALIQUOT_LABEL_SETTINGS
+from ..labels import printLabelSheet
 from .specimen import filter_specimen
 
+
 ALIQUOT_LABEL_QUEUE = 'aliquot_label_queue'
+
+
+class ALIQUOT_LABEL_SETTINGS:
+
+    page_height = 11.0
+    page_width = 8.5
+
+    top_margin = 0.24
+    side_margin = 0.77
+
+    vert_pitch = 0.63
+    horz_pitch = 1.4
+
+    label_height = 0.5
+    label_width = 1.28
+
+    label_round = 0.1
+
+    no_across = 5
+    no_down = 18
 
 
 @view_config(
@@ -282,6 +305,55 @@ def aliquot(context, request):
     }
 
 
+def make_aliquot_label(aliquot):
+    db_session = orm.object_session(aliquot)
+    specimen = aliquot.specimen
+    study = specimen.cycle.study
+    cycle = specimen.cycle
+    patient = specimen.patient
+    pid = patient.pid
+    enrollment_number = '555-555-555'
+    store_date_label = aliquot.store_date.strftime('%m/%d/%Y')
+    study_label = study.short_title
+    cycle_label = cycle.week or cycle.title
+    type_label = aliquot.aliquot_type.name
+
+    # A major blunder of LIMS is to not store the enrollment info the
+    # sample was collected for, so we take a best guess by finding
+    # a disinct active enrollment based on the sample
+    enrollment_query = (
+        db_session.query(models.Enrollment)
+        .filter_by(patient=patient, study=study)
+        .filter(models.Enrollment.reference_number != sa.null())
+        .filter(models.Enrollment.termination_date == sa.null())
+    )
+
+    try:
+        enrollment = enrollment_query.one()
+    except (orm.exc.NoResultFound, orm.exc.MultipleResultsFound):
+        enrollment_number = u''
+    else:
+        enrollment_number = enrollment.reference_number
+
+    if aliquot.amount:
+        units = aliquot.aliquot_type.units or ''
+        type_label += ' {}{}'.format(aliquot.amount, units)
+
+    if aliquot.special_instruction \
+            and aliquot.special_instruction.name != u'na':
+        type_label += ' {}'.format(aliquot.special_instruction.name)
+
+    barcode = 0
+    lines = [
+        u'{}'.format(aliquot.id),
+        u'{}   {}   {}'.format(aliquot.id, pid, enrollment_number),
+        u'{}'.format(store_date_label),
+        u'{} - {} - {}'.format(study_label, cycle_label, type_label)
+    ]
+
+    return barcode, lines
+
+
 @view_config(
     route_name='lims.aliquot_labels',
     permission='view',
@@ -318,12 +390,12 @@ def aliquot_labels(context, request):
                         models.Aliquot.aliquot_type_id,
                         models.Aliquot.id))
 
-                printables = [LabeledAliquot(s) for s in query]
+                printables = iter(make_aliquot_label(s) for s in query)
 
                 stream = six.StringIO()
                 printLabelSheet(
                     stream,
-                    context,
+                    u'{} labels'.format(context.title),
                     printables,
                     ALIQUOT_LABEL_SETTINGS,
                     form.startcol.data,
