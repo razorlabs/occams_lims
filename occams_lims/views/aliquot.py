@@ -63,14 +63,11 @@ def aliquot(context, request):
         ui_selected = wtforms.BooleanField()
         id = wtforms.IntegerField(
             widget=wtforms.widgets.HiddenInput())
-        aliquot_type_id = wtforms.SelectField(
-            coerce=int,
-            validators=[wtforms.validators.Optional()])
         amount = wtforms.DecimalField(
             places=1,
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.InputRequired()])
         store_date = DateField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.InputRequired()])
         freezer = wtforms.StringField(
             validators=[wtforms.validators.Optional()])
         rack = wtforms.StringField(
@@ -82,6 +79,13 @@ def aliquot(context, request):
             coerce=int,
             validators=[wtforms.validators.Optional()])
         notes = wtforms.TextAreaField(
+            validators=[wtforms.validators.Optional()])
+
+    class SpecimenAliquotForm(AliquotForm):
+        count = wtforms.IntegerField(
+            validators=[wtforms.validators.Optional()])
+        aliquot_type_id = wtforms.SelectField(
+            coerce=int,
             validators=[wtforms.validators.Optional()])
 
         def __init__(self, *args, **kw):
@@ -100,10 +104,6 @@ def aliquot(context, request):
                 self.aliquot_type_id.choices = [
                     (t.id, t.title)
                     for t in specimen.specimen_type.aliquot_types.values()]
-
-    class SpecimenAliquotForm(AliquotForm):
-        count = wtforms.IntegerField(
-            validators=[wtforms.validators.Optional()])
 
     class SpecimenCrudForm(wtforms.Form):
         specimen = wtforms.FieldList(wtforms.FormField(SpecimenAliquotForm))
@@ -164,7 +164,6 @@ def aliquot(context, request):
                 db_session.flush()
 
                 processed_count += len(samples)
-                label_queue.update(s.id for s in samples)
 
             if processed_count:
                 request.session.changed()
