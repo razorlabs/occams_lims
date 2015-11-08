@@ -34,14 +34,14 @@ def transact(app, db_session, factories):
     'test_location:worker', 'test_location:member',
     None])
 def test_lims_view_list(app, group):
-    url = '/lims'
+    url = '/lims/'
     environ = make_environ(userid=USERID, groups=[group])
     res = app.get(url, extra_environ=environ)
     assert res.status_code == 200
 
 
 def test_not_authenticated(app):
-    url = '/lims'
+    url = '/lims/'
     res = app.get(url, status='*')
     assert res.status_code == 401
 

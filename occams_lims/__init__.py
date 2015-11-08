@@ -12,6 +12,8 @@ log = logging.getLogger('occams').getChild(__name__)
 
 _ = TranslationStringFactory(__name__)
 
+__prefix__ = '/lims'
+__title__ = _(u'LIMS')
 __version__ = pkg_resources.require(__name__)[0].version
 
 
