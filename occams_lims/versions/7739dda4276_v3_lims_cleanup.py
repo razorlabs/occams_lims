@@ -7,9 +7,8 @@ Create Date: 2015-10-22 22:47:21.314965
 
 # revision identifiers, used by Alembic.
 revision = '7739dda4276'
-down_revision = None
+down_revision = '1d2d71fb2bde'
 branch_labels = ('lims',)
-depends_on = '1d2d71fb2bde'
 
 from alembic import op, context
 import sqlalchemy as sa
