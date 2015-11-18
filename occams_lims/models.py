@@ -5,11 +5,15 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from occams_datastore.models import \
-    ModelClass, Referenceable, Describeable, Modifiable, Auditable
+    Base, Referenceable, Describeable, Modifiable, Auditable
 from occams_studies.models import \
     Site, Patient, Enrollment, Study, Cycle, Visit
 
-Base = ModelClass('Base')
+
+class LimsModel(Base):
+    __abstract__ = True
+    # TODO: move this to 'lims' schema'
+    metadata = sa.MetaData()
 
 
 class groups:
@@ -103,7 +107,7 @@ class AliquotFactory(dict):
 
 specimentype_study_table = sa.Table(
     'specimentype_study',
-    Base.metadata,
+    LimsModel.metadata,
     sa.Column(
         'study_id',
         sa.Integer,
@@ -124,7 +128,7 @@ specimentype_study_table = sa.Table(
 
 specimentype_cycle_table = sa.Table(
     'specimentype_cycle',
-    Base.metadata,
+    LimsModel.metadata,
     sa.Column(
         'cycle_id',
         sa.Integer,
@@ -145,7 +149,7 @@ specimentype_cycle_table = sa.Table(
 
 site_lab_location_table = sa.Table(
     'site_lab_location',
-    Base.metadata,
+    LimsModel.metadata,
     sa.Column(
         'site_id',
         sa.Integer,
@@ -163,7 +167,7 @@ site_lab_location_table = sa.Table(
             ondelete='CASCADE')))
 
 
-class SpecimenState(Base, Describeable, Referenceable, Modifiable):
+class SpecimenState(LimsModel, Describeable, Referenceable, Modifiable):
     """
     We may wish to add information here about the destination,
     such as address, contact info, etc.
@@ -178,7 +182,7 @@ class SpecimenState(Base, Describeable, Referenceable, Modifiable):
             sa.UniqueConstraint('name'),)
 
 
-class AliquotState(Base, Describeable, Referenceable, Modifiable):
+class AliquotState(LimsModel, Describeable, Referenceable, Modifiable):
     """
     We may wish to add information here about the destination,
     such as address, contact info, etc.
@@ -193,7 +197,7 @@ class AliquotState(Base, Describeable, Referenceable, Modifiable):
             sa.UniqueConstraint('name'),)
 
 
-class Location(Base, Describeable, Referenceable, Modifiable):
+class Location(LimsModel, Describeable, Referenceable, Modifiable):
     """
     We may wish to add information here about the destination,
     such as address, contact info, etc.
@@ -252,7 +256,7 @@ class Location(Base, Describeable, Referenceable, Modifiable):
             sa.Index('ix_%s_active' % cls.__tablename__, 'active'))
 
 
-class SpecialInstruction(Base, Describeable, Referenceable, Modifiable):
+class SpecialInstruction(LimsModel, Describeable, Referenceable, Modifiable):
     """
     We may wish to add information here about the special instruction
     Right now we just need a vocabulary
@@ -266,7 +270,7 @@ class SpecialInstruction(Base, Describeable, Referenceable, Modifiable):
             sa.UniqueConstraint('name'), )
 
 
-class SpecimenType(Base, Referenceable, Describeable, Modifiable):
+class SpecimenType(LimsModel, Referenceable, Describeable, Modifiable):
 
     __tablename__ = 'specimentype'
 
@@ -295,7 +299,7 @@ class SpecimenType(Base, Referenceable, Describeable, Modifiable):
     # aliquot_types backreffed in AliquotType
 
 
-class AliquotType(Base, Referenceable, Describeable, Modifiable):
+class AliquotType(LimsModel, Referenceable, Describeable, Modifiable):
 
     __tablename__ = 'aliquottype'
 
@@ -328,7 +332,7 @@ class AliquotType(Base, Referenceable, Describeable, Modifiable):
                 'specimen_type_id'))
 
 
-class Specimen(Base, Referenceable, Auditable, Modifiable):
+class Specimen(LimsModel, Referenceable, Auditable, Modifiable):
     """
     Speccialized table for specimen data. Note that only one specimen can be
     drawn from a patient/protocol/type.
@@ -464,7 +468,7 @@ class Specimen(Base, Referenceable, Auditable, Modifiable):
             sa.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'))
 
 
-class Aliquot(Base, Referenceable, Auditable, Modifiable):
+class Aliquot(LimsModel, Referenceable, Auditable, Modifiable):
     """
     Specialized table for aliquot parts generated from a specimen.
     """
