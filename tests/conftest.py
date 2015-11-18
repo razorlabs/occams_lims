@@ -81,9 +81,13 @@ def create_tables(request):
     if not reuse:
         # This is very similar to the init_db script: create tables
         # and pre-populate with expected data
-        datastore.DataStoreModel.metadata.create_all(engine)
-        studies.StudiesModel.metadata.create_all(engine)
-        models.LimsModel.metadata.create_all(engine)
+        with engine.begin() as connection:
+            connection.info['blame'] = 'test_installer'
+            datastore.DataStoreModel.metadata.create_all(connection)
+            studies.StudiesModel.metadata.create_all(connection)
+            models.LimsModel.metadata.create_all(connection)
+            # Cleare out pre-existing data since we'll do this in the fixtures
+            connection.execute('DELETE FROM state')
 
     def drop_tables():
         if url.drivername == 'sqlite':
