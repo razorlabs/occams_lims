@@ -69,6 +69,7 @@ def create_tables(request):
     import os
     from sqlalchemy import create_engine
     from occams_datastore import models as datastore
+    from occams_studies import models as studies
     from occams_lims import models
 
     db_url = request.config.getoption('--db')
@@ -81,14 +82,16 @@ def create_tables(request):
         # This is very similar to the init_db script: create tables
         # and pre-populate with expected data
         datastore.DataStoreModel.metadata.create_all(engine)
-        models.Base.metadata.create_all(engine)
+        studies.StudiesModel.metadata.create_all(engine)
+        models.LimsModel.metadata.create_all(engine)
 
     def drop_tables():
         if url.drivername == 'sqlite':
             if url.database not in ('', ':memory:'):
                 os.unlink(url.database)
         elif not reuse:
-            models.Base.metadata.drop_all(engine)
+            models.LimsModel.metadata.drop_all(engine)
+            studies.StudiesModel.metadata.drop_all(engine)
             datastore.DataStoreModel.metadata.drop_all(engine)
 
     request.addfinalizer(drop_tables)
