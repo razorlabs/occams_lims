@@ -3,13 +3,13 @@ from pyramid.httpexceptions import HTTPFound, HTTPOk, HTTPForbidden
 from pyramid.response import FileIter
 from pyramid.view import view_config
 from pyramid.session import check_csrf_token
-import sqlalchemy as sa
 import wtforms
 from wtforms.ext.dateutil.fields import DateField
 from wtforms_components import TimeField
 
 from occams.utils.forms import apply_changes
 from occams.utils.pagination import Pagination
+from occams_studies import models as studies
 
 from .. import _, models
 from ..labels import printLabelSheet
@@ -272,17 +272,17 @@ def add(context, request):
             .filter_by(name=u'pending-draw')
             .one())
         patient = (
-            db_session.query(models.Patient)
+            db_session.query(studies.Patient)
             .filter_by(pid=form.pid.data)
             .one())
-        cycle = db_session.query(models.Cycle).get(form.cycle_id.data)
+        cycle = db_session.query(studies.Cycle).get(form.cycle_id.data)
         type_ = \
             db_session.query(models.SpecimenType) \
             .get(form.specimen_type_id.data)
         visit = (
-            db_session.query(models.Visit)
-            .filter(models.Visit.patient_id == patient.id)
-            .filter(models.Visit.cycles.any(id=form.cycle_id.data))
+            db_session.query(studies.Visit)
+            .filter(studies.Visit.patient_id == patient.id)
+            .filter(studies.Visit.cycles.any(id=form.cycle_id.data))
             .one())
         db_session.add(models.Specimen(
             patient=patient,
@@ -353,12 +353,11 @@ def build_add_form(context, request):
     db_session = request.db_session
 
     cycles_query = (
-        db_session.query(models.Cycle)
-        .join(models.Study)
-        .filter(models.Study.start_date != sa.null())
+        db_session.query(studies.Cycle)
+        .join(studies.Study)
         .order_by(
-            models.Study.title,
-            models.Cycle.week.asc().nullsfirst()))
+            studies.Study.title,
+            studies.Cycle.week.asc().nullsfirst()))
 
     cycles = [(0, u'Please select a cycle')] \
         + [(c.id, c.title) for c in cycles_query]
@@ -375,7 +374,7 @@ def build_add_form(context, request):
         pid = field.data
         exists = (
             db_session.query(
-                db_session.query(models.Patient)
+                db_session.query(studies.Patient)
                 .filter_by(pid=pid)
                 .exists())
             .scalar())
@@ -392,9 +391,9 @@ def build_add_form(context, request):
 
         exists = (
             db_session.query(
-                db_session.query(models.Visit)
-                .filter(models.Visit.patient.has(pid=pid))
-                .filter(models.Visit.cycles.any(id=cycle_id))
+                db_session.query(studies.Visit)
+                .filter(studies.Visit.patient.has(pid=pid))
+                .filter(studies.Visit.cycles.any(id=cycle_id))
                 .exists())
             .scalar())
         if not exists:
@@ -491,7 +490,7 @@ def filter_specimen(context, request, state, page_key='page', omit=None):
 
     if 'pid' not in omit and filter_form.pid.data:
         query = query.filter(models.Specimen.patient.has(
-            models.Patient.pid.ilike('%s%%' % filter_form.pid.data)))
+            studies.Patient.pid.ilike('%s%%' % filter_form.pid.data)))
 
     if 'specimen_types' not in omit and filter_form.specimen_types.data:
         query = query.filter(models.Specimen.specimen_type.has(

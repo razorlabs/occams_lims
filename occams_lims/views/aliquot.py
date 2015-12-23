@@ -10,6 +10,7 @@ from wtforms.ext.dateutil.fields import DateField
 
 from occams.utils.forms import apply_changes
 from occams.utils.pagination import Pagination
+from occams_studies import models as studies
 
 from .. import _, models
 from ..labels import printLabelSheet
@@ -321,9 +322,9 @@ def make_aliquot_label(aliquot):
     # sample was collected for, so we take a best guess by finding
     # a disinct enrollment based on the sample
     enrollment_query = (
-        db_session.query(models.Enrollment)
+        db_session.query(studies.Enrollment)
         .filter_by(patient=patient, study=study)
-        .filter(models.Enrollment.reference_number != sa.null())
+        .filter(studies.Enrollment.reference_number != sa.null())
     )
 
     try:
@@ -493,13 +494,13 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
             (models.Aliquot.location == context)
             | (models.Aliquot.previous_location == context))
         .order_by(
-            models.Patient.pid,
+            studies.Patient.pid,
             models.AliquotType.title,
             models.Aliquot.id))
 
     if 'pid' not in omit and filter_form.pid.data:
         query = query.filter(
-            models.Patient.pid.ilike('%s%%' % filter_form.pid.data))
+            studies.Patient.pid.ilike('%s%%' % filter_form.pid.data))
 
     if 'aliquot_types' not in omit and filter_form.aliquot_types.data:
         query = query.filter(

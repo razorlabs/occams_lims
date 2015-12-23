@@ -4,13 +4,11 @@ from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from occams_datastore.models import \
-    Base, Referenceable, Describeable, Modifiable, Auditable
-from occams_studies.models import \
-    Site, Patient, Enrollment, Study, Cycle, Visit
+from occams_datastore import models as ds
+from occams_studies import models as studies
 
 
-class LimsModel(Base):
+class LimsModel(ds.Base):
     __abstract__ = True
     # TODO: move this to 'lims' schema'
     metadata = sa.MetaData()
@@ -112,7 +110,7 @@ specimentype_study_table = sa.Table(
         'study_id',
         sa.Integer,
         sa.ForeignKey(
-            Study.id,
+            studies.Study.id,
             name='fk_specimentype_study_study_id',
             ondelete='CASCADE'),
         primary_key=True),
@@ -133,7 +131,7 @@ specimentype_cycle_table = sa.Table(
         'cycle_id',
         sa.Integer,
         sa.ForeignKey(
-            Cycle.id,
+            studies.Cycle.id,
             name='fk_specimentype_cycle_cycle_id',
             ondelete='CASCADE'),
         primary_key=True),
@@ -154,7 +152,7 @@ site_lab_location_table = sa.Table(
         'site_id',
         sa.Integer,
         sa.ForeignKey(
-            Site.id,
+            studies.Site.id,
             name='fk_site_lab_location_site_id',
             ondelete='CASCADE'),
         primary_key=True),
@@ -167,7 +165,8 @@ site_lab_location_table = sa.Table(
             ondelete='CASCADE')))
 
 
-class SpecimenState(LimsModel, Describeable, Referenceable, Modifiable):
+class SpecimenState(
+        LimsModel, ds.Describeable, ds.Referenceable, ds.Modifiable):
     """
     We may wish to add information here about the destination,
     such as address, contact info, etc.
@@ -182,7 +181,8 @@ class SpecimenState(LimsModel, Describeable, Referenceable, Modifiable):
             sa.UniqueConstraint('name'),)
 
 
-class AliquotState(LimsModel, Describeable, Referenceable, Modifiable):
+class AliquotState(
+        LimsModel, ds.Describeable, ds.Referenceable, ds.Modifiable):
     """
     We may wish to add information here about the destination,
     such as address, contact info, etc.
@@ -197,7 +197,8 @@ class AliquotState(LimsModel, Describeable, Referenceable, Modifiable):
             sa.UniqueConstraint('name'),)
 
 
-class Location(LimsModel, Describeable, Referenceable, Modifiable):
+class Location(
+        LimsModel, ds.Describeable, ds.Referenceable, ds.Modifiable):
     """
     We may wish to add information here about the destination,
     such as address, contact info, etc.
@@ -219,7 +220,7 @@ class Location(LimsModel, Describeable, Referenceable, Modifiable):
 
     # TODO: Seems like this was ever meant to be 1:1
     sites = orm.relationship(
-        Site,
+        studies.Site,
         secondary=site_lab_location_table,
         backref=orm.backref(
             name='lab_location',
@@ -256,7 +257,8 @@ class Location(LimsModel, Describeable, Referenceable, Modifiable):
             sa.Index('ix_%s_active' % cls.__tablename__, 'active'))
 
 
-class SpecialInstruction(LimsModel, Describeable, Referenceable, Modifiable):
+class SpecialInstruction(
+        LimsModel, ds.Describeable, ds.Referenceable, ds.Modifiable):
     """
     We may wish to add information here about the special instruction
     Right now we just need a vocabulary
@@ -270,7 +272,8 @@ class SpecialInstruction(LimsModel, Describeable, Referenceable, Modifiable):
             sa.UniqueConstraint('name'), )
 
 
-class SpecimenType(LimsModel, Referenceable, Describeable, Modifiable):
+class SpecimenType(
+        LimsModel, ds.Referenceable, ds.Describeable, ds.Modifiable):
 
     __tablename__ = 'specimentype'
 
@@ -280,26 +283,27 @@ class SpecimenType(LimsModel, Referenceable, Describeable, Modifiable):
 
     default_tubes = sa.Column(sa.Integer, doc='Default tubes count')
 
-    studies = orm.relationship(
-        Study,
-        secondary=specimentype_study_table,
-        collection_class=set,
-        backref=orm.backref(
-            name='specimen_types',
-            collection_class=set))
-
-    cycles = orm.relationship(
-        Cycle,
-        secondary=specimentype_cycle_table,
-        collection_class=set,
-        backref=orm.backref(
-            name='specimen_types',
-            collection_class=set))
-
     # aliquot_types backreffed in AliquotType
 
+# Avoid name collisions with "studies" module
+SpecimenType.studies = orm.relationship(
+    studies.Study,
+    secondary=specimentype_study_table,
+    collection_class=set,
+    backref=orm.backref(
+        name='specimen_types',
+        collection_class=set))
 
-class AliquotType(LimsModel, Referenceable, Describeable, Modifiable):
+SpecimenType.cycles = orm.relationship(
+    studies.Cycle,
+    secondary=specimentype_cycle_table,
+    collection_class=set,
+    backref=orm.backref(
+        name='specimen_types',
+        collection_class=set))
+
+
+class AliquotType(LimsModel, ds.Referenceable, ds.Describeable, ds.Modifiable):
 
     __tablename__ = 'aliquottype'
 
@@ -332,7 +336,7 @@ class AliquotType(LimsModel, Referenceable, Describeable, Modifiable):
                 'specimen_type_id'))
 
 
-class Specimen(LimsModel, Referenceable, Auditable, Modifiable):
+class Specimen(LimsModel, ds.Referenceable, ds.Auditable, ds.Modifiable):
     """
     Speccialized table for specimen data. Note that only one specimen can be
     drawn from a patient/protocol/type.
@@ -354,23 +358,23 @@ class Specimen(LimsModel, Referenceable, Auditable, Modifiable):
     patient_id = sa.Column(sa.Integer, nullable=False)
 
     patient = orm.relationship(
-        Patient,
+        studies.Patient,
         backref=orm.backref(
             name='specimen',
             primaryjoin='Patient.id==Specimen.patient_id',
             cascade='all, delete, delete-orphan'),
-        primaryjoin=(patient_id == Patient.id),
+        primaryjoin=(patient_id == studies.Patient.id),
         doc='The source patient')
 
     cycle_id = sa.Column(sa.Integer)
 
     cycle = orm.relationship(
-        Cycle,
+        studies.Cycle,
         backref=orm.backref(
             name='specimen',
             primaryjoin='Cycle.id==Specimen.cycle_id',
             cascade='all, delete, delete-orphan'),
-        primaryjoin=(cycle_id == Cycle.id),
+        primaryjoin=(cycle_id == studies.Cycle.id),
         doc='The cycle for which this specimen was collected')
 
     state_id = sa.Column(sa.Integer, nullable=False)
@@ -411,9 +415,9 @@ class Specimen(LimsModel, Referenceable, Auditable, Modifiable):
     def visit_date(self):
         session = orm.object_session(self)
         query = (
-            session.query(Visit)
-            .filter(Visit.patient == self.patient)
-            .filter(Visit.cycles.any(id=self.cycle.id)))
+            session.query(studies.Visit)
+            .filter(studies.Visit.patient == self.patient)
+            .filter(studies.Visit.cycles.any(id=self.cycle.id)))
         try:
             visit = query.one()
         except orm.exc.NoResultFound:
@@ -433,12 +437,12 @@ class Specimen(LimsModel, Referenceable, Auditable, Modifiable):
                 ondelete='CASCADE'),
             sa.ForeignKeyConstraint(
                 columns=['patient_id'],
-                refcolumns=[Patient.id],
+                refcolumns=[studies.Patient.id],
                 name='fk_%s_patient_id' % cls.__tablename__,
                 ondelete='CASCADE'),
             sa.ForeignKeyConstraint(
                 columns=['cycle_id'],
-                refcolumns=[Cycle.id],
+                refcolumns=[studies.Cycle.id],
                 name='fk_%s_cycle_id' % cls.__tablename__,
                 ondelete='SET NULL'),
             sa.ForeignKeyConstraint(
@@ -468,7 +472,7 @@ class Specimen(LimsModel, Referenceable, Auditable, Modifiable):
             sa.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'))
 
 
-class Aliquot(LimsModel, Referenceable, Auditable, Modifiable):
+class Aliquot(LimsModel, ds.Referenceable, ds.Auditable, ds.Modifiable):
     """
     Specialized table for aliquot parts generated from a specimen.
     """
