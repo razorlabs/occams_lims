@@ -47,7 +47,10 @@ def specimen(context, request):
     vals = filter_specimen(context, request, state=u'pending-draw')
     specimen = vals['specimen']
 
-    # override specimen with default processing locations
+    # Override specimen with default processing locations on save
+    # This was previosly set in the Plone site content object
+    # but don't have the resources to properly re-implement this
+    # functionality, so this will have to do for now.
     processing_location_name = None
     processing_location = None
 
