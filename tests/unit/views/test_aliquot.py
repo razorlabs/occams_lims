@@ -92,18 +92,19 @@ class Test_filter_aliquot:
         from webob.multidict import MultiDict
 
         pid = u'XXX-XXX-XX'
-        state = u'pending'
         # Samole must be from the current working location
         location = factories.LocationFactory.create()
         factories.AliquotFactory.create(
-            state__name=state,
+            state__name='pending',
             location=location,
             specimen__patient__pid=pid,
-            specimen__location=location)
+            specimen__location=location,
+            specimen__state__name='complete'
+        )
         db_session.flush()
 
         req.GET = MultiDict([('pid', pid)])
-        res = self._call_fut(location, req, state)
+        res = self._call_fut(location, req, state='pending')
 
         assert res['has_aliquot']
 
@@ -111,17 +112,58 @@ class Test_filter_aliquot:
         from webob.multidict import MultiDict
 
         pid = u'XXX-XXX-XX'
-        state = u'pending'
         # Sample must be from the current working location
         location = factories.LocationFactory.create()
         factories.AliquotFactory.create(
-            state__name=state,
+            state__name='pending',
             location=location,
             specimen__patient__pid=pid,
-            specimen__location=location)
+            specimen__location=location,
+            specimen__state__name='complete'
+        )
         db_session.flush()
 
         req.GET = MultiDict([('pid', u'YYY-YYY-YY')])
-        res = self._call_fut(location, req, state)
+        res = self._call_fut(location, req, state='state')
 
         assert not res['has_aliquot']
+
+
+class Test_aliquot:
+
+    def _call_fut(self, *args, **kw):
+        from occams_lims.views.aliquot import aliquot as view
+        return view(*args, **kw)
+
+    def test_default_view(self, req, db_session, factories):
+        """
+        It should display pending samples by default
+        """
+
+        from webob.multidict import MultiDict
+
+        specimen_complete = factories.SpecimenStateFactory.create(
+            name='complete'
+        )
+        location = factories.LocationFactory.create()
+        aliquot1 = factories.AliquotFactory.create(
+            specimen__location=location,
+            specimen__state=specimen_complete,
+            location=location,
+            state__name='pending',
+        )
+        factories.AliquotFactory.create(
+            specimen__location=location,
+            specimen__state=specimen_complete,
+            location=location,
+            state__name='checked-in')
+        db_session.flush()
+
+        req.GET = MultiDict()
+        req.POST = MultiDict()
+        context = location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        assert len(res['aliquot']) == 1
+        assert res['aliquot'][0] == aliquot1

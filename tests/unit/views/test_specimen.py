@@ -56,17 +56,16 @@ class Test_filter_specimen:
         from webob.multidict import MultiDict
 
         pid = u'XXX-XXX-XX'
-        state = u'pending'
         # Sample must be from the current working location
         location = factories.LocationFactory.create()
         factories.SpecimenFactory.create(
-            state__name=state,
+            state__name='pending-draw',
             patient__pid=pid,
             location=location)
         db_session.flush()
 
         req.GET = MultiDict([('pid', pid)])
-        res = self._call_fut(location, req, state)
+        res = self._call_fut(location, req, state='pending-draw')
 
         assert res['has_specimen']
 
@@ -74,16 +73,90 @@ class Test_filter_specimen:
         from webob.multidict import MultiDict
 
         pid = u'XXX-XXX-XX'
-        state = u'pending'
         # Sample must be from the current working location
         location = factories.LocationFactory.create()
         factories.SpecimenFactory.create(
-            state__name=state,
+            state__name='pending-draw',
             patient__pid=pid,
             location=location)
         db_session.flush()
 
         req.GET = MultiDict([('pid', u'YYY-YYY-YY')])
-        res = self._call_fut(location, req, state)
+        res = self._call_fut(location, req, state='pending-draw')
 
         assert not res['has_specimen']
+
+
+class Test_specimen:
+
+    def _call_fut(self, *args, **kw):
+        from occams_lims.views.specimen import specimen as view
+        return view(*args, **kw)
+
+    def test_default_view(self, req, db_session, factories):
+        """
+        It should only display "pending-draw" specimen by default
+        """
+        from webob.multidict import MultiDict
+
+        location = factories.LocationFactory.create()
+        specimen1 = factories.SpecimenFactory.create(
+            location=location,
+            state__name='pending-draw',
+        )
+        factories.SpecimenFactory.create(
+            location=location,
+            state__name='pending-aliquot',
+        )
+        db_session.flush()
+
+        req.GET = MultiDict()
+        req.POST = MultiDict()
+        context = specimen1.location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        assert len(res['specimen']) == 1
+        assert res['specimen'][0] == specimen1
+
+    def test_move_location_on_complete(self, req, db_session, factories):
+        """
+        It should move the specimen to the next location on complete.
+
+        Presumably this is location at which the sample will be "processed".
+        This was previously the "batched view" that was deprecated.
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        specimen = factories.SpecimenFactory.create(
+            state__name='pending-draw',
+        )
+        next_location = factories.LocationFactory.create(
+            is_enabled=True,
+            active=True,
+        )
+        factories.SpecimenStateFactory.create(name='pending-aliquot')
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('specimen-0-ui_selected', '1'),
+            ('specimen-0-id', str(specimen.id)),
+            ('specimen-0-tubes', str(specimen.tubes)),
+            ('specimen-0-collect_date', str(specimen.collect_date)),
+            ('specimen-0-collect_time', '00:00'),
+            ('specimen-0-location_id', str(next_location.id)),
+            ('pending-aliquot', '1')
+        ])
+
+        context = specimen.location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        db_session.refresh(specimen)
+        assert res.status_code == 302
+        assert specimen.state.name == 'pending-aliquot'
+        assert specimen.location == next_location
