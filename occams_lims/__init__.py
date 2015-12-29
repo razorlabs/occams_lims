@@ -17,6 +17,7 @@ __version__ = pkg_resources.require(__name__)[0].version
 
 
 def initdb(connectable):
+    assert 'blame' in connectable.info, 'Need someone to blame!'
     models.LimsModel.metadata.create_all(connectable)
 
 

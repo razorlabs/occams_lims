@@ -86,8 +86,10 @@ def create_tables(request):
             datastore.DataStoreModel.metadata.create_all(connection)
             studies.StudiesModel.metadata.create_all(connection)
             models.LimsModel.metadata.create_all(connection)
-            # Cleare out pre-existing data since we'll do this in the fixtures
-            connection.execute('DELETE FROM state')
+            # We'll create the fixture data manually
+            connection.execute('DELETE FROM "state"')
+            connection.execute('DELETE FROM "aliquotstate"')
+            connection.execute('DELETE FROM "specimenstate"')
 
     def drop_tables():
         if url.drivername == 'sqlite':
@@ -296,9 +298,9 @@ def app(request, wsgi, db_session):
         # http://stackoverflow.com/a/11423886/148781
         # We also have to do this as a raw query becuase SA does
         # not have a way to invoke server-side cascade
-        db_session.execute('DELETE FROM "location" CASCADE')
-        db_session.execute('DELETE FROM "site" CASCADE')
-        db_session.execute('DELETE FROM "study" CASCADE')
-        db_session.execute('DELETE FROM "specimentype" CASCADE')
-        db_session.execute('DELETE FROM "user" CASCADE')
+        db_session.execute('DELETE FROM "location"')
+        db_session.execute('DELETE FROM "site"')
+        db_session.execute('DELETE FROM "study"')
+        db_session.execute('DELETE FROM "specimentype"')
+        db_session.execute('DELETE FROM "user"')
         mark_changed(db_session)

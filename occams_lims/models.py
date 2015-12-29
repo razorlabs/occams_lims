@@ -1,14 +1,14 @@
 from pyramid.security import Allow, Authenticated, ALL_PERMISSIONS
 import sqlalchemy as sa
-from sqlalchemy import orm
+from sqlalchemy import orm, event
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from occams_datastore import models as ds
+from occams_datastore import models as datastore
 from occams_studies import models as studies
 
 
-class LimsModel(ds.Base):
+class LimsModel(datastore.Base):
     __abstract__ = True
     # TODO: move this to 'lims' schema'
     metadata = sa.MetaData()
@@ -165,8 +165,10 @@ site_lab_location_table = sa.Table(
             ondelete='CASCADE')))
 
 
-class SpecimenState(
-        LimsModel, ds.Describeable, ds.Referenceable, ds.Modifiable):
+class SpecimenState(LimsModel,
+                    datastore.Describeable,
+                    datastore.Referenceable,
+                    datastore.Modifiable):
     """
     We may wish to add information here about the destination,
     such as address, contact info, etc.
@@ -181,8 +183,53 @@ class SpecimenState(
             sa.UniqueConstraint('name'),)
 
 
-class AliquotState(
-        LimsModel, ds.Describeable, ds.Referenceable, ds.Modifiable):
+@event.listens_for(SpecimenState.__table__, 'after_create')
+def populate_default_specimen_states(target, connection, **kw):
+    """
+    We currently only ship with hard-coded states.
+
+    This method expectecs the current connection to be annotated with
+    a user in the info "blame" key. This user is ideally created after the
+    "user" table is created.
+    """
+
+    blame = connection.info['blame']
+    user_table = datastore.User.__table__
+
+    result = connection.execute(
+        user_table
+        .select()
+        .where(user_table.c.key == blame))
+
+    user = result.fetchone()
+    blame_id = user['id']
+
+    def state(**kw):
+        values = kw.copy()
+        values.update({
+            'create_user_id': blame_id,
+            'modify_user_id': blame_id,
+            'revision': 1
+        })
+        return values
+
+    connection.execute(target.insert().values([
+        state(name=u'pending-draw', title=u'Pending Draw'),
+        state(name=u'cancel-draw', title=u'Draw Cancelled'),
+        state(name=u'pending-aliquot', title=u'Pending Aliquot'),
+        state(name=u'aliquoted', title=u'Aliquoted'),
+        state(name=u'rejected', title=u'Rejected'),
+        state(name=u'prepared-aliquot', title=u'Prepared for Aliquot'),
+        state(name=u'complete', title=u'Complete'),
+        state(name=u'batched', title=u'Batched'),
+        state(name=u'postponed', title=u'Draw Postponed'),
+    ]))
+
+
+class AliquotState(LimsModel,
+                   datastore.Describeable,
+                   datastore.Referenceable,
+                   datastore.Modifiable):
     """
     We may wish to add information here about the destination,
     such as address, contact info, etc.
@@ -197,8 +244,54 @@ class AliquotState(
             sa.UniqueConstraint('name'),)
 
 
-class Location(
-        LimsModel, ds.Describeable, ds.Referenceable, ds.Modifiable):
+@event.listens_for(AliquotState.__table__, 'after_create')
+def populate_default_aliquot_states(target, connection, **kw):
+    """
+    We currently only ship with hard-coded states.
+
+    This method expectecs the current connection to be annotated with
+    a user in the info "blame" key. This user is ideally created after the
+    "user" table is created.
+    """
+
+    blame = connection.info['blame']
+    user_table = datastore.User.__table__
+
+    result = connection.execute(
+        user_table
+        .select()
+        .where(user_table.c.key == blame))
+
+    user = result.fetchone()
+    blame_id = user['id']
+
+    def state(**kw):
+        values = kw.copy()
+        values.update({
+            'create_user_id': blame_id,
+            'modify_user_id': blame_id,
+            'revision': 1
+        })
+        return values
+
+    connection.execute(target.insert().values([
+        state(name=u'pending', title=u'Pending Check In'),
+        state(name=u'checked-in', title=u'Checked In'),
+        state(name=u'checked-out', title=u'CHecked Out'),
+        state(name=u'hold', title=u'On Hold'),
+        state(name=u'prepared', title=u'Prepared for Check In'),
+        state(name=u'incorrect', title=u'Inaccurate Data'),
+        state(name=u'pending-checkout', title=u'Check Out'),
+        state(name=u'queued', title=u'Hold in Queue'),
+        state(name=u'missing', title=u'Missing'),
+        state(name=u'destroyed', title=u'Destroyed'),
+    ]))
+
+
+class Location(LimsModel,
+               datastore.Describeable,
+               datastore.Referenceable,
+               datastore.Modifiable):
     """
     We may wish to add information here about the destination,
     such as address, contact info, etc.
@@ -257,8 +350,10 @@ class Location(
             sa.Index('ix_%s_active' % cls.__tablename__, 'active'))
 
 
-class SpecialInstruction(
-        LimsModel, ds.Describeable, ds.Referenceable, ds.Modifiable):
+class SpecialInstruction(LimsModel,
+                         datastore.Describeable,
+                         datastore.Referenceable,
+                         datastore.Modifiable):
     """
     We may wish to add information here about the special instruction
     Right now we just need a vocabulary
@@ -272,8 +367,10 @@ class SpecialInstruction(
             sa.UniqueConstraint('name'), )
 
 
-class SpecimenType(
-        LimsModel, ds.Referenceable, ds.Describeable, ds.Modifiable):
+class SpecimenType(LimsModel,
+                   datastore.Referenceable,
+                   datastore.Describeable,
+                   datastore.Modifiable):
 
     __tablename__ = 'specimentype'
 
@@ -303,7 +400,10 @@ SpecimenType.cycles = orm.relationship(
         collection_class=set))
 
 
-class AliquotType(LimsModel, ds.Referenceable, ds.Describeable, ds.Modifiable):
+class AliquotType(LimsModel,
+                  datastore.Referenceable,
+                  datastore.Describeable,
+                  datastore.Modifiable):
 
     __tablename__ = 'aliquottype'
 
@@ -336,7 +436,10 @@ class AliquotType(LimsModel, ds.Referenceable, ds.Describeable, ds.Modifiable):
                 'specimen_type_id'))
 
 
-class Specimen(LimsModel, ds.Referenceable, ds.Auditable, ds.Modifiable):
+class Specimen(LimsModel,
+               datastore.Referenceable,
+               datastore.Auditable,
+               datastore.Modifiable):
     """
     Speccialized table for specimen data. Note that only one specimen can be
     drawn from a patient/protocol/type.
@@ -472,7 +575,10 @@ class Specimen(LimsModel, ds.Referenceable, ds.Auditable, ds.Modifiable):
             sa.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'))
 
 
-class Aliquot(LimsModel, ds.Referenceable, ds.Auditable, ds.Modifiable):
+class Aliquot(LimsModel,
+              datastore.Referenceable,
+              datastore.Auditable,
+              datastore.Modifiable):
     """
     Specialized table for aliquot parts generated from a specimen.
     """
