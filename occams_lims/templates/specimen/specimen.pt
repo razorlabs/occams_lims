@@ -140,7 +140,7 @@
             data-trigger="hover"
             data-placement="top"
             data-content="Mark the selected specimen as undrawn"
-            >Mark Undrawn</button>
+            >Cancel Draw</button>
         <button
             type="submit"
             class="btn btn-default"
@@ -152,7 +152,7 @@
             data-placement="top"
             data-html="true"
             data-content="Saves all changes entered to the database (for all specimen). Then marks the selected specimen as complete. Completed specimen will then appear in the <a href='${request.current_route_path(_route_name='lims.aliquot')}'>Ready to Aliquot</a> tab of the target location."
-            >Complete</button>
+            >Pending Aliquot</button>
         <button
             type="submit"
             class="btn btn-primary"
@@ -163,7 +163,7 @@
             data-trigger="hover"
             data-placement="top"
             data-content="Saves all of the changes entered to the database. This applies to all specimen, not just selected specimen."
-            >Save Changes</button>
+            >Save</button>
 
         </div>
 

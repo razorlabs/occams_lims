@@ -111,7 +111,7 @@
           data-placement="top"
           data-html="true"
           data-content="Return the selected aliquot to a 'checked in' state. This will reset the location to the current lab location. "
-          >Return Aliquot</button>
+          >Return</button>
       <button
           type="submit"
           class="btn btn-default"
@@ -121,7 +121,7 @@
           data-placement="top"
           data-content="Finalize checkout for selected aliquot. These aliquot can be checked back in"
           tal:attributes="disabled not:has_aliquot"
-          >Complete Checkout</button>
+          >Complete</button>
       <button
           type="submit"
           class="btn btn-primary"
@@ -131,7 +131,7 @@
           data-trigger="hover"
           data-placement="top"
           data-content=" Saves all of the changes entered to the database. This applies to all aliquot, not just selected aliquot. "
-          >Save Changes</button>
+          >Save</button>
 
     </form>
 

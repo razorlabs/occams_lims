@@ -284,7 +284,7 @@
           data-trigger="hover"
           data-placement="top"
           data-content="Saves all of the changes entered to the database. This applies to all aliquot, not just selected aliquot. "
-          >Save Changes</button>
+          >Save</button>
 
     </form>
 
