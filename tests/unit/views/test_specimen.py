@@ -160,3 +160,43 @@ class Test_specimen:
         assert res.status_code == 302
         assert specimen.state.name == 'pending-aliquot'
         assert specimen.location == next_location
+
+    def test_require_fields_on_complete(self, req, db_session, factories):
+        """
+        It should validate required fields when "completing" a sample
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        specimen = factories.SpecimenFactory.create(
+            state__name='pending-draw',
+        )
+        next_location = factories.LocationFactory.create(
+            is_enabled=True,
+            active=True,
+        )
+        factories.SpecimenStateFactory.create(name='pending-aliquot')
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('specimen-0-ui_selected', '1'),
+            ('specimen-0-id', str(specimen.id)),
+            ('specimen-0-tubes', str(specimen.tubes)),
+            ('specimen-0-collect_date', str(specimen.collect_date)),
+            ('specimen-0-collect_time', ''),
+            ('specimen-0-location_id', str(next_location.id)),
+            ('pending-aliquot', '1')
+        ])
+
+        context = specimen.location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        db_session.refresh(specimen)
+
+        assert isinstance(res, dict), 'Did not return tempalate values'
+        assert 'required' in \
+            res['form']['specimen'].entries[0]['collect_time'].errors[0]
