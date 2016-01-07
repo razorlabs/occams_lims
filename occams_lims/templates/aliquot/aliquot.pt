@@ -15,6 +15,7 @@
 
       <form method="POST">
         <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
+        <input type="hidden" name="template-form" value="1" />
 
         <table id="templates" class="table table-bordered table-hover table-striped" tal:condition="has_specimen">
           <thead>
@@ -117,7 +118,7 @@
         <button
             type="submit"
             class="btn btn-primary"
-            name="aliquot"
+            name="create"
             tal:attributes="disabled not:has_specimen"
             data-toggle="popover"
             data-trigger="hover"
@@ -133,6 +134,7 @@
 
     <form method="POST">
       <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
+      <input type="hidden" name="aliquot-form" value="1" />
 
       <table id="aliquot" class="table table-bordered table-hover table-striped" tal:condition="has_aliquot">
         <colgroup>

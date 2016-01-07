@@ -167,3 +167,63 @@ class Test_aliquot:
 
         assert len(res['aliquot']) == 1
         assert res['aliquot'][0] == aliquot1
+
+    def test_validate_template_form(self, req, db_session, factories):
+        """
+        It should ignore aliquot form when validating the template form
+        """
+        from webob.multidict import MultiDict
+
+        location = factories.LocationFactory.create()
+        specimen_state = factories.SpecimenStateFactory.create(
+            name='pending-aliquot'
+        )
+        aliquot_state = factories.AliquotStateFactory.create(
+            name='pending'
+        )
+        aliquot = factories.AliquotFactory.create(
+            specimen__state=specimen_state,
+            specimen__location=location,
+            state=aliquot_state,
+            location=location,
+        )
+        db_session.flush()
+
+        req.GET = MultiDict()
+        req.POST = MultiDict([('template-form', '1')])
+        req.method = 'POST'
+        context = location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        assert res['aliquot_form'].data['aliquot'][0]['id'] == aliquot.id
+
+    def test_validate_aliquot_form(self, req, db_session, factories):
+        """
+        It should ignore template form when validating the aliquot form
+        """
+        from webob.multidict import MultiDict
+
+        location = factories.LocationFactory.create()
+        specimen_state = factories.SpecimenStateFactory.create(
+            name='pending-aliquot'
+        )
+        aliquot_state = factories.AliquotStateFactory.create(
+            name='pending'
+        )
+        aliquot = factories.AliquotFactory.create(
+            specimen__state=specimen_state,
+            specimen__location=location,
+            state=aliquot_state,
+            location=location,
+        )
+        db_session.flush()
+
+        req.GET = MultiDict()
+        req.POST = MultiDict([('aliquot-form', '1')])
+        req.method = 'POST'
+        context = location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        assert len(res['specimen_form']['specimen'].entries) == 1

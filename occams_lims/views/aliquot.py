@@ -112,8 +112,21 @@ def aliquot(context, request):
     class AliquotCrudForm(wtforms.Form):
         aliquot = wtforms.FieldList(wtforms.FormField(AliquotForm))
 
-    specimen_form = SpecimenCrudForm(request.POST, specimen=specimen)
-    aliquot_form = AliquotCrudForm(request.POST, aliquot=aliquot)
+    # Accomodate WTForm's inability to process multiple forms on the same page
+    # by only passing in the appropriate formdata to the target form
+
+    if 'template-form' in request.POST:
+        specimen_formdata = request.POST
+    else:
+        specimen_formdata = None
+
+    if 'aliquot-form' in request.POST:
+        aliquot_formdata = request.POST
+    else:
+        aliquot_formdata = None
+
+    specimen_form = SpecimenCrudForm(specimen_formdata, specimen=specimen)
+    aliquot_form = AliquotCrudForm(aliquot_formdata, aliquot=aliquot)
 
     def update_print_queue():
         queued = 0
@@ -131,7 +144,7 @@ def aliquot(context, request):
 
     if request.method == 'POST' and check_csrf_token(request):
 
-        if 'aliquot' in request.POST and specimen_form.validate():
+        if 'create' in request.POST and specimen_form.validate():
             state = (
                 db_session.query(models.AliquotState)
                 .filter_by(name='pending')
