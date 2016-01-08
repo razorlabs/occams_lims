@@ -23,8 +23,7 @@ def checkin(context, request):
         (l.id, l.title)
         for l in db_session.query(models.Location).order_by('title')]
 
-    if any(i in request.POST for i in [
-            'queue', 'print', 'checkin', 'checkout']):
+    if 'checkin' in request.POST:
         conditionally_required = required_if('ui_selected')
     else:
         conditionally_required = wtforms.validators.optional()
