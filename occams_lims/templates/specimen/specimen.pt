@@ -61,9 +61,11 @@
         </thead>
         <tbody>
           <tal:draw repeat="draw specimen">
-            <tr tal:define="
-              subform form.specimen.entries[repeat['draw'].index];
-              disabled not:request.has_permission('process')">
+            <tr
+              class="${'danger' if subform.errors else ''}"
+              tal:define="
+                subform form.specimen.entries[repeat['draw'].index];
+                disabled not:request.has_permission('process')">
               <td><tal:select condition="not:disabled">${subform.ui_selected(**{'data-toggle': 'select'})}</tal:select></td>
               <td>${(draw.tubes and draw.tubes or 0) if draw.id in label_queue else None}</td>
               <td><code>${draw.id}</code></td>

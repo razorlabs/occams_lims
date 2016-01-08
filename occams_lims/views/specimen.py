@@ -13,6 +13,7 @@ from occams_studies import models as studies
 
 from .. import _, models
 from ..labels import printLabelSheet
+from ..validators import required_if
 
 
 SPECIMEN_LABEL_QUEUE = 'specimen_label_queue'
@@ -318,6 +319,11 @@ def build_crud_form(context, request):
 
     locations = [(l.id, l.title) for l in locations_query]
 
+    if any(i in request.POST for i in ['queue', 'print', 'pending-aliquot']):
+        conditionally_required = required_if('ui_selected')
+    else:
+        conditionally_required = wtforms.validators.optional()
+
     class SpecimenForm(wtforms.Form):
 
         ui_selected = wtforms.BooleanField()
@@ -330,18 +336,24 @@ def build_crud_form(context, request):
                 wtforms.validators.NumberRange(min=1)])
 
         collect_date = DateField(
-            validators=[wtforms.validators.InputRequired()])
+            validators=[
+                conditionally_required
+            ])
 
         collect_time = TimeField(
             # There doesn't seem to be a nice way to add the colon if the
             # user forgets to do so, might need to make our own Field type
             format='%H:%M',
-            validators=[wtforms.validators.InputRequired()])
+            validators=[
+                conditionally_required
+            ])
 
         location_id = wtforms.SelectField(
             choices=locations,
             coerce=int,
-            validators=[wtforms.validators.InputRequired()])
+            validators=[
+                conditionally_required
+            ])
 
         notes = wtforms.TextAreaField(
             validators=[wtforms.validators.Optional()])
