@@ -227,3 +227,38 @@ class Test_aliquot:
         res = self._call_fut(context, req)
 
         assert len(res['specimen_form']['specimen'].entries) == 1
+
+    def test_no_required_data(self, req, db_session, factories):
+        """
+        It should not require input for collect_date and collect_time and
+        location_id when data is saved
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        specimen = factories.SpecimenFactory.create(
+            state__name='pending-aliquot',
+        )
+
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('specimen-0-ui_selected', '0'),
+            ('specimen-0-id', str(specimen.id)),
+            ('specimen-0-tubes', str(specimen.tubes)),
+            ('specimen-0-collect_date', ''),
+            ('specimen-0-collect_time', ''),
+            ('specimen-0-location_id', ''),
+            ('save', '1')
+        ])
+
+        context = specimen.location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        db_session.refresh(specimen)
+
+        assert res.status_code == 302, 'Should be status code 302'
