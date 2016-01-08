@@ -14,6 +14,7 @@ from occams_studies import models as studies
 
 from .. import _, models
 from ..labels import printLabelSheet
+from ..validators import required_if
 from .specimen import filter_specimen
 
 
@@ -60,34 +61,40 @@ def aliquot(context, request):
 
     label_queue = request.session.setdefault(ALIQUOT_LABEL_QUEUE, set())
 
+    if any(i in request.POST for i in [
+            'queue', 'print', 'checkin', 'checkout']):
+        conditionally_required = required_if('ui_selected')
+    else:
+        conditionally_required = wtforms.validators.optional()
+
     class AliquotForm(wtforms.Form):
         ui_selected = wtforms.BooleanField()
         id = wtforms.IntegerField(
             widget=wtforms.widgets.HiddenInput())
         amount = wtforms.DecimalField(
             places=1,
-            validators=[wtforms.validators.InputRequired()])
+            validators=[conditionally_required])
         store_date = DateField(
-            validators=[wtforms.validators.InputRequired()])
+            validators=[conditionally_required])
         freezer = wtforms.StringField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
         rack = wtforms.StringField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
         box = wtforms.StringField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
         special_instruction = wtforms.SelectField(
             choices=available_instructions,
             coerce=int,
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
         notes = wtforms.TextAreaField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
 
     class SpecimenAliquotForm(AliquotForm):
         count = wtforms.IntegerField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
         aliquot_type_id = wtforms.SelectField(
             coerce=int,
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
 
         def __init__(self, *args, **kw):
             super(AliquotForm, self).__init__(*args, **kw)
