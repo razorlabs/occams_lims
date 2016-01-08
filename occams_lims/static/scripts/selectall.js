@@ -30,17 +30,14 @@
    * Event handler for when a slave check box is selected.
    */
   $(document).on('change', 'input[data-toggle=select]', function(event){
-    var $target = $(event.target);
-    $target
-      .closest('tr')
-      .toggleClass($target.data('class'), $target.prop('checked'));
-  });
+    var $target = $(event.target),
+        newClass = $target.data('class'),
+        isChecked = $target.prop('checked')
+        ;
 
-  /**
-   * Updates the addon when the DOM is ready.
-   */
-  $(document).ready(function(){
-    $('input[data-toggle=selectall]').change();
+    if (newClass){
+      $target.closest('tr').toggleClass(newClass, isChecked);
+    }
   });
 
 }(jQuery);
