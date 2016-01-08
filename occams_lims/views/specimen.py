@@ -332,31 +332,25 @@ def build_crud_form(context, request):
 
         tubes = wtforms.IntegerField(
             validators=[
-                wtforms.validators.InputRequired(),
+                wtforms.validators.input_required(),
                 wtforms.validators.NumberRange(min=1)])
 
         collect_date = DateField(
-            validators=[
-                conditionally_required
-            ])
+            validators=[conditionally_required])
 
         collect_time = TimeField(
             # There doesn't seem to be a nice way to add the colon if the
             # user forgets to do so, might need to make our own Field type
             format='%H:%M',
-            validators=[
-                conditionally_required
-            ])
+            validators=[conditionally_required])
 
         location_id = wtforms.SelectField(
             choices=locations,
             coerce=int,
-            validators=[
-                conditionally_required
-            ])
+            validators=[conditionally_required])
 
         notes = wtforms.TextAreaField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
 
     class CrudForm(wtforms.Form):
         specimen = wtforms.FieldList(wtforms.FormField(SpecimenForm))

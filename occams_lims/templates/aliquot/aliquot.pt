@@ -38,8 +38,8 @@
               <th><input type="checkbox" data-toggle='selectall'/></th>
               <th i18n:translate="">ID</th>
               <th i18n:translate="">Specimen</th>
-              <th class="required" i18n:translate="">Count</th>
-              <th class="required" i18n:translate="">Aliquot Type</th>
+              <th i18n:translate="">Count</th>
+              <th i18n:translate="">Aliquot Type</th>
               <th i18n:translate="">Amount</th>
               <th i18n:translate="">Storage Date</th>
               <th i18n:translate="">Freezer</th>
@@ -168,8 +168,9 @@
         </thead>
         <tbody>
           <tal:draw repeat="sample aliquot">
-            <tr tal:define="
-                subform aliquot_form.aliquot.entries[repeat['sample'].index].form">
+            <tr class="${'danger' if subform.errors else ''}"
+                tal:define="
+                  subform aliquot_form.aliquot.entries[repeat['sample'].index].form">
               <td tal:define="field subform.ui_selected">${field(**{'data-toggle': 'select'})}</td>
               <td>${1 if sample.id in label_queue else None}</td>
               <td><code>${sample.id}</code></td>
@@ -266,7 +267,7 @@
           >Check-out</button>
       <button
           type="button"
-          class="btn btn-default"
+          class="btn btn-danger"
           name="delete"
           data-modal-remote="${request.current_route_path(_route_name='lims.add')}"
           data-modal-target="#modal-target"

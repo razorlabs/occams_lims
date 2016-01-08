@@ -36,7 +36,7 @@
             <th><input type="checkbox" data-toggle='selectall'/></th>
             <th i18n:translate="">ID</th>
             <th i18n:translate="">Aliquot</th>
-            <th i18n:translate="">Amount</th>
+            <th i18n:translate="" class="required">Amount</th>
             <th i18n:translate="">Freezer</th>
             <th i18n:translate="">Rack</th>
             <th i18n:translate="">Box</th>
@@ -47,7 +47,9 @@
         </thead>
         <tbody>
           <tal:draw repeat="sample aliquot">
-            <tr tal:define="subform form.aliquot.entries[repeat['sample'].index]">
+            <tr class="${'danger' if subform.errors else ''}"
+                tal:define="
+                  subform form.aliquot.entries[repeat['sample'].index]">
               <td>${subform.ui_selected(**{'data-toggle': 'select'})}</td>
               <td><code>${sample.id}</code></td>
               <td>

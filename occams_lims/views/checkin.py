@@ -6,6 +6,7 @@ import wtforms
 from occams.utils.forms import apply_changes
 
 from .. import _, models
+from ..validators import required_if
 from .aliquot import filter_aliquot
 
 
@@ -22,27 +23,33 @@ def checkin(context, request):
         (l.id, l.title)
         for l in db_session.query(models.Location).order_by('title')]
 
+    if any(i in request.POST for i in [
+            'queue', 'print', 'checkin', 'checkout']):
+        conditionally_required = required_if('ui_selected')
+    else:
+        conditionally_required = wtforms.validators.optional()
+
     class CheckinForm(wtforms.Form):
         ui_selected = wtforms.BooleanField()
         id = wtforms.IntegerField(
             widget=wtforms.widgets.HiddenInput())
         amount = wtforms.DecimalField(
             places=1,
-            validators=[wtforms.validators.Optional()])
+            validators=[conditionally_required])
         freezer = wtforms.StringField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
         rack = wtforms.StringField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
         box = wtforms.StringField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
         thawed_num = wtforms.IntegerField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
         location_id = wtforms.SelectField(
             choices=available_locations,
             coerce=int,
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
         notes = wtforms.TextAreaField(
-            validators=[wtforms.validators.Optional()])
+            validators=[wtforms.validators.optional()])
 
     class CrudForm(wtforms.Form):
         aliquot = wtforms.FieldList(wtforms.FormField(CheckinForm))
