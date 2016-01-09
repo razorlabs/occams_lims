@@ -228,37 +228,108 @@ class Test_aliquot:
 
         assert len(res['specimen_form']['specimen'].entries) == 1
 
-    def test_no_required_data(self, req, db_session, factories):
+    def test_no_required_data_aliquot_create(self, req, db_session, factories):
         """
-        It should not require input for collect_date and collect_time and
-        location_id when data is saved
+        It should not require input for amount, and store_date when
+        aliquot is created
         """
         import mock
         from webob.multidict import MultiDict
 
-        specimen = factories.SpecimenFactory.create(
-            state__name='pending-aliquot',
-        )
-
+        factories.AliquotStateFactory.create(name='pending')
+        specimen = factories.SpecimenFactory.create()
         db_session.flush()
 
         req.current_route_path = mock.Mock()
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
-            ('specimen-0-ui_selected', '0'),
-            ('specimen-0-id', str(specimen.id)),
-            ('specimen-0-tubes', str(specimen.tubes)),
-            ('specimen-0-collect_date', ''),
-            ('specimen-0-collect_time', ''),
-            ('specimen-0-location_id', ''),
-            ('save', '1')
+            ('specimen-0-ui_selected', '1'),
+            ('specimen-0-count', '2'),
+            ('specimen-0-aliquot_type_id', '56'),
+            ('specimen-0-amount', ''),
+            ('specimen-0-store_date', ''),
+            ('create', '1')
         ])
 
         context = specimen.location
         context.request = req
         res = self._call_fut(context, req)
 
-        db_session.refresh(specimen)
+        assert res.status_code == 302, 'Should be status code 302'
+
+    def test_no_required_data_aliquot_save(self, req, db_session, factories):
+        """
+        It should not require input for amount, and store_date when
+        aliquot is saved
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        factories.AliquotStateFactory.create(name='pending')
+        specimen = factories.SpecimenFactory.create()
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('specimen-0-ui_selected', '1'),
+            ('specimen-0-count', '2'),
+            ('specimen-0-aliquot_type_id', '56'),
+            ('specimen-0-amount', ''),
+            ('specimen-0-store_date', ''),
+            ('save', '1'),
+            ('aliquot-form', '1')
+        ])
+
+        context = specimen.location
+        context.request = req
+        res = self._call_fut(context, req)
 
         assert res.status_code == 302, 'Should be status code 302'
+
+    def test_required_data_aliquot_checkin(self, req, db_session, factories):
+        """
+        It should not require input for amount, and store_date when
+        aliquot is checked-in
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        location = factories.LocationFactory.create()
+        specimen_state = factories.SpecimenStateFactory.create(
+            name='complete'
+        )
+        aliquot_pending = factories.AliquotStateFactory.create(name='pending')
+        aliquot_state = factories.AliquotStateFactory.create(name='checked-in')
+
+        specimen = factories.SpecimenFactory.create()
+
+        aliquot = factories.AliquotFactory.create(
+            specimen__state=specimen_state,
+            state=aliquot_pending,
+            location=location,
+        )
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('aliquot-0-id', str(aliquot.id)),
+            ('aliquot-0-ui_selected', 'true'),
+            ('aliquot-0-aliquot_type_id', '56'),
+            ('aliquot-0-amount', ''),
+            ('aliquot-0-store_date', ''),
+            ('checkin', '1'),
+            ('aliquot-form', '1')
+        ])
+
+        context = aliquot.location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        assert 'required' in res['aliquot_form'].errors['aliquot'][0]['store_date'][0]
+        assert 'required' in res['aliquot_form'].errors['aliquot'][0]['amount'][0]
+
