@@ -46,8 +46,19 @@ class Test_aliquot_labels:
         assert res.content_type == 'application/pdf'
         assert len(req.session[ALIQUOT_LABEL_QUEUE]) == 0
 
-    def test_print_by_aliquot_checked_in(
-            self, req, db_session, config, factories, check_csrf_token):
+    @pytest.mark.parametrize('state', [
+        'pending',
+        'checked-in',
+        'checkout-out',
+        'hold',
+        'prepared',
+        'incorrect',
+        'pending-checkout',
+        'queued',
+        'missing',
+        'destroyed'])
+    def test_print_by_aliquot_all_states(
+            self, req, db_session, config, factories, check_csrf_token, state):
         from webob.multidict import MultiDict
         from occams_lims.views.aliquot import ALIQUOT_LABEL_QUEUE
 
@@ -56,7 +67,7 @@ class Test_aliquot_labels:
             name='complete'
         )
         aliquot_state = factories.AliquotStateFactory.create(
-            name='checked-in'
+            name=state
         )
         aliquot = factories.AliquotFactory.create(
             specimen__state=specimen_state,
@@ -75,173 +86,24 @@ class Test_aliquot_labels:
         assert res.content_type == 'application/pdf'
         assert len(req.session[ALIQUOT_LABEL_QUEUE]) == 0
 
-    def test_print_by_aliquot_checked_out(
-            self, req, db_session, config, factories, check_csrf_token):
+    @pytest.mark.parametrize('state', [
+        'pending-draw',
+        'cancel-draw',
+        'pending-aliquot',
+        'aliquoted',
+        'rejected',
+        'prepared-aliquot',
+        'complete',
+        'batched',
+        'postponed'])
+    def test_print_by_specimen_all_states(
+            self, req, db_session, config, factories, check_csrf_token, state):
         from webob.multidict import MultiDict
         from occams_lims.views.aliquot import ALIQUOT_LABEL_QUEUE
 
         location = factories.LocationFactory.create()
         specimen_state = factories.SpecimenStateFactory.create(
-            name='complete'
-        )
-        aliquot_state = factories.AliquotStateFactory.create(
-            name='checked-out'
-        )
-        aliquot = factories.AliquotFactory.create(
-            specimen__state=specimen_state,
-            specimen__location=location,
-            state=aliquot_state,
-            location=location,
-        )
-        db_session.flush()
-
-        context = aliquot.location
-        req.session[ALIQUOT_LABEL_QUEUE] = set([aliquot.id])
-        req.method = 'POST'
-        req.POST = MultiDict([('print', '')])
-        res = self._call_fut(context, req)
-
-        assert res.content_type == 'application/pdf'
-        assert len(req.session[ALIQUOT_LABEL_QUEUE]) == 0
-
-    def test_print_by_aliquot_missing(
-            self, req, db_session, config, factories, check_csrf_token):
-        from webob.multidict import MultiDict
-        from occams_lims.views.aliquot import ALIQUOT_LABEL_QUEUE
-
-        location = factories.LocationFactory.create()
-        specimen_state = factories.SpecimenStateFactory.create(
-            name='complete'
-        )
-        aliquot_state = factories.AliquotStateFactory.create(
-            name='missing'
-        )
-        aliquot = factories.AliquotFactory.create(
-            specimen__state=specimen_state,
-            specimen__location=location,
-            state=aliquot_state,
-            location=location,
-        )
-        db_session.flush()
-
-        context = aliquot.location
-        req.session[ALIQUOT_LABEL_QUEUE] = set([aliquot.id])
-        req.method = 'POST'
-        req.POST = MultiDict([('print', '')])
-        res = self._call_fut(context, req)
-
-        assert res.content_type == 'application/pdf'
-        assert len(req.session[ALIQUOT_LABEL_QUEUE]) == 0
-
-    def test_print_by_aliquot_pending(
-            self, req, db_session, config, factories, check_csrf_token):
-        from webob.multidict import MultiDict
-        from occams_lims.views.aliquot import ALIQUOT_LABEL_QUEUE
-
-        location = factories.LocationFactory.create()
-        specimen_state = factories.SpecimenStateFactory.create(
-            name='complete'
-        )
-        aliquot_state = factories.AliquotStateFactory.create(
-            name='pending'
-        )
-        aliquot = factories.AliquotFactory.create(
-            specimen__state=specimen_state,
-            specimen__location=location,
-            state=aliquot_state,
-            location=location,
-        )
-        db_session.flush()
-
-        context = aliquot.location
-        req.session[ALIQUOT_LABEL_QUEUE] = set([aliquot.id])
-        req.method = 'POST'
-        req.POST = MultiDict([('print', '')])
-        res = self._call_fut(context, req)
-
-        assert res.content_type == 'application/pdf'
-        assert len(req.session[ALIQUOT_LABEL_QUEUE]) == 0
-
-    def test_print_by_specimen_rejected(
-            self, req, db_session, config, factories, check_csrf_token):
-        from webob.multidict import MultiDict
-        from occams_lims.views.aliquot import ALIQUOT_LABEL_QUEUE
-
-        location = factories.LocationFactory.create()
-        specimen_state = factories.SpecimenStateFactory.create(
-            name='rejected'
-        )
-        specimen = factories.SpecimenFactory.create(
-            state=specimen_state,
-            location=location
-        )
-        db_session.flush()
-
-        context = specimen.location
-        req.session[ALIQUOT_LABEL_QUEUE] = set([specimen.id])
-        req.method = 'POST'
-        req.POST = MultiDict([('print', '')])
-        res = self._call_fut(context, req)
-
-        assert res.content_type == 'application/pdf'
-        assert len(req.session[ALIQUOT_LABEL_QUEUE]) == 0
-
-    def test_print_by_specimen_pending_draw(
-            self, req, db_session, config, factories, check_csrf_token):
-        from webob.multidict import MultiDict
-        from occams_lims.views.aliquot import ALIQUOT_LABEL_QUEUE
-
-        location = factories.LocationFactory.create()
-        specimen_state = factories.SpecimenStateFactory.create(
-            name='pending-draw'
-        )
-        specimen = factories.SpecimenFactory.create(
-            state=specimen_state,
-            location=location
-        )
-        db_session.flush()
-
-        context = specimen.location
-        req.session[ALIQUOT_LABEL_QUEUE] = set([specimen.id])
-        req.method = 'POST'
-        req.POST = MultiDict([('print', '')])
-        res = self._call_fut(context, req)
-
-        assert res.content_type == 'application/pdf'
-        assert len(req.session[ALIQUOT_LABEL_QUEUE]) == 0
-
-    def test_print_by_specimen_cancel_draw(
-            self, req, db_session, config, factories, check_csrf_token):
-        from webob.multidict import MultiDict
-        from occams_lims.views.aliquot import ALIQUOT_LABEL_QUEUE
-
-        location = factories.LocationFactory.create()
-        specimen_state = factories.SpecimenStateFactory.create(
-            name='cancel-draw'
-        )
-        specimen = factories.SpecimenFactory.create(
-            state=specimen_state,
-            location=location
-        )
-        db_session.flush()
-
-        context = specimen.location
-        req.session[ALIQUOT_LABEL_QUEUE] = set([specimen.id])
-        req.method = 'POST'
-        req.POST = MultiDict([('print', '')])
-        res = self._call_fut(context, req)
-
-        assert res.content_type == 'application/pdf'
-        assert len(req.session[ALIQUOT_LABEL_QUEUE]) == 0
-
-    def test_print_by_specimen_pending_aliquot(
-            self, req, db_session, config, factories, check_csrf_token):
-        from webob.multidict import MultiDict
-        from occams_lims.views.aliquot import ALIQUOT_LABEL_QUEUE
-
-        location = factories.LocationFactory.create()
-        specimen_state = factories.SpecimenStateFactory.create(
-            name='pending-aliquot'
+            name=state
         )
         specimen = factories.SpecimenFactory.create(
             state=specimen_state,
@@ -297,7 +159,6 @@ class Test_make_aliquot_label:
 
         store_date = datetime.datetime.strptime(dates[17:27], '%m/%d/%Y')
         assert isinstance(store_date, datetime.datetime) is True
-
 
     def test_ignore_multiple_enrollment_numbers(self, db_session, factories):
         from datetime import timedelta
