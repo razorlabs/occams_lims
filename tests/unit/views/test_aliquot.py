@@ -67,7 +67,7 @@ class Test_make_aliquot_label:
     def test_collect_and_store_date(self, db_session, factories):
         import datetime
         aliquot = factories.AliquotFactory.create()
-        enrollment = factories.EnrollmentFactory.create(
+        factories.EnrollmentFactory.create(
             patient=aliquot.specimen.patient,
             study=aliquot.specimen.cycle.study,
             consent_date=aliquot.specimen.collect_date)
@@ -85,7 +85,6 @@ class Test_make_aliquot_label:
 
         store_date = datetime.datetime.strptime(dates[17:27], '%m/%d/%Y')
         assert isinstance(store_date, datetime.datetime) is True
-
 
     def test_ignore_multiple_enrollment_numbers(self, db_session, factories):
         from datetime import timedelta
@@ -234,7 +233,7 @@ class Test_aliquot:
         aliquot_state = factories.AliquotStateFactory.create(
             name='pending'
         )
-        aliquot = factories.AliquotFactory.create(
+        factories.AliquotFactory.create(
             specimen__state=specimen_state,
             specimen__location=location,
             state=aliquot_state,
@@ -258,9 +257,18 @@ class Test_aliquot:
         """
         import mock
         from webob.multidict import MultiDict
+        from occams_lims import models
 
         factories.AliquotStateFactory.create(name='pending')
-        specimen = factories.SpecimenFactory.create()
+        aliquot_type = factories.AliquotTypeFactory.create()
+        specimen_type = aliquot_type.specimen_type
+        specimen_pending = factories.SpecimenStateFactory.create(
+            name='pending-aliquot'
+        )
+        specimen = factories.SpecimenFactory.create(
+            state=specimen_pending,
+            specimen_type=specimen_type
+        )
         db_session.flush()
 
         req.current_route_path = mock.Mock()
@@ -269,9 +277,10 @@ class Test_aliquot:
         req.POST = MultiDict([
             ('specimen-0-ui_selected', '1'),
             ('specimen-0-count', '2'),
-            ('specimen-0-aliquot_type_id', '56'),
+            ('specimen-0-aliquot_type_id', str(aliquot_type.id)),
             ('specimen-0-amount', ''),
             ('specimen-0-store_date', ''),
+            ('template-form', '1'),
             ('create', '1')
         ])
 
@@ -279,37 +288,53 @@ class Test_aliquot:
         context.request = req
         res = self._call_fut(context, req)
 
+        aliquot_query = (
+            db_session.query(models.Aliquot)
+            .filter_by(specimen=specimen))
+
+        assert aliquot_query.count() == 2
         assert res.status_code == 302, 'Should be status code 302'
 
     def test_no_required_data_aliquot_save(self, req, db_session, factories):
         """
         It should not require input for amount, and store_date when
-        aliquot is saved
+        aliquot is saved (works in progress)
         """
         import mock
         from webob.multidict import MultiDict
 
-        factories.AliquotStateFactory.create(name='pending')
-        specimen = factories.SpecimenFactory.create()
+        location = factories.LocationFactory.create()
+        specimen_state = factories.SpecimenStateFactory.create(
+            name='complete'
+        )
+        aliquot_pending = factories.AliquotStateFactory.create(name='pending')
+        factories.AliquotStateFactory.create(name='checked-in')
+
+        aliquot = factories.AliquotFactory.create(
+            specimen__location=location,
+            specimen__state=specimen_state,
+            state=aliquot_pending,
+            location=location,
+        )
         db_session.flush()
 
         req.current_route_path = mock.Mock()
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
-            ('specimen-0-ui_selected', '1'),
-            ('specimen-0-count', '2'),
-            ('specimen-0-aliquot_type_id', '56'),
-            ('specimen-0-amount', ''),
-            ('specimen-0-store_date', ''),
+            ('aliquot-0-ui_selected', ''),
+            ('aliquot-0-amount', ''),
+            ('aliquot-0-store_date', ''),
+            ('aliquot-form', '1'),
             ('save', '1'),
-            ('aliquot-form', '1')
         ])
 
-        context = specimen.location
+        context = aliquot.location
         context.request = req
         res = self._call_fut(context, req)
 
+        assert aliquot.store_date is None
+        assert aliquot.amount is None
         assert res.status_code == 302, 'Should be status code 302'
 
     def test_required_data_aliquot_checkin(self, req, db_session, factories):
@@ -325,9 +350,9 @@ class Test_aliquot:
             name='complete'
         )
         aliquot_pending = factories.AliquotStateFactory.create(name='pending')
-        aliquot_state = factories.AliquotStateFactory.create(name='checked-in')
+        factories.AliquotStateFactory.create(name='checked-in')
 
-        specimen = factories.SpecimenFactory.create()
+        factories.SpecimenFactory.create()
 
         aliquot = factories.AliquotFactory.create(
             specimen__state=specimen_state,
@@ -353,6 +378,7 @@ class Test_aliquot:
         context.request = req
         res = self._call_fut(context, req)
 
-        assert 'required' in res['aliquot_form'].errors['aliquot'][0]['store_date'][0]
-        assert 'required' in res['aliquot_form'].errors['aliquot'][0]['amount'][0]
-
+        assert 'required' in \
+            res['aliquot_form'].errors['aliquot'][0]['store_date'][0]
+        assert 'required' in \
+            res['aliquot_form'].errors['aliquot'][0]['amount'][0]
