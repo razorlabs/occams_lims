@@ -46,6 +46,80 @@ class Test_aliquot_labels:
         assert res.content_type == 'application/pdf'
         assert len(req.session[ALIQUOT_LABEL_QUEUE]) == 0
 
+    @pytest.mark.parametrize('state', [
+        'pending',
+        'checked-in',
+        'checkout-out',
+        'hold',
+        'prepared',
+        'incorrect',
+        'pending-checkout',
+        'queued',
+        'missing',
+        'destroyed'])
+    def test_print_by_aliquot_all_states(
+            self, req, db_session, config, factories, check_csrf_token, state):
+        from webob.multidict import MultiDict
+        from occams_lims.views.aliquot import ALIQUOT_LABEL_QUEUE
+
+        location = factories.LocationFactory.create()
+        specimen_state = factories.SpecimenStateFactory.create(
+            name='complete'
+        )
+        aliquot_state = factories.AliquotStateFactory.create(
+            name=state
+        )
+        aliquot = factories.AliquotFactory.create(
+            specimen__state=specimen_state,
+            specimen__location=location,
+            state=aliquot_state,
+            location=location,
+        )
+        db_session.flush()
+
+        context = aliquot.location
+        req.session[ALIQUOT_LABEL_QUEUE] = set([aliquot.id])
+        req.method = 'POST'
+        req.POST = MultiDict([('print', '')])
+        res = self._call_fut(context, req)
+
+        assert res.content_type == 'application/pdf'
+        assert len(req.session[ALIQUOT_LABEL_QUEUE]) == 0
+
+    @pytest.mark.parametrize('state', [
+        'pending-draw',
+        'cancel-draw',
+        'pending-aliquot',
+        'aliquoted',
+        'rejected',
+        'prepared-aliquot',
+        'complete',
+        'batched',
+        'postponed'])
+    def test_print_by_specimen_all_states(
+            self, req, db_session, config, factories, check_csrf_token, state):
+        from webob.multidict import MultiDict
+        from occams_lims.views.aliquot import ALIQUOT_LABEL_QUEUE
+
+        location = factories.LocationFactory.create()
+        specimen_state = factories.SpecimenStateFactory.create(
+            name=state
+        )
+        specimen = factories.SpecimenFactory.create(
+            state=specimen_state,
+            location=location
+        )
+        db_session.flush()
+
+        context = specimen.location
+        req.session[ALIQUOT_LABEL_QUEUE] = set([specimen.id])
+        req.method = 'POST'
+        req.POST = MultiDict([('print', '')])
+        res = self._call_fut(context, req)
+
+        assert res.content_type == 'application/pdf'
+        assert len(req.session[ALIQUOT_LABEL_QUEUE]) == 0
+
 
 class Test_make_aliquot_label:
 
