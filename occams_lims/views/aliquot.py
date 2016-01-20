@@ -333,6 +333,7 @@ def make_aliquot_label(aliquot):
     patient = specimen.patient
     pid = patient.pid
     enrollment_number = '555-555-555'
+    collect_date_label = aliquot.specimen.collect_date.strftime('%m/%d/%Y')
     store_date_label = aliquot.store_date.strftime('%m/%d/%Y')
     study_label = study.short_title
     cycle_label = cycle.week or cycle.title
@@ -366,7 +367,7 @@ def make_aliquot_label(aliquot):
     lines = [
         u'{}'.format(aliquot.id),
         u'{}   {}   {}'.format(aliquot.id, pid, enrollment_number),
-        u'{}'.format(store_date_label),
+        u'C: {} S: {}'.format(collect_date_label, store_date_label),
         u'{} - {} - {}'.format(study_label, cycle_label, type_label)
     ]
 
