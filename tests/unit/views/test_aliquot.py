@@ -411,7 +411,9 @@ class Test_aliquot:
         assert aliquot.amount is None
         assert res.status_code == 302, 'Should be status code 302'
 
-    def test_required_data_aliquot_checkin(self, req, db_session, factories):
+    @pytest.mark.parametrize('button', ['queue', 'checkin', 'checkout'])
+    def test_required_data_aliquot_on_button(
+            self, req, db_session, factories, button):
         """
         It should not require input for amount, and store_date when
         aliquot is checked-in
@@ -444,8 +446,8 @@ class Test_aliquot:
             ('aliquot-0-aliquot_type_id', '56'),
             ('aliquot-0-amount', ''),
             ('aliquot-0-store_date', ''),
-            ('checkin', '1'),
-            ('aliquot-form', '1')
+            ('aliquot-form', '1'),
+            (button, '1'),
         ])
 
         context = aliquot.location
