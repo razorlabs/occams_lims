@@ -64,6 +64,29 @@ class Test_make_aliquot_label:
         res = self._call_fut(aliquot)
         assert enrollment.reference_number in res[1][1]
 
+    def test_collect_and_store_date(self, db_session, factories):
+        import datetime
+        aliquot = factories.AliquotFactory.create()
+        enrollment = factories.EnrollmentFactory.create(
+            patient=aliquot.specimen.patient,
+            study=aliquot.specimen.cycle.study,
+            consent_date=aliquot.specimen.collect_date)
+        db_session.flush()
+
+        res = self._call_fut(aliquot)
+        # these are label rows
+        dates = res[1][2]
+
+        assert dates[0:2] == u'C:'
+        assert dates[14:16] == u'S:'
+
+        collect_date = datetime.datetime.strptime(dates[3:13], '%m/%d/%Y')
+        assert isinstance(collect_date, datetime.datetime) is True
+
+        store_date = datetime.datetime.strptime(dates[17:27], '%m/%d/%Y')
+        assert isinstance(store_date, datetime.datetime) is True
+
+
     def test_ignore_multiple_enrollment_numbers(self, db_session, factories):
         from datetime import timedelta
         aliquot = factories.AliquotFactory.create()
