@@ -1,0 +1,177 @@
+<!--!
+
+  Settings administration template.
+
+  This page contains the markup for configuring either specimen
+  types or aliquot types. Note that these were implemented as CRUD tables
+  since it was more difficult to do so with modal tables without some
+  sort of intelligent framework and short deadlines.
+
+-->
+<html i18n:domain="occams_lims" metal:use-macro="load:../master.pt">
+  <metal:content-slot fill-slot="content-slot">
+
+    <header class="page-header">
+      <h1 i18n:translate="">Settings</h1>
+    </header>
+
+    <p class="lead" i18n:translate="">
+      This page contains application-specific configurations.
+      Please proceed with caution
+    </p>
+
+    <hr />
+
+    <h3 i18n:translate="">Manage Specimen Types</h3>
+
+    <form method="POST">
+
+      <table class="table table-bordered table-hover table-striped">
+        <thead>
+          <tr>
+            <th i18n:translate=""></th>
+            <th i18n:translate="">ID</th>
+            <th i18n:translate="" class="required">Title</th>
+            <th i18n:translate="">Description</th>
+            <th i18n:translate="">Tube Type</th>
+            <th i18n:translate="">Default Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tal:types repeat="type specimen_types">
+            <tr tal:define="subform specimen_type_crud_form.types.entries[repeat['type'].index].form">
+              <td>${subform.ui_selected()}</td>
+              <td><code>${type.id}</code></td>
+              <td>${subform.title(class_="form-control")}</td>
+              <td>${subform.description(class_="form-control")}</td>
+              <td>${subform.tube_type(class_="form-control")}</td>
+              <td>${subform.default_tubes(class_="form-control")}</td>
+            </tr>
+          </tal:types>
+        </tbody>
+      </table>
+
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}" />
+      <input type="hidden" name="specimen-type-crud-form" value="1" />
+
+      <button name="save" class="btn btn-danger">Delete</button>
+      <button name="save" class="btn btn-primary">Save</button>
+
+    </form>
+
+    <hr />
+
+    <h3 i18n:translate="">Add New Specimen Type</h3>
+
+    <form method="POST" tal:define="form specimen_type_add_form">
+
+      <div class="form-group ${error_css}"
+          tal:define="field         form['title'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        ${field.label(class_=required_css)}
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        ${field(class_="form-control")}
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+
+      <div class="form-group ${error_css}"
+          tal:define="field         form['description'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        ${field.label(class_=required_css)}
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        ${field(class_="form-control")}
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+
+      <div class="form-group ${error_css}"
+          tal:define="field         form['tube_type'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        ${field.label(class_=required_css)}
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        ${field(class_="form-control")}
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+
+      <div class="form-group ${error_css}"
+          tal:define="field         form['default_tubes'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        ${field.label(class_=required_css)}
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        ${field(class_="form-control")}
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+
+
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}" />
+      <input type="hidden" name="specimen-type-add-form" value="1" />
+
+      <button name="save" class="btn btn-primary">Add</button>
+    </form>
+
+    <hr />
+
+    <h3 i18n:translate="">Manage Aliquot Types</h3>
+
+    <form method="POST">
+
+      <table class="table table-bordered table-hover table-striped">
+        <thead>
+          <tr>
+            <th i18n:translate=""></th>
+            <th i18n:translate="">ID</th>
+            <th i18n:translate="">Title</th>
+            <th i18n:translate="">Description</th>
+            <th i18n:translate="">Specimen Type</th>
+            <th i18n:translate="">Units</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tal:types repeat="type aliquot_types">
+            <tr tal:define="subform aliquot_type_crud_form.types.entries[repeat['type'].index].form">
+              <td>${subform.ui_selected()}</td>
+              <td><code>${type.id}</code></td>
+              <td>${subform.title(class_="form-control")}</td>
+              <td>${subform.description(class_="form-control")}</td>
+              <td>${subform.specimen_type_id(class_="form-control")}</td>
+              <td>${subform.units(class_="form-control")}</td>
+            </tr>
+          </tal:types>
+        </tbody>
+      </table>
+
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}" />
+      <input type="hidden" name="aliquot-type-crud-form" value="1" />
+
+      <button name="save" class="btn btn-danger">Delete</button>
+      <button name="save" class="btn btn-primary">Save</button>
+
+    </form>
+
+    <hr />
+
+    <h3 i18n:translate="">Add New Aliquot Type</h3>
+
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}" />
+      <input type="hidden" name="aliquot-type-add-form" value="1" />
+
+      <button name="save" class="btn btn-primary">Add</button>
+
+    </form>
+
+  </metal:content-slot>
+
+
+</html>
