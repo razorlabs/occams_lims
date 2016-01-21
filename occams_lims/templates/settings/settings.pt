@@ -113,7 +113,6 @@
         </tal:errors>
       </div>
 
-
       <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}" />
       <input type="hidden" name="specimen-type-add-form" value="1" />
 
@@ -163,7 +162,56 @@
 
     <h3 i18n:translate="">Add New Aliquot Type</h3>
 
-    <form method="POST">
+    <form method="POST" tal:define="form aliquot_type_add_form">
+
+      <div class="form-group ${error_css}"
+          tal:define="field         form['specimen_type_id'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        ${field.label(class_=required_css)}
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        ${field(class_="form-control")}
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+
+      <div class="form-group ${error_css}"
+          tal:define="field         form['title'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        ${field.label(class_=required_css)}
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        ${field(class_="form-control")}
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+
+      <div class="form-group ${error_css}"
+          tal:define="field         form['description'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        ${field.label(class_=required_css)}
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        ${field(class_="form-control")}
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+
+      <div class="form-group ${error_css}"
+          tal:define="field         form['units'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        ${field.label(class_=required_css)}
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        ${field(class_="form-control")}
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+
       <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}" />
       <input type="hidden" name="aliquot-type-add-form" value="1" />
 
