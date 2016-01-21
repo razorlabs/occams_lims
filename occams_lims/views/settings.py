@@ -5,6 +5,7 @@ from pyramid.session import check_csrf_token
 from pyramid.view import view_config
 import wtforms
 
+from occams.utils.forms import apply_changes
 from occams_lims import _, models
 
 
@@ -23,21 +24,23 @@ def settings(context, request):
 
     db_session = request.db_session
 
-    specimen_types_query = (
+    specimen_types = (
         db_session.query(models.SpecimenType)
-        .order_by(models.SpecimenType.title))
+        .order_by(models.SpecimenType.title)
+        .all())
 
-    specimen_types_count = specimen_types_query.count()
+    specimen_types_count = len(specimen_types)
 
-    aliquot_types_query = (
+    aliquot_types = (
         db_session.query(models.AliquotType)
         .options(orm.joinedload('specimen_type'))
         .join(models.AliquotType.specimen_type)
         .order_by(
             models.SpecimenType.title,
-            models.AliquotType.title))
+            models.AliquotType.title)
+        .all())
 
-    aliquot_types_count = specimen_types_query.count()
+    aliquot_types_count = len(specimen_types)
 
     class SpecimenTypeForm(wtforms.Form):
 
@@ -74,7 +77,7 @@ def settings(context, request):
 
             # apparently the removed field remains as None...
             if self.id and self.id.data:
-                query.filter(models.SpecimenType.id != self.id.data)
+                query = query.filter(models.SpecimenType.id != self.id.data)
 
             (exists,) = db_session.query(query.exists()).one()
 
@@ -96,7 +99,7 @@ def settings(context, request):
             label=_(u'Specimen Type'),
             description=_(
                 u'The specimen type this sample type can processed from'),
-            choices=[(t.id, t.title) for t in specimen_types_query],
+            choices=[(t.id, t.title) for t in specimen_types],
             coerce=int,
             validators=[
                 wtforms.validators.input_required()
@@ -124,7 +127,7 @@ def settings(context, request):
 
             # apparently the removed field remains as None...
             if self.id and self.id.data:
-                query.filter(models.AliquotType.id != self.id.data)
+                query = query.filter(models.AliquotType.id != self.id.data)
 
             (exists,) = db_session.query(query.exists()).one()
 
@@ -149,7 +152,7 @@ def settings(context, request):
 
     specimen_type_crud_form = SpecimenTypeCrudForm(
         request.POST if 'specimen-type-crud-form' in request.POST else None,
-        types=specimen_types_query,
+        types=specimen_types,
     )
 
     aliquot_type_add_form = AliquotTypeForm(
@@ -161,7 +164,7 @@ def settings(context, request):
 
     aliquot_type_crud_form = AliquotTypeCrudForm(
         request.POST if 'aliquot-type-crud-form' in request.POST else None,
-        types=aliquot_types_query,
+        types=aliquot_types,
     )
 
     if 'specimen-type-add-form' in request.POST:
@@ -176,18 +179,38 @@ def settings(context, request):
             request.session.flash(
                 _(u'Form errors, please revise below'), 'danger')
 
-    elif 'specimen-type-crud-form' in request.POST:
+    elif 'specimen-type-crud-form' in request.POST and 'save' in request.POST:
         if specimen_type_crud_form.validate():
-            pass
+            for i, entry in enumerate(specimen_type_crud_form.types.entries):
+                apply_changes(entry.form, specimen_types[i])
+            db_session.flush()
+            request.session.flash(
+                _(u'Sucessfully updated specimen types'), 'success')
+            return HTTPFound(location=request.current_route_path())
         else:
-            pass
+            request.session.flash(
+                _(u'Form errors, please revise below'), 'danger')
 
-    elif 'specimen-type-delete-form' in request.POST:
-        pass
+    elif 'specimen-type-crud-form' in request.POST \
+            and 'delete' in request.POST:
+        ids = [
+            e.form.id.object_data
+            for e in specimen_type_crud_form.types.entries
+            if e.form.ui_selected.data]
+        if not ids:
+            request.session.flash(_(u'No specimen types selected'), 'warning')
+        count = (
+            db_session.query(models.SpecimenType)
+            .filter(models.SpecimenType.id.in_(ids))
+            .delete(synchronize_session=False))
+        db_session.flush()
+        request.session.flash(
+            _(u'Deleted {0} specimen types'.format(count)), 'success')
+        return HTTPFound(location=request.current_route_path())
 
     elif 'aliquot-type-add-form' in request.POST:
         if aliquot_type_add_form.validate():
-            data = specimen_type_add_form.data
+            data = aliquot_type_add_form.data
             data['name'] = slugify(data['title'])
             db_session.add(models.AliquotType(**data))
             request.session.flash(
@@ -197,22 +220,40 @@ def settings(context, request):
             request.session.flash(
                 _(u'Form errors, please revise below'), 'danger')
 
-    elif 'aliquot-type-add-form' in request.POST:
+    elif 'aliquot-type-crud-form' in request.POST and 'save' in request.POST:
         if aliquot_type_crud_form.validate():
-            pass
+            for i, entry in enumerate(aliquot_type_crud_form.types.entries):
+                apply_changes(entry.form, aliquot_types[i])
+            db_session.flush()
+            request.session.flash(
+                _(u'Sucessfully updated aliquot types'), 'success')
+            return HTTPFound(location=request.current_route_path())
         else:
-            pass
+            request.session.flash(
+                _(u'Form errors, please revise below'), 'danger')
 
-    elif 'aliquot-type-delete-form' in request.POST:
-        pass
+    elif 'aliquot-type-crud-form' in request.POST and 'delete' in request.POST:
+        ids = [
+            e.form.id.object_data
+            for e in aliquot_type_crud_form.types.entries
+            if e.form.ui_selected.data]
+        if not ids:
+            request.session.flash(_(u'No aliquot types selected'), 'warning')
+        count = (
+            db_session.query(models.AliquotType)
+            .filter(models.AliquotType.id.in_(ids))
+            .delete(synchronize_session=False))
+        request.session.flash(
+            _(u'Deleted {0} aliquot types'.format(count)), 'success')
+        return HTTPFound(location=request.current_route_path())
 
     return {
-        'specimen_types': specimen_types_query,
+        'specimen_types': specimen_types,
         'specimen_types_count': specimen_types_count,
         'specimen_type_add_form': specimen_type_add_form,
         'specimen_type_crud_form': specimen_type_crud_form,
 
-        'aliquot_types': aliquot_types_query,
+        'aliquot_types': aliquot_types,
         'aliquot_types_count': aliquot_types_count,
         'aliquot_type_add_form': aliquot_type_add_form,
         'aliquot_type_crud_form': aliquot_type_crud_form,
