@@ -39,13 +39,29 @@
         </thead>
         <tbody>
           <tal:types repeat="type specimen_types">
-            <tr tal:define="subform specimen_type_crud_form.types.entries[repeat['type'].index].form">
-              <td>${subform.ui_selected()}</td>
+            <tr tal:define="subform specimen_type_crud_form.types.entries[repeat['type'].index].form"
+                class="${'danger' if subform.errors else ''}">
+              <td>
+                ${subform.ui_selected()}
+                ${subform.id()}
+              </td>
               <td><code>${type.id}</code></td>
-              <td>${subform.title(class_="form-control")}</td>
-              <td>${subform.description(class_="form-control")}</td>
-              <td>${subform.tube_type(class_="form-control")}</td>
-              <td>${subform.default_tubes(class_="form-control")}</td>
+              <td>
+                ${subform.title(class_="form-control")}
+                <tal:errors repeat="error subform.title.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
+              <td>
+                ${subform.description(class_="form-control")}
+                <tal:errors repeat="error subform.description.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
+              <td>
+                ${subform.tube_type(class_="form-control")}
+                <tal:errors repeat="error subform.tube_type.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
+              <td>
+                ${subform.default_tubes(class_="form-control")}
+                <tal:errors repeat="error subform.default_tubes.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
             </tr>
           </tal:types>
         </tbody>
@@ -54,7 +70,7 @@
       <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}" />
       <input type="hidden" name="specimen-type-crud-form" value="1" />
 
-      <button name="save" class="btn btn-danger">Delete</button>
+      <button name="delete" class="btn btn-danger">Delete</button>
       <button name="save" class="btn btn-primary">Save</button>
 
     </form>
@@ -138,13 +154,29 @@
         </thead>
         <tbody>
           <tal:types repeat="type aliquot_types">
-            <tr tal:define="subform aliquot_type_crud_form.types.entries[repeat['type'].index].form">
-              <td>${subform.ui_selected()}</td>
+            <tr tal:define="subform aliquot_type_crud_form.types.entries[repeat['type'].index].form"
+                class="${'danger' if subform.errors else ''}">
+              <td>
+                ${subform.ui_selected()}
+                ${subform.id()}
+              </td>
               <td><code>${type.id}</code></td>
-              <td>${subform.title(class_="form-control")}</td>
-              <td>${subform.description(class_="form-control")}</td>
-              <td>${subform.specimen_type_id(class_="form-control")}</td>
-              <td>${subform.units(class_="form-control")}</td>
+              <td>
+                ${subform.title(class_="form-control")}
+                <tal:errors repeat="error subform.title.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
+              <td>
+                ${subform.description(class_="form-control")}
+                <tal:errors repeat="error subform.description.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
+              <td>
+                ${subform.specimen_type_id(class_="form-control")}
+                <tal:errors repeat="error subform.specimen_type_id.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
+              <td>
+                ${subform.units(class_="form-control")}
+                <tal:errors repeat="error subform.units.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
             </tr>
           </tal:types>
         </tbody>
@@ -153,7 +185,7 @@
       <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}" />
       <input type="hidden" name="aliquot-type-crud-form" value="1" />
 
-      <button name="save" class="btn btn-danger">Delete</button>
+      <button name="delete" class="btn btn-danger">Delete</button>
       <button name="save" class="btn btn-primary">Save</button>
 
     </form>
