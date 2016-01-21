@@ -151,6 +151,9 @@ def aliquot(context, request):
 
     if request.method == 'POST' and check_csrf_token(request):
 
+        if not request.has_permission('process'):
+            raise HTTPForbidden
+
         if 'create' in request.POST and specimen_form.validate():
             state = (
                 db_session.query(models.AliquotState)
