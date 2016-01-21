@@ -490,7 +490,6 @@ class Test_aliquot:
 
         context = aliquot.location
         context.request = req
-        res = self._call_fut(context, req)
 
         # Should not be able to POST without 'process' permission
         config.testing_securitypolicy(permissive=False)
