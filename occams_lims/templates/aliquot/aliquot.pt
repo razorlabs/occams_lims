@@ -10,10 +10,10 @@
 
     <hr />
 
-    <tal:specimen condition="has_specimen">
+    <tal:specimen condition="has_specimen and request.has_permission('process')">
       <h2>Specimen to Aliquot Templates</h2>
 
-      <form method="POST">
+      <form method="POST" tal:condition="request.has_permission('process')">
         <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
         <input type="hidden" name="template-form" value="1" />
 
