@@ -14,6 +14,7 @@ def includeme(config):
     config.add_static_view(path='occams_lims:static', name='/static', cache_max_age=3600)
 
     config.add_route('lims.index',              '',                        factory=models.LabFactory)
+    config.add_route('lims.settings',           '/settings')  # Use OCCAMS's root factory
 
     config.add_route('lims.specimen',           '/{lab}',                  factory=models.LabFactory, traverse='/{lab}')
     config.add_route('lims.specimen_labels',    '/{lab}/specimen_labels',  factory=models.LabFactory, traverse='/{lab}')
