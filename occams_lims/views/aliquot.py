@@ -43,7 +43,7 @@ class ALIQUOT_LABEL_SETTINGS:
 
 @view_config(
     route_name='lims.aliquot',
-    permission='process',
+    permission='view',
     renderer='../templates/aliquot/aliquot.pt')
 def aliquot(context, request):
     db_session = request.db_session
