@@ -1,10 +1,11 @@
 <html
-    i18n:domain="occams_forms"
+    i18n:domain="occams_lims"
     tal:define="
       bundle_css    'lims-css';
       bundle_js     'lims-js';
       app_title     'LIMS';
       css_container 'container-fluid';
+      admin_url     request.route_path('lims.settings') if request.has_permission('admin') else None;
     "
     metal:use-macro="load: occams:templates/layout.pt">
 
