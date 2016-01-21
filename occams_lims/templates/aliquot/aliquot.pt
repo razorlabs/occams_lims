@@ -52,8 +52,7 @@
           <tbody>
             <tal:draw repeat="draw specimen">
               <tr tal:define="
-                  subform specimen_form.specimen.entries[repeat['draw'].index].form;
-                  disabled not:request.has_permission('process')">
+                  subform specimen_form.specimen.entries[repeat['draw'].index].form;">
                 <td tal:define="field subform.ui_selected">${field(**{'data-toggle': 'select'})}</td>
                 <td><code>${draw.id}</code></td>
                 <td>
@@ -61,39 +60,38 @@
                   <div><strong>${draw.cycle.study.short_title} - ${draw.cycle.week}</strong></div>
                   <div><span class="text-muted" i18n:translate="">Collected:</span> <code>${draw.collect_date}</code></div>
                 </td>
-                <td tal:define="field subform.count">${field(class_='form-control', disabled=disabled)}</td>
+                <td tal:define="field subform.count">${field(class_='form-control')}</td>
                 <td tal:define="field subform.aliquot_type_id">
-                  ${field(class_='form-control js-select2', disabled=disabled)}
+                  ${field(class_='form-control js-select2')}
                   <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                 </td>
                 <td tal:define="field subform.amount">
-                  ${field(class_='form-control', disabled=disabled)}
+                  ${field(class_='form-control')}
                   <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                 </td>
                 <td tal:define="field subform.store_date">
-                  ${field(class_='form-control js-date', placeholder='YYYY-MM-DD', disabled=disabled)}
+                  ${field(class_='form-control js-date', placeholder='YYYY-MM-DD')}
                   <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                 </td>
                 <td tal:define="field subform.freezer">
-                  ${field(class_='form-control', disabled=disabled)}
+                  ${field(class_='form-control')}
                   <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                 </td>
                 <td tal:define="field subform.rack">
-                  ${field(class_='form-control', disabled=disabled)}
+                  ${field(class_='form-control')}
                   <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                 </td>
                 <td tal:define="field subform.box">
-                  ${field(class_='form-control', disabled=disabled)}
+                  ${field(class_='form-control')}
                   <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                 </td>
                 <td tal:define="field subform.special_instruction">
-                  ${field(class_='form-control js-select2', data_placeholder='Please select a field',
-                    disabled=disabled)}
+                  ${field(class_='form-control js-select2', data_placeholder='Please select a field')}
 
                   <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                 </td>
                 <td tal:define="field subform.notes">
-                  ${field(class_='form-control', disabled=disabled)}
+                  ${field(class_='form-control')}
                   <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                 </td>
               </tr>
