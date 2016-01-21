@@ -161,7 +161,9 @@ class Test_specimen:
         assert specimen.state.name == 'pending-aliquot'
         assert specimen.location == next_location
 
-    def test_require_fields_on_complete(self, req, db_session, factories):
+    @pytest.mark.parametrize('button', ['queue', 'pending-aliquot'])
+    def test_require_fields_on_button(
+            self, req, db_session, factories, button):
         """
         It should validate required fields when "completing" a sample
         """
@@ -188,7 +190,7 @@ class Test_specimen:
             ('specimen-0-collect_date', str(specimen.collect_date)),
             ('specimen-0-collect_time', ''),
             ('specimen-0-location_id', str(next_location.id)),
-            ('pending-aliquot', '1')
+            (button, '1'),
         ])
 
         context = specimen.location
