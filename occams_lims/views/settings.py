@@ -10,7 +10,7 @@ from occams_lims import _, models
 
 @view_config(
     route_name='lims.settings',
-    permission='admin',
+    permission='administrator',
     renderer='../templates/settings/settings.pt'
 )
 def settings(context, request):
