@@ -237,3 +237,39 @@ class Test_specimen:
         db_session.refresh(specimen)
 
         assert res.status_code == 302, 'Should be status code 302'
+
+    def test_view_and_process_permissions(self, req, db_session,
+                                          config, factories):
+        """
+        It should raise a 403 if the user does not have process permissions
+        """
+        import mock
+        from webob.multidict import MultiDict
+        from pyramid.httpexceptions import HTTPForbidden
+
+        specimen = factories.SpecimenFactory.create(
+            state__name='pending-draw',
+        )
+
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('specimen-0-ui_selected', '0'),
+            ('specimen-0-id', str(specimen.id)),
+            ('specimen-0-tubes', str(specimen.tubes)),
+            ('specimen-0-collect_date', ''),
+            ('specimen-0-collect_time', ''),
+            ('specimen-0-location_id', ''),
+            ('save', '1')
+        ])
+
+        context = specimen.location
+        context.request = req
+
+        # Should not be able to POST without 'process' permission
+        config.testing_securitypolicy(permissive=False)
+        with pytest.raises(HTTPForbidden):
+            self._call_fut(context, req)

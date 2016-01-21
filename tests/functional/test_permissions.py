@@ -322,7 +322,7 @@ def test_not_authenticated_aliquot_labels_post(app):
 
 
 @pytest.mark.parametrize('group', [
-    'administrator', 'manager', 'test_location:worker'])
+    'administrator', 'manager', 'test_location:worker', 'test_location:member'])
 def test_lab_aliquot(app, group):
     url = '/lims/test_location/aliquot'
     environ = make_environ(userid=USERID, groups=[group])
@@ -331,7 +331,7 @@ def test_lab_aliquot(app, group):
 
 
 @pytest.mark.parametrize('group', [
-    'test_location:member', 'fake_location:worker'])
+    'fake_location:worker'])
 def test_not_allowed_lab_aliquot(app, group):
     url = '/lims/test_location/aliquot'
     environ = make_environ(userid=USERID, groups=[group])

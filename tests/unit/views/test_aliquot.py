@@ -458,3 +458,40 @@ class Test_aliquot:
             res['aliquot_form'].errors['aliquot'][0]['store_date'][0]
         assert 'required' in \
             res['aliquot_form'].errors['aliquot'][0]['amount'][0]
+
+    def test_view_and_process_permissions(self, req, config,
+                                          db_session, factories):
+        """
+        It should raise a 403 if the user does not have process permissions
+        """
+        import mock
+        from webob.multidict import MultiDict
+        from pyramid.httpexceptions import HTTPForbidden
+
+        location = factories.LocationFactory.create()
+        specimen_state = factories.SpecimenStateFactory.create(
+            name='complete'
+        )
+        aliquot_pending = factories.AliquotStateFactory.create(name='pending')
+        factories.AliquotStateFactory.create(name='checked-in')
+
+        aliquot = factories.AliquotFactory.create(
+            specimen__location=location,
+            specimen__state=specimen_state,
+            state=aliquot_pending,
+            location=location,
+        )
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([])
+
+        context = aliquot.location
+        context.request = req
+
+        # Should not be able to POST without 'process' permission
+        config.testing_securitypolicy(permissive=False)
+        with pytest.raises(HTTPForbidden):
+            self._call_fut(context, req)

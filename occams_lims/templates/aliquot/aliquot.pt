@@ -10,10 +10,10 @@
 
     <hr />
 
-    <tal:specimen condition="has_specimen">
+    <tal:specimen condition="has_specimen and request.has_permission('process')">
       <h2>Specimen to Aliquot Templates</h2>
 
-      <form method="POST">
+      <form method="POST" tal:condition="request.has_permission('process')">
         <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
         <input type="hidden" name="template-form" value="1" />
 
@@ -52,7 +52,7 @@
           <tbody>
             <tal:draw repeat="draw specimen">
               <tr tal:define="
-                  subform specimen_form.specimen.entries[repeat['draw'].index].form">
+                  subform specimen_form.specimen.entries[repeat['draw'].index].form;">
                 <td tal:define="field subform.ui_selected">${field(**{'data-toggle': 'select'})}</td>
                 <td><code>${draw.id}</code></td>
                 <td>
@@ -171,7 +171,8 @@
           <tal:draw repeat="sample aliquot">
             <tr class="${'danger' if subform.errors else ''}"
                 tal:define="
-                  subform aliquot_form.aliquot.entries[repeat['sample'].index].form">
+                  subform aliquot_form.aliquot.entries[repeat['sample'].index].form;
+                  disabled not:request.has_permission('process')">
               <td tal:define="field subform.ui_selected">${field(**{'data-toggle': 'select'})}</td>
               <td>${1 if sample.id in label_queue else None}</td>
               <td><code>${sample.id}</code></td>
@@ -185,7 +186,7 @@
                 <div class="input-group"
                      tal:define="units sample.aliquot_type.units"
                      tal:omit-tag="not:units">
-                  ${field(class_='form-control')}
+                  ${field(class_='form-control', disabled=disabled)}
                     <span class="input-group-addon"
                           tal:condition="units"
                       >${sample.aliquot_type.units}</span>
@@ -193,28 +194,30 @@
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
               <td tal:define="field subform.store_date">
-                ${field(class_='form-control js-date', placeholder='YYYY-MM-DD')}
+                ${field(class_='form-control js-date', placeholder='YYYY-MM-DD',
+                disabled=disabled)}
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
               <td tal:define="field subform.freezer">
-                ${field(class_='form-control')}
+                ${field(class_='form-control', disabled=disabled)}
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
               <td tal:define="field subform.rack">
-                ${field(class_='form-control')}
+                ${field(class_='form-control', disabled=disabled)}
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
               <td tal:define="field subform.box">
-                ${field(class_='form-control')}
+                ${field(class_='form-control', disabled=disabled)}
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
               <td tal:define="field subform.special_instruction">
-                ${field(class_='form-control js-select2', data_placeholder='Please select a field')}
+                ${field(class_='form-control js-select2', data_placeholder='Please select a field',
+                  disabled=disabled)}
 
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
               <td tal:define="field subform.notes">
-                ${field(class_='form-control')}
+                ${field(class_='form-control', disabled=disabled)}
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
             </tr>
@@ -228,6 +231,7 @@
           type="submit"
           class="btn btn-default"
           name="queue"
+          tal:condition="request.has_permission('process')"
           tal:attributes="disabled not:has_aliquot"
           data-toggle="popover"
           data-trigger="hover"
@@ -238,6 +242,7 @@
           type="button"
           class="btn btn-default"
           name="print"
+          tal:condition="request.has_permission('process')"
           data-modal-remote="${request.current_route_path(_route_name='lims.aliquot_labels')}"
           data-modal-target="#modal-target"
           data-toggle="popover"
@@ -250,6 +255,7 @@
           type="submit"
           class="btn btn-default"
           name="checkin"
+          tal:condition="request.has_permission('process')"
           tal:attributes="disabled not:has_aliquot"
           data-toggle="popover"
           data-trigger="hover"
@@ -261,6 +267,7 @@
           type="submit"
           class="btn btn-default"
           name="checkout"
+          tal:condition="request.has_permission('process')"
           data-toggle="popover"
           data-trigger="hover"
           data-placement="top"
@@ -271,6 +278,7 @@
           type="button"
           class="btn btn-danger"
           name="delete"
+          tal:condition="request.has_permission('process')"
           data-modal-remote="${request.current_route_path(_route_name='lims.add')}"
           data-modal-target="#modal-target"
           data-toggle="popover"
@@ -284,6 +292,7 @@
           type="submit"
           class="btn btn-primary"
           name="save"
+          tal:condition="request.has_permission('process')"
           tal:attributes="disabled not:has_aliquot"
           data-toggle="popover"
           data-trigger="hover"

@@ -43,7 +43,7 @@ class ALIQUOT_LABEL_SETTINGS:
 
 @view_config(
     route_name='lims.aliquot',
-    permission='process',
+    permission='view',
     renderer='../templates/aliquot/aliquot.pt')
 def aliquot(context, request):
     db_session = request.db_session
@@ -150,6 +150,9 @@ def aliquot(context, request):
         return queued
 
     if request.method == 'POST' and check_csrf_token(request):
+
+        if not request.has_permission('process'):
+            raise HTTPForbidden
 
         if 'create' in request.POST and specimen_form.validate():
             state = (
