@@ -440,3 +440,20 @@ def test_not_authenticated_lab_checkin(app):
     url = '/lims/test_location/checkin'
     res = app.get(url, status='*')
     assert res.status_code == 401
+
+
+@pytest.mark.parametrize('group', ['administrator'])
+def test_allowed_manage_settings(app, group):
+    url = '/lims/settings'
+    environ = make_environ(userid=USERID, groups=[group])
+    res = app.get(url, extra_environ=environ, status='*')
+    assert res.status_code == 200
+
+
+@pytest.mark.parametrize('group', ['member', 'test_location:member',
+    'fake_location:member'])
+def test_not_allowed_settings(app, group):
+    url = '/lims/settings'
+    environ = make_environ(userid=USERID, groups=[group])
+    res = app.get(url, extra_environ=environ, status='*')
+    assert res.status_code == 403
