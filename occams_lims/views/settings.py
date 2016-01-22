@@ -182,6 +182,7 @@ def settings(context, request):
     elif 'specimen-type-crud-form' in request.POST and 'save' in request.POST:
         if specimen_type_crud_form.validate():
             for i, entry in enumerate(specimen_type_crud_form.types.entries):
+                del entry.form.id
                 apply_changes(entry.form, specimen_types[i])
             db_session.flush()
             request.session.flash(
@@ -199,14 +200,27 @@ def settings(context, request):
             if e.form.ui_selected.data]
         if not ids:
             request.session.flash(_(u'No specimen types selected'), 'warning')
-        count = (
-            db_session.query(models.SpecimenType)
-            .filter(models.SpecimenType.id.in_(ids))
-            .delete(synchronize_session=False))
-        db_session.flush()
-        request.session.flash(
-            _(u'Deleted {0} specimen types'.format(count)), 'success')
-        return HTTPFound(location=request.current_route_path())
+
+        (exists,) = (
+            db_session.query(
+                db_session.query(models.Specimen)
+                .filter(models.Specimen.specimen_type_id.in_(ids))
+                .exists())
+            .one())
+
+        if not exists:
+            count = (
+                db_session.query(models.SpecimenType)
+                .filter(models.SpecimenType.id.in_(ids))
+                .delete(synchronize_session=False))
+            db_session.flush()
+            request.session.flash(
+                _(u'Deleted {0} specimen types'.format(count)), 'success')
+            return HTTPFound(location=request.current_route_path())
+        else:
+            request.session.flash(
+                _(u'Selected types already have specimen collected'),
+                'danger')
 
     elif 'aliquot-type-add-form' in request.POST:
         if aliquot_type_add_form.validate():
@@ -223,6 +237,7 @@ def settings(context, request):
     elif 'aliquot-type-crud-form' in request.POST and 'save' in request.POST:
         if aliquot_type_crud_form.validate():
             for i, entry in enumerate(aliquot_type_crud_form.types.entries):
+                del entry.form.id
                 apply_changes(entry.form, aliquot_types[i])
             db_session.flush()
             request.session.flash(
@@ -239,13 +254,26 @@ def settings(context, request):
             if e.form.ui_selected.data]
         if not ids:
             request.session.flash(_(u'No aliquot types selected'), 'warning')
-        count = (
-            db_session.query(models.AliquotType)
-            .filter(models.AliquotType.id.in_(ids))
-            .delete(synchronize_session=False))
-        request.session.flash(
-            _(u'Deleted {0} aliquot types'.format(count)), 'success')
-        return HTTPFound(location=request.current_route_path())
+
+        (exists,) = (
+            db_session.query(
+                db_session.query(models.Aliquot)
+                .filter(models.Aliquot.aliquot_type_id.in_(ids))
+                .exists())
+            .one())
+
+        if not exists:
+            count = (
+                db_session.query(models.AliquotType)
+                .filter(models.AliquotType.id.in_(ids))
+                .delete(synchronize_session=False))
+            request.session.flash(
+                _(u'Deleted {0} aliquot types'.format(count)), 'success')
+            return HTTPFound(location=request.current_route_path())
+        else:
+            request.session.flash(
+                _(u'Selected types already have aliquot collected'),
+                'danger')
 
     return {
         'specimen_types': specimen_types,
