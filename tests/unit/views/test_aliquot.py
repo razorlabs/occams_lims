@@ -495,3 +495,48 @@ class Test_aliquot:
         config.testing_securitypolicy(permissive=False)
         with pytest.raises(HTTPForbidden):
             self._call_fut(context, req)
+
+    def test_delete_aliquot(self, req, config, db_session, factories):
+        """
+        It should delete flagged aliquot from the system
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        from occams_lims import models
+
+        location = factories.LocationFactory.create()
+        specimen = factories.SpecimenFactory.create()
+        aliquot_pending = factories.AliquotStateFactory.create(name='pending')
+
+        aliquot = factories.AliquotFactory.create(
+            specimen=specimen,
+            state=aliquot_pending,
+            location=location
+        )
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('aliquot-0-id', str(aliquot.id)),
+            ('aliquot-0-ui_selected', 'true'),
+            ('aliquot-0-aliquot_type_id', aliquot.specimen.specimen_type_id),
+            ('aliquot-0-amount', aliquot.amount),
+            ('aliquot-0-store_date', aliquot.store_date.strftime('%Y-%m-%d')),
+            ('aliquot-form', '1'),
+            ('delete', '1'),
+        ])
+
+        context = aliquot.location
+        context.request = req
+
+        self._call_fut(context, req)
+
+        aliquot_exists = (
+            db_session.query(models.Aliquot.id)
+            .filter_by(id=aliquot.id)
+            .scalar())
+
+        assert aliquot_exists is None

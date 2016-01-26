@@ -275,11 +275,11 @@
           tal:attributes="disabled not:has_aliquot"
           >Check-out</button>
       <button
-          type="button"
+          type="submit"
           class="btn btn-danger"
           name="delete"
           tal:condition="request.has_permission('process')"
-          data-modal-remote="${request.current_route_path(_route_name='lims.add')}"
+          data-modal-remote="${request.current_route_path(_route_name='lims.aliquot')}"
           data-modal-target="#modal-target"
           data-toggle="popover"
           data-trigger="hover"
