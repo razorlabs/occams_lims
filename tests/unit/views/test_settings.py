@@ -385,3 +385,150 @@ class TestSettings:
 
         assert u'already have aliquot collected' \
             in req.session.pop_flash('danger')[0]
+
+    def test_add_lab(self, req, db_session, factories):
+        """
+        It should add a lab to the location tbl in Lims
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        from occams_lims import models
+
+        site = factories.SiteFactory.create()
+
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('name', 'test_name'),
+            ('title', 'test_title'),
+            ('is_enabled', 'checked'),
+            ('active', 'checked'),
+            ('lab_add_form', ''),
+            ('site', site.title)
+        ])
+
+        context = site
+        context.request = req
+
+        res = self._call_fut(context, req)
+
+        location = (
+            db_session.query(models.Location.id)
+            .filter_by(title='test_title')
+            .scalar())
+
+        assert location is not None
+
+    def test_add_lab_w_errors(self, req, db_session, factories):
+        """
+        It should not add a lab and show errors
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        from occams_lims import models
+
+        site = factories.SiteFactory.create()
+
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('title', 'test_title'),
+            ('lab_add_form', ''),
+            ('site', site.title)
+        ])
+
+        context = site
+        context.request = req
+
+        res = self._call_fut(context, req)
+
+        location = (
+            db_session.query(models.Location.id)
+            .filter_by(title='test_title')
+            .scalar())
+
+        assert 'Form errors' in req.session['_f_danger'][0]
+        assert location is None
+
+    def test_delete_lab(self, req, db_session, factories):
+        """
+        It should delete a lab
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        from occams_lims import models
+
+        site = factories.SiteFactory.create()
+        lab = factories.LocationFactory.create(
+            name=u'test_name',
+            title=u'test_title'
+        )
+
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('labs', lab.title),
+            ('delete_location_form', '')
+        ])
+
+        context = site
+        context.request = req
+
+        res = self._call_fut(context, req)
+
+        location_exists = (
+            db_session.query(models.Location.id)
+            .filter_by(id=lab.id)
+            .scalar())
+
+        assert location_exists is None
+
+    def test_delete_lab_not_in_db(self, req, db_session, factories):
+        """
+        It should return a flash message indicating lab doesn't exist
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        from occams_lims import models
+
+        site = factories.SiteFactory.create()
+        lab = factories.LocationFactory.build(
+            name=u'test_name',
+            title=u'test_title'
+        )
+
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('labs', lab.title),
+            ('delete_location_form', '')
+        ])
+
+        context = site
+        context.request = req
+
+        res = self._call_fut(context, req)
+
+        location_exists = (
+            db_session.query(models.Location.id)
+            .filter_by(id=lab.id)
+            .scalar())
+
+        assert 'Lab did not exist' in req.session['_f_danger'][0]
+        assert location_exists is None
