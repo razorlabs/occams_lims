@@ -42,6 +42,11 @@ def settings(context, request):
 
     aliquot_types_count = len(specimen_types)
 
+    labs_types = (
+        db_session.query(models.Location)
+        .order_by(models.Location.title)
+        .all())
+
     class SpecimenTypeForm(wtforms.Form):
 
         ui_selected = wtforms.BooleanField()
@@ -140,6 +145,10 @@ def settings(context, request):
         types = wtforms.FieldList(wtforms.FormField(AliquotTypeForm))
 
     class LabForm(wtforms.Form):
+        ui_selected = wtforms.BooleanField()
+
+        id = wtforms.HiddenField()
+
         name = wtforms.StringField(
             label=_(u'Name'),
             description=_(
@@ -159,12 +168,24 @@ def settings(context, request):
                 u'Enabled labs will be available on Lims homepage'),
             label=_(u'Enabled'))
 
+    class LabsTypeCrudForm(wtforms.Form):
+
+        types = wtforms.FieldList(wtforms.FormField(LabForm))
+
     # We need to accomodate WTForm's inability to process multiple forms
     # in the same page by adding a hidden value to check which form
     # was submitted
 
+    lab_type_crud_form = LabsTypeCrudForm(
+        request.POST if 'lab-type-crud-form' in request.POST else None,
+        types=labs_types,
+    )
+
     lab_add_form = LabForm(
-        request.POST if 'lab_add_form' in request.POST else None)
+        request.POST if 'lab-add-form' in request.POST else None)
+
+    del lab_add_form.id
+    del lab_add_form.ui_selected
 
     specimen_type_add_form = SpecimenTypeForm(
         request.POST if 'specimen-type-add-form' in request.POST else None,
@@ -298,41 +319,65 @@ def settings(context, request):
                 _(u'Selected types already have aliquot collected'),
                 'danger')
 
-    elif 'lab_add_form' in request.POST:
+    elif 'lab-add-form' in request.POST:
         if lab_add_form.validate():
             db_session.add(models.Location(**lab_add_form.data))
             db_session.flush()
 
             request.session.flash(
-                _(u'Sucessfully added lab'), 'success')
+                _(u'Sucessfully added lab: {}'.format(
+                    lab_add_form.data['title'])), 'success')
             return HTTPFound(location=request.current_route_path())
         else:
             request.session.flash(
                 _(u'Form errors, please revise below'), 'danger')
 
-    elif 'delete_location_form' in request.POST:
-        title = request.POST['labs'].strip()
+    elif 'lab-type-crud-form' in request.POST and 'save' in request.POST:
+        if lab_type_crud_form.validate():
+            for i, entry in enumerate(lab_type_crud_form.types.entries):
+                del entry.form.id
+                apply_changes(entry.form, labs_types[i])
+            db_session.flush()
+            request.session.flash(
+                _(u'Sucessfully updated labs'), 'success')
+            return HTTPFound(location=request.current_route_path())
+        else:
+            request.session.flash(
+                _(u'Form errors, please revise below'), 'danger')
+
+    elif 'lab-type-crud-form' in request.POST and 'delete' in request.POST:
+        ids = [
+            e.form.id.object_data
+            for e in lab_type_crud_form.types.entries
+            if e.form.ui_selected.data]
+
+        titles = [
+            e.data['title']
+            for e in lab_type_crud_form.types.entries
+            if e.form.ui_selected.data]
+
+        if not ids:
+            request.session.flash(_(u'No labs selected'), 'warning')
 
         (exists,) = (
             db_session.query(
                 db_session.query(models.Location)
-                .filter_by(title=title)
+                .filter(models.Location.id.in_(ids))
                 .exists())
             .one())
 
         if exists:
-            db_session.query(models.Location).filter(
-                models.Location.title == title).delete()
+            count = (
+                db_session.query(models.Location)
+                .filter(models.Location.id.in_(ids))
+                .delete(synchronize_session=False))
             db_session.flush()
 
             request.session.flash(
-                _(u'Sucessfully deleted lab'), 'success')
-        else:
-            request.session.flash(
-                _(u'Lab did not exist in the database'),
-                'danger')
+                _(u'Sucessfully deleted labs:  {}'.format(
+                    ', '.join(titles))), 'success')
 
-        return HTTPFound(location=request.current_route_path())
+            return HTTPFound(location=request.current_route_path())
 
     query = (
         db_session.query(models.Location)
@@ -349,6 +394,8 @@ def settings(context, request):
         'aliquot_type_add_form': aliquot_type_add_form,
         'aliquot_type_crud_form': aliquot_type_crud_form,
 
+        'labs_types': labs_types,
+        'lab_type_crud_form': lab_type_crud_form,
         'lab_add_form': lab_add_form,
 
         'labs': query
