@@ -286,11 +286,11 @@
                 <tal:errors repeat="error subform.title.errors"><div class="text-danger">${error}</div></tal:errors>
               </td>
               <td>
-                ${subform.is_enabled(class_="form-control")}
+                ${subform.is_enabled()}
                 <tal:errors repeat="error subform.is_enabled.errors"><div class="text-danger">${error}</div></tal:errors>
               </td>
               <td>
-                ${subform.active(class_="form-control")}
+                ${subform.active()}
                 <tal:errors repeat="error subform.active.errors"><div class="text-danger">${error}</div></tal:errors>
               </td>
             </tr>
