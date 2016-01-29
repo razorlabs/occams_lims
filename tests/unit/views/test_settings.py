@@ -446,7 +446,7 @@ class TestSettings:
             .scalar())
 
         # This should fail because not all required form data was posted
-        assert 'Form errors' in req.session['_f_danger'][0]
+        assert 'Form errors' in req.session.pop_flash('danger')[0]
         assert location is None
 
     def test_delete_lab(self, req, db_session, factories):
@@ -505,7 +505,7 @@ class TestSettings:
 
         self._call_fut(context, req)
 
-        assert 'No labs selected' in req.session['_f_warning'][0]
+        assert 'No labs selected' in req.session.pop_flash('warning')[0]
 
     def test_edit_lab(self, req, db_session, factories):
         """
