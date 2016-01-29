@@ -251,6 +251,125 @@
 
     </form>
 
+    <hr />
+
+    <h3 i18n:translate="">Manage Labs</h3>
+
+    <form method="POST">
+
+      <table class="table table-bordered table-hover table-striped">
+        <thead>
+          <tr>
+            <th i18n:translate=""></th>
+            <th i18n:translate="">ID</th>
+            <th i18n:translate="">Name</th>
+            <th i18n:translate="">Title</th>
+            <th i18n:translate="">Enabled</th>
+            <th i18n:translate="">Active</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tal:types repeat="type labs_types">
+            <tr tal:define="subform lab_type_crud_form.types.entries[repeat['type'].index].form"
+                class="${'danger' if subform.errors else ''}">
+              <td>
+                ${subform.ui_selected()}
+                ${subform.id()}
+              </td>
+              <td><code>${type.id}</code></td>
+              <td>
+                ${subform.name(class_="form-control")}
+                <tal:errors repeat="error subform.name.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
+              <td>
+                ${subform.title(class_="form-control")}
+                <tal:errors repeat="error subform.title.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
+              <td>
+                ${subform.is_enabled()}
+                <tal:errors repeat="error subform.is_enabled.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
+              <td>
+                ${subform.active()}
+                <tal:errors repeat="error subform.active.errors"><div class="text-danger">${error}</div></tal:errors>
+              </td>
+            </tr>
+          </tal:types>
+        </tbody>
+      </table>
+
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}" />
+      <input type="hidden" name="lab-type-crud-form" value="1" />
+
+      <button name="delete" class="btn btn-danger">Delete</button>
+      <button name="save" class="btn btn-primary">Save</button>
+
+    </form>
+
+    <hr />
+
+    <h3 i18n:translate="">Add a Lab</h3>
+    <form method="POST"
+            class="form-horizonal"
+            tal:define="form lab_add_form"
+            action="${request.current_route_path()}">
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}" />
+
+      <div class="form-group ${error_css}"
+          tal:define="field         form['name'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        ${field.label(class_=required_css)}
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        ${field(class_="form-control")}
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+      <div class="form-group ${error_css}"
+          tal:define="field         form['title'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        ${field.label(class_=required_css)}
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        ${field(class_="form-control")}
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+      <div class="form-group ${error_css}"
+          tal:define="field         form['active'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        <label>
+            ${field} ${field.label}
+        </label>
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+
+      <div class="form-group ${error_css}"
+          tal:define="field         form['is_enabled'];
+                      error_css    'has-error' if  field.errors else '';
+                      required_css 'required' if field.flags.required else '';">
+        <p class="help-block" tal:condition="field.description">${field.description}</p>
+        <label>
+            ${field} ${field.label}
+        </label>
+        <tal:errors repeat="error field.errors">
+          <p class="help-block"><strong>${error}</strong></p>
+        </tal:errors>
+      </div>
+      <button name="lab-add-form" type="submit" class="btn btn-primary">
+        <span i18n:translate="">Add</span>
+      </button>
+
+    </form>
+
+    <hr />
+
   </metal:content-slot>
 
 

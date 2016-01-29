@@ -385,3 +385,164 @@ class TestSettings:
 
         assert u'already have aliquot collected' \
             in req.session.pop_flash('danger')[0]
+
+    def test_add_lab(self, req, db_session, factories):
+        """
+        It should add a lab
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        from occams_lims import models
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('name', 'test_name'),
+            ('title', 'test_title'),
+            ('is_enabled', 'checked'),
+            ('active', 'checked'),
+            ('lab-add-form', '')
+        ])
+
+        context = mock.Mock()
+        context.request = req
+
+        self._call_fut(context, req)
+
+        location = (
+            db_session.query(models.Location.id)
+            .filter_by(title='test_title')
+            .scalar())
+
+        assert location is not None
+
+    def test_add_lab_w_errors(self, req, db_session, factories):
+        """
+        It should not add a lab and show errors notification message
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        from occams_lims import models
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('title', 'test_title'),
+            ('lab-add-form', '')
+        ])
+
+        context = mock.Mock()
+        context.request = req
+
+        self._call_fut(context, req)
+
+        location = (
+            db_session.query(models.Location.id)
+            .filter_by(title='test_title')
+            .scalar())
+
+        # This should fail because not all required form data was posted
+        assert 'Form errors' in req.session.pop_flash('danger')[0]
+        assert location is None
+
+    def test_delete_lab(self, req, db_session, factories):
+        """
+        It should delete a lab
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        from occams_lims import models
+
+        lab = factories.LocationFactory.create(
+            name=u'test_name',
+            title=u'test_title'
+        )
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('types-0-ui_selected', 'true'),
+            ('lab-type-crud-form', ''),
+            ('delete', '1')
+        ])
+
+        context = mock.Mock()
+        context.request = req
+
+        self._call_fut(context, req)
+
+        location_exists = (
+            db_session.query(models.Location.id)
+            .filter_by(id=lab.id)
+            .scalar())
+
+        assert location_exists is None
+
+    def test_delete_lab_none_selected(self, req, db_session, factories):
+        """
+        It should provide a message indicating no labs selected
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('lab-type-crud-form', ''),
+            ('delete', '1')
+        ])
+
+        context = mock.Mock()
+        context.request = req
+
+        self._call_fut(context, req)
+
+        assert 'No labs selected' in req.session.pop_flash('warning')[0]
+
+    def test_edit_lab(self, req, db_session, factories):
+        """
+        It should update the edited data
+        """
+        import mock
+        from webob.multidict import MultiDict
+
+        from occams_lims import models
+
+        lab = factories.LocationFactory.create(
+            name=u'test_name',
+            title=u'test_title'
+        )
+        db_session.flush()
+
+        req.current_route_path = mock.Mock()
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('types-0-id', str(lab.id)),
+            ('types-0-name', 'test_name'),
+            ('types-0-title', 'test_new_title'),
+            ('types-0-is_enabled', 'checked'),
+            ('types-0-active', 'checked'),
+            ('lab-type-crud-form', ''),
+            ('save', '1')
+        ])
+
+        context = mock.Mock()
+        context.request = req
+
+        self._call_fut(context, req)
+
+        location = (
+            db_session.query(models.Location.id)
+            .filter_by(title='test_new_title')
+            .scalar())
+
+        assert location is not None
