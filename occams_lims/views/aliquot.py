@@ -22,6 +22,13 @@ ALIQUOT_LABEL_QUEUE = 'aliquot_label_queue'
 
 
 class ALIQUOT_LABEL_SETTINGS:
+    """
+    These settings are based off: 
+        Cryo-Babies 1.28"x0.5" White, Order #LCRY-1700
+        
+    UCSD Richman Lab uses these types of labels, in the future we'll try and
+    have configurable labels.
+    """
 
     page_height = 11.0
     page_width = 8.5
