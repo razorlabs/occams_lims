@@ -1,0 +1,309 @@
+<html i18n:domain="occams_lims" metal:use-macro="load:../master.pt">
+  <metal:content-slot fill-slot="content-slot">
+
+    <header class="page-header">
+      <h1>${context.title}</h1>
+      <nav metal:use-macro="load: ../header-nav.pt"></nav>
+    </header>
+
+    <form metal:use-macro="load: filter-aliquot.pt"></form>
+
+    <hr />
+
+    <tal:specimen condition="has_specimen and request.has_permission('process')">
+      <h2>Specimen to Aliquot Templates</h2>
+
+      <form method="POST" tal:condition="request.has_permission('process')">
+        <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
+        <input type="hidden" name="template-form" value="1" />
+
+        <table id="templates" class="table table-bordered table-hover table-striped" tal:condition="has_specimen">
+          <thead>
+            <colgroup>
+              <col class="select"></col>
+              <col class="id"></col>
+              <col class="specimen"></col>
+              <col class="count"></col>
+              <col class="type"></col>
+              <col class="amount"></col>
+              <col class="storage_date"></col>
+              <col class="freezer"></col>
+              <col class="rack"></col>
+              <col class="box"></col>
+              <col class="special_instruction"></col>
+              <col class="notes"></col>
+            </colgroup>
+            <tr>
+              <!-- TODO remove hardcoded styling -->
+              <th><input type="checkbox" data-toggle='selectall'/></th>
+              <th i18n:translate="">ID</th>
+              <th i18n:translate="">Specimen</th>
+              <th i18n:translate="">Count</th>
+              <th i18n:translate="">Aliquot Type</th>
+              <th i18n:translate="">Amount</th>
+              <th i18n:translate="">Storage Date</th>
+              <th i18n:translate="">Freezer</th>
+              <th i18n:translate="">Rack</th>
+              <th i18n:translate="">Box</th>
+              <th i18n:translate="">Special Instructions</th>
+              <th i18n:translate="">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tal:draw repeat="draw specimen">
+              <tr tal:define="
+                  subform specimen_form.specimen.entries[repeat['draw'].index].form;">
+                <td tal:define="field subform.ui_selected">${field(**{'data-toggle': 'select'})}</td>
+                <td><code>${draw.id}</code></td>
+                <td>
+                  <div><code>${draw.patient.pid}</code></div>
+                  <div><strong>${draw.cycle.study.short_title} - ${draw.cycle.week}</strong></div>
+                  <div><span class="text-muted" i18n:translate="">Collected:</span> <code>${draw.collect_date}</code></div>
+                </td>
+                <td tal:define="field subform.count">${field(class_='form-control')}</td>
+                <td tal:define="field subform.aliquot_type_id">
+                  ${field(class_='form-control js-select2')}
+                  <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                </td>
+                <td tal:define="field subform.amount">
+                  ${field(class_='form-control')}
+                  <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                </td>
+                <td tal:define="field subform.store_date">
+                  ${field(class_='form-control js-date', placeholder='YYYY-MM-DD')}
+                  <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                </td>
+                <td tal:define="field subform.freezer">
+                  ${field(class_='form-control')}
+                  <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                </td>
+                <td tal:define="field subform.rack">
+                  ${field(class_='form-control')}
+                  <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                </td>
+                <td tal:define="field subform.box">
+                  ${field(class_='form-control')}
+                  <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                </td>
+                <td tal:define="field subform.special_instruction">
+                  ${field(class_='form-control js-select2', data_placeholder='Please select a field')}
+
+                  <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                </td>
+                <td tal:define="field subform.notes">
+                  ${field(class_='form-control')}
+                  <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                </td>
+              </tr>
+            </tal:draw>
+          </tbody>
+        </table>
+
+        <nav tal:define="page_key 'specimenpage'; pager specimen_pager" metal:use-macro="load: ../pager.pt"></nav>
+        <button
+            type="submit"
+            class="btn btn-default"
+            name="aliquoted"
+            tal:attributes="disabled not:has_specimen"
+            data-toggle="popover"
+            data-trigger="hover"
+            data-placement="top"
+            data-html="true"
+            data-content="
+            <p>Marks selected specimens as aliquoted, and removes them from this view.</p>
+
+            <p><strong>NOTE</strong>: If two templates are based off of the same specimen, marking one of the templates as complete will mark all templates for that specimen as complete.
+            If you complete a specimen in error, return to the Arriving specimen view and use the filter at the top of the screen: Select 'Show All Samples', and enter the patient id for the patient in question.
+            Saves all changes, and then adds the selected specimen to the print queue</p>"
+            >Mark Aliquoted</button>
+        <button
+            type="submit"
+            class="btn btn-primary"
+            name="create"
+            tal:attributes="disabled not:has_specimen"
+            data-toggle="popover"
+            data-trigger="hover"
+            data-placement="top"
+            data-content="Using the selected template, create COUNT aliquot, and place them in the queue below."
+            >Create Aliquot</button>
+      </form>
+
+      <hr />
+    </tal:specimen>
+
+    <h2 i18n:translate="">Aliquot to be processed</h2>
+
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
+      <input type="hidden" name="aliquot-form" value="1" />
+
+      <table id="aliquot" class="table table-bordered table-hover table-striped" tal:condition="has_aliquot">
+        <colgroup>
+          <col class="select"></col>
+          <col class="print"></col>
+          <col class="id"></col>
+          <col class="aliquot"></col>
+          <col class="amount"></col>
+          <col class="storage_date"></col>
+          <col class="freezer"></col>
+          <col class="rack"></col>
+          <col class="box"></col>
+          <col class="special_instruction"></col>
+          <col class="notes"></col>
+        </colgroup>
+        <thead>
+          <tr>
+            <!-- TODO remove hardcoded styling -->
+            <th><input type="checkbox" data-toggle='selectall'/></th>
+            <th i18n:translate=""><span class="fa fa-print"></span></th>
+            <th i18n:translate="">ID</th>
+            <th i18n:translate="">Aliquot</th>
+            <th class="required" i18n:translate="">Amount</th>
+            <th class="required" i18n:translate="">Storage Date</th>
+            <th i18n:translate="">Freezer</th>
+            <th i18n:translate="">Rack</th>
+            <th i18n:translate="">Box</th>
+            <th i18n:translate="">Special Instructions</th>
+            <th i18n:translate="">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tal:draw repeat="sample aliquot">
+            <tr class="${'danger' if subform.errors else ''}"
+                tal:define="
+                  subform aliquot_form.aliquot.entries[repeat['sample'].index].form;
+                  disabled not:request.has_permission('process')">
+              <td tal:define="field subform.ui_selected">${field(**{'data-toggle': 'select'})}</td>
+              <td>${1 if sample.id in label_queue else None}</td>
+              <td><code>${sample.id}</code></td>
+              <td>
+                <div><code>${sample.specimen.patient.pid}</code></div>
+                <div><strong>${sample.specimen.cycle.study.short_title} - ${sample.specimen.cycle.week}</strong></div>
+                <div>${sample.aliquot_type.title}</div>
+                <div><span class="text-muted" i18n:translate="">Collected:</span> <code>${sample.specimen.collect_date}</code></div>
+              </td>
+              <td tal:define="field subform.amount">
+                <div class="input-group"
+                     tal:define="units sample.aliquot_type.units"
+                     tal:omit-tag="not:units">
+                  ${field(class_='form-control', disabled=disabled)}
+                    <span class="input-group-addon"
+                          tal:condition="units"
+                      >${sample.aliquot_type.units}</span>
+                </div>
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.store_date">
+                ${field(class_='form-control js-date', placeholder='YYYY-MM-DD',
+                disabled=disabled)}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.freezer">
+                ${field(class_='form-control', disabled=disabled)}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.rack">
+                ${field(class_='form-control', disabled=disabled)}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.box">
+                ${field(class_='form-control', disabled=disabled)}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.special_instruction">
+                ${field(class_='form-control js-select2', data_placeholder='Please select a field',
+                  disabled=disabled)}
+
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.notes">
+                ${field(class_='form-control', disabled=disabled)}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+            </tr>
+          </tal:draw>
+        </tbody>
+      </table>
+
+      <nav tal:define="page_key 'aliquotpage'; pager aliquot_pager" metal:use-macro="load: ../pager.pt"></nav>
+
+      <button
+          type="submit"
+          class="btn btn-default"
+          name="queue"
+          tal:condition="request.has_permission('process')"
+          tal:attributes="disabled not:has_aliquot"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-content="Saves all changes, and then adds the selected specimen to the print queue"
+          >Toggle Print Queue</button>
+      <button
+          type="button"
+          class="btn btn-default"
+          name="print"
+          tal:condition="request.has_permission('process')"
+          data-modal-remote="${request.current_route_path(_route_name='lims.aliquot_labels')}"
+          data-modal-target="#modal-target"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-content="Prints labels for the specimen in the print queue"
+          tal:attributes="disabled not:has_labels_queued"
+        >Print Labels</button>
+      <button
+          type="submit"
+          class="btn btn-default"
+          name="checkin"
+          tal:condition="request.has_permission('process')"
+          tal:attributes="disabled not:has_aliquot"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-html="true"
+          data-content="Saves all of the changes entered to the database. Move the selected aliquot to a 'checked in' state."
+          >Check-in</button>
+      <button
+          type="submit"
+          class="btn btn-default"
+          name="checkout"
+          tal:condition="request.has_permission('process')"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-content="Saves all of the changes entered to the database. Move the selected aliquot to a 'pending check out' state, and makes them available in the Check out queue."
+          tal:attributes="disabled not:has_aliquot"
+          >Check-out</button>
+      <button
+          type="submit"
+          class="btn btn-danger"
+          name="delete"
+          tal:condition="request.has_permission('process')"
+          data-modal-remote="${request.current_route_path(_route_name='lims.aliquot')}"
+          data-modal-target="#modal-target"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-content="Saves all of the changes entered to the database. Then *deletes* selected aliquot; this should only be used for aliquot that were never created. "
+          tal:attributes="disabled not:has_aliquot"
+          >Delete</button>
+
+      <button
+          type="submit"
+          class="btn btn-primary"
+          name="save"
+          tal:condition="request.has_permission('process')"
+          tal:attributes="disabled not:has_aliquot"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-content="Saves all of the changes entered to the database. This applies to all aliquot, not just selected aliquot. "
+          >Save</button>
+
+    </form>
+
+    <div id="modal-target" class="modal fade"></div>
+
+  </metal:content-slot>
+
+</html>

@@ -1,0 +1,22 @@
+[data-view-name="lims.specimen"] {
+
+  // These must add up to 100%
+  .select        { width: 2%; }
+  .print         { width: 2%; }
+  .id            { width: 6%; }
+  .specimen      { width: 30%; }
+  .tubes         { width: 4%; }
+  .collect_date  { width: 14%; }
+  .collect_time  { width: 10%; }
+  .location      { width: 14%; }
+  .notes         { width: 18%; }
+
+  td {
+    .tube_type {
+      &:before { content: '\02192\00a0'; }
+      white-space: nowrap;
+      color: @gray-light;
+    }
+  }
+
+}

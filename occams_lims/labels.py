@@ -1,174 +1,25 @@
-from cStringIO import StringIO
-from datetime import date
-
 from reportlab.graphics.barcode import code39
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 
 
-class SPECIMEN_LABEL_SETTINGS:
-
-    page_height = 11.0
-    page_width = 8.5
-
-    top_margin = 0.5
-    side_margin = 0.187
-
-    vert_pitch = 1.0
-    horz_pitch = 2.75
-
-    label_height = 1.0
-    label_width = 2.625
-    label_round = 0.1
-
-    no_across = 3
-    no_down = 10
-
-
-class ALIQUOT_LABEL_SETTINGS:
-
-    page_height = 11.0
-    page_width = 8.5
-
-    top_margin = 0.24
-    side_margin = 0.77
-
-    vert_pitch = 0.63
-    horz_pitch = 1.4
-
-    label_height = 0.5
-    label_width = 1.28
-
-    label_round = 0.1
-
-    no_across = 5
-    no_down = 18
-
-
-class LabeledSpecimen(object):
-    """
-    Turns a specimen into a printable label
-    """
-
-    def __init__(self, context):
-        self.context = context
-
-    @property
-    def id(self):
-        return self.context.id
-
-    @property
-    def patient_title(self):
-        return self.context.patient.pid
-
-    @property
-    def cycle_title(self):
-        cycle = self.context.cycle
-        study = cycle.study
-        return '%s - %s' % (study.short_title, (cycle.week or cycle.title))
-
-    @property
-    def sample_date(self):
-        if self.context.collect_date:
-            return self.context.collect_date.strftime('%m/%d/%Y')
-        else:
-            return date.today().strftime('%m/%d/%Y')
-
-    @property
-    def sample_type(self):
-        return self.context.specimen_type.name
-
-    @property
-    def barcodeline(self):
-        return - 1
-
-    @property
-    def label_lines(self):
-        """
-        Generate the lines for a Specimen Label
-        """
-        line1 = unicode(' '.join([self.context.patient.pid, self.sample_date]))
-        line2 = unicode(self.cycle_title)
-        line3 = unicode(self.sample_type)
-        return [line1, line2, line3]
-
-
-class LabeledAliquot(object):
-    """
-    Turns an aliquot into a printable label
-    """
-
-    def __init__(self, context):
-        self.context = context
-
-    @property
-    def id(self):
-        return self.context.id
-
-    @property
-    def patient_title(self):
-        return self.context.specimen.patient.pid
-
-    @property
-    def cycle_title(self):
-        cycle = self.context.specimen.cycle
-        return '%s - %s' % (cycle.study.short_title, cycle.week)
-
-    @property
-    def sample_date(self):
-        return (self.context.store_date or date.today()).strftime('%m/%d/%Y')
-
-    @property
-    def sample_type(self):
-        parts = [self.context.aliquot_type.name, ]
-        if self.context.cell_amount:
-            parts.append('%sx10^6' % self.context.cell_amount)
-        elif self.context.volume:
-            parts.append('%smL' % self.context.volume)
-        if (self.context.special_instruction
-                and self.context.special_instruction.name != u'na'):
-            parts.append(self.context.special_instruction.name)
-        return ' '.join(parts)
-
-    @property
-    def barcodeline(self):
-        return 0
-
-    @property
-    def label_lines(self):
-        """
-        Generate the lines for an Aliquot Label
-        """
-        # Barcode Line
-        line1 = unicode(self.id)
-        line2 = unicode('%s OUR# %s ' % (self.id, self.patient_title))
-        line3 = unicode(self.sample_date)
-        line4 = unicode('%s - %s' % (self.cycle_title, self.sample_type))
-        return [line1, line2, line3, line4]
-
-
-def printLabelSheet(lab, labels, settings, startcol=None, startrow=None):
+def printLabelSheet(
+        stream, filetitle, labels, settings, startcol=None, startrow=None):
     """
     Create the label page, and output
     """
-    stream = StringIO()
-    labelWriter = LabelGenerator(lab, settings, stream)
+    labelWriter = LabelGenerator(filetitle, settings, stream)
 
-    if startcol and startcol > 1:
+    if startcol > 1:
         labelWriter.column = startcol - 2
 
-    if startrow and startrow > 1:
+    if startrow > 1:
         labelWriter.row = startrow - 1
 
-    for label in labels:
-        labelWriter.createLabel(label.label_lines, label.barcodeline)
+    for barcode, label in labels:
+        labelWriter.createLabel(label, barcode)
 
     labelWriter.writeLabels()
-    content = stream.getvalue()
-
-    stream.close()
-
-    return content
 
 
 class LabelGenerator(object):
@@ -189,13 +40,13 @@ class LabelGenerator(object):
     to a file at that path).
     """
 
-    def __init__(self, context, settings, filename=None):
+    def __init__(self, filetitle, settings, filename=None):
         """
         set up the default label drawing canvas
         the resulting PDF will be written to 'filename'
         """
 
-        self.context = context
+        self.filetitle = filetitle
 
         self.page_width = float(settings.page_width)
         self.page_height = float(settings.page_height)
@@ -223,7 +74,7 @@ class LabelGenerator(object):
         """
         Create the canvas on which to draw labels
         """
-        filetitle = '%s labels' % self.context.title
+        filetitle = self.filetitle
         if filename is None:
             filename = filetitle
         newcanvas = canvas.Canvas(
@@ -301,7 +152,8 @@ class LabelGenerator(object):
         self.canvas.showPage()
         self.canvas.save()
 
-    def createLabel(self, labelines, barcodeline=None, startcol=None, startrow=None):
+    def createLabel(
+            self, labelines, barcodeline=None, startcol=None, startrow=None):
         """
         Take a set of brains from the catalog and create the labels from that
         set of brains
@@ -354,7 +206,10 @@ class LabelGenerator(object):
                     elementWidth = 7 + 2.2 * 3
                     barcode = code39.Standard39(
                         aLine,
-                        barWidth=(availableWidth - 3) / elementWidth / (3 + len(aLine)),
+                        barWidth=(
+                            (availableWidth - 3) /
+                            elementWidth /
+                            (3 + len(aLine))),
                         ratio=ratio,
                         barHeight=2 * fontSize,
                         humanReadable=False,
@@ -364,7 +219,8 @@ class LabelGenerator(object):
 
                     barcode.drawOn(self.canvas, theBox[0] + margin, current_y)
                 else:
-                    self.canvas.drawString(theBox[0] + margin, current_y, aLine)
+                    self.canvas.drawString(
+                        theBox[0] + margin, current_y, aLine)
                 current_y -= fontSize
                 self.canvas.setFontSize(fontSize - 1)
 

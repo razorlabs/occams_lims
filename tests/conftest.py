@@ -69,6 +69,7 @@ def create_tables(request):
     import os
     from sqlalchemy import create_engine
     from occams_datastore import models as datastore
+    from occams_studies import models as studies
     from occams_lims import models
 
     db_url = request.config.getoption('--db')
@@ -80,15 +81,23 @@ def create_tables(request):
     if not reuse:
         # This is very similar to the init_db script: create tables
         # and pre-populate with expected data
-        datastore.DataStoreModel.metadata.create_all(engine)
-        models.Base.metadata.create_all(engine)
+        with engine.begin() as connection:
+            connection.info['blame'] = 'test_installer'
+            datastore.DataStoreModel.metadata.create_all(connection)
+            studies.StudiesModel.metadata.create_all(connection)
+            models.LimsModel.metadata.create_all(connection)
+            # We'll create the fixture data manually
+            connection.execute('DELETE FROM "state"')
+            connection.execute('DELETE FROM "aliquotstate"')
+            connection.execute('DELETE FROM "specimenstate"')
 
     def drop_tables():
         if url.drivername == 'sqlite':
             if url.database not in ('', ':memory:'):
                 os.unlink(url.database)
         elif not reuse:
-            models.Base.metadata.drop_all(engine)
+            models.LimsModel.metadata.drop_all(engine)
+            studies.StudiesModel.metadata.drop_all(engine)
             datastore.DataStoreModel.metadata.drop_all(engine)
 
     request.addfinalizer(drop_tables)
@@ -180,6 +189,27 @@ def req(db_session):
     return dummy_request
 
 
+@pytest.fixture
+def factories(db_session):
+    """
+    Configures the data factories
+
+    :param db_session: testing session fixture
+    :returns: the configured factories module
+    """
+
+    import inspect
+    from . import factories
+
+    classes = inspect.getmembers(factories, inspect.isclass)
+
+    for class_name, class_ in classes:
+        if hasattr(class_, '_meta') and hasattr(class_._meta, 'model'):
+            class_._meta.sqlalchemy_session = db_session
+
+    return factories
+
+
 @pytest.fixture(scope='session')
 def wsgi(request):
     """
@@ -268,9 +298,9 @@ def app(request, wsgi, db_session):
         # http://stackoverflow.com/a/11423886/148781
         # We also have to do this as a raw query becuase SA does
         # not have a way to invoke server-side cascade
-        db_session.execute('DELETE FROM "location" CASCADE')
-        db_session.execute('DELETE FROM "site" CASCADE')
-        db_session.execute('DELETE FROM "study" CASCADE')
-        db_session.execute('DELETE FROM "specimentype" CASCADE')
-        db_session.execute('DELETE FROM "user" CASCADE')
+        db_session.execute('DELETE FROM "location"')
+        db_session.execute('DELETE FROM "site"')
+        db_session.execute('DELETE FROM "study"')
+        db_session.execute('DELETE FROM "specimentype"')
+        db_session.execute('DELETE FROM "user"')
         mark_changed(db_session)

@@ -1,0 +1,144 @@
+<html i18n:domain="occams_lims" metal:use-macro="load:../master.pt">
+  <metal:content-slot fill-slot="content-slot">
+
+    <header class="page-header">
+      <h1>${context.title}</h1>
+      <nav metal:use-macro="load: ../header-nav.pt"></nav>
+    </header>
+
+    <form metal:use-macro="load: ../aliquot/filter-aliquot.pt"></form>
+
+    <hr />
+
+    <div class="well well-lg" tal:condition="not:has_aliquot">
+      <h3 i18n:translate="">No aliquot found</h3>
+      <p i18n:translate="">Please refine your search</p>
+    </div>
+
+    <form method="POST" action="${request.current_route_path()}">
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
+
+      <table class="table table-bordered table-hover table-striped" tal:condition="has_aliquot">
+        <colgroup>
+          <col class="select"></col>
+          <col class="id"></col>
+          <col class="aliquot"></col>
+          <col class="amount"></col>
+          <col class="freezer"></col>
+          <col class="rack"></col>
+          <col class="box"></col>
+          <col class="thaw_count"></col>
+          <col class="previous_location"></col>
+          <col class="notes"></col>
+        </colgroup>
+        <thead>
+          <tr>
+            <th><input type="checkbox" data-toggle='selectall'/></th>
+            <th i18n:translate="">ID</th>
+            <th i18n:translate="">Aliquot</th>
+            <th i18n:translate="" class="required">Amount</th>
+            <th i18n:translate="">Freezer</th>
+            <th i18n:translate="">Rack</th>
+            <th i18n:translate="">Box</th>
+            <th i18n:translate="">Thawed Count</th>
+            <th i18n:translate="">Location</th>
+            <th i18n:translate="">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tal:draw repeat="sample aliquot">
+            <tr class="${'danger' if subform.errors else ''}"
+                tal:define="
+                  subform form.aliquot.entries[repeat['sample'].index]">
+              <td>${subform.ui_selected(**{'data-toggle': 'select'})}</td>
+              <td><code>${sample.id}</code></td>
+              <td>
+                <div class="pull-right"><code>${sample.store_date}</code></div>
+                <div><code>${sample.specimen.patient.pid}</code></div>
+                <div><strong>${sample.specimen.cycle.study.short_title} - ${sample.specimen.cycle.week}</strong></div>
+                <div>${sample.aliquot_type.title}</div>
+                <tal:sp condition="sample.special_instruction">
+                  <hr />
+                  <div>${sample.special_instruction}</div>
+                </tal:sp>
+                <hr />
+                <div class="text-muted">
+                <div class="pull-right"><code>${sample.sent_date}</code></div>
+                <div><strong>${sample.sent_name}</strong></div>
+                <div tal:condition="sample.sent_notes">
+                  <span tal:omit-tag="" tal:repeat="line sample.sent_notes.splitlines()">${line}<br /></span></div>
+                </div>
+              </td>
+
+              <td tal:define="field subform.amount">
+                <div class="input-group"
+                     tal:define="units sample.aliquot_type.units"
+                     tal:omit-tag="not:units">
+                  ${field(class_='form-control')}
+                    <span class="input-group-addon"
+                          tal:condition="units"
+                      >${sample.aliquot_type.units}</span>
+                </div>
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.freezer">
+                ${field(class_='form-control')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.rack">
+                ${field(class_='form-control')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.box">
+                ${field(class_='form-control')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.thawed_num">
+                ${field(class_='form-control')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.location_id">
+                ${field(class_='form-control js-select2')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.notes">
+                ${field(class_='form-control')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+
+            </tr>
+          </tal:draw>
+        </tbody>
+      </table>
+
+      <nav metal:use-macro="load: ../pager.pt"></nav>
+
+      <button
+          type="submit"
+          class="btn btn-default"
+          name="checkin"
+          tal:attributes="disabled not:has_aliquot"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-html="true"
+          data-content="Return the selected aliquot to a 'checked in' state. This will reset the location to the current lab location."
+          >Check In</button>
+      <button
+          type="submit"
+          class="btn btn-primary"
+          name="save"
+          tal:attributes="disabled not:has_aliquot"
+          data-toggle="popover"
+          data-trigger="hover"
+          data-placement="top"
+          data-content="Saves all of the changes entered to the database. This applies to all aliquot, not just selected aliquot."
+          >Save</button>
+
+    </form>
+
+    <div id="modal-target" class="modal fade"></div>
+
+  </metal:content-slot>
+
+</html>

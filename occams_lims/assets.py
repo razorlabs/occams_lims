@@ -45,7 +45,7 @@ def includeme(config):
             rel('styles/main.less'),
             filters='less,cssmin',
             depends=rel('styles/*.less'),
-            output=rel('gen/limis-main.%(version)s.css')),
+            output=rel('gen/lims-main.%(version)s.css')),
         Bundle(rel('bower_components/select2/select2.css'), filters='cssrewrite'),
         rel('bower_components/select2-bootstrap-css/select2-bootstrap.css'),
         output=rel('gen/lims.%(version)s.css')))

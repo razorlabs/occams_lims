@@ -5,7 +5,7 @@ Pyramid-specific events
 from pyramid.events import subscriber, BeforeRender
 
 from . import models
-from .views import lab as lab_views
+from .views import lab
 
 
 @subscriber(BeforeRender)
@@ -21,4 +21,4 @@ def add_labs(event):
         if request is None:
             return
         context = models.LabFactory(request)
-        event['available_labs'] = lab_views.list_(context, request)['labs']
+        event['available_labs'] = lab.index(context, request)['labs']

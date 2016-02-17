@@ -82,6 +82,5 @@ setup(
     cmdclass={'develop': _custom_develop},
     entry_points="""\
     [console_scripts]
-    ol_initdb = occams_lims.scripts.initdb:main
     """,
 )

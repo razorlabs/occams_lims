@@ -3,16 +3,22 @@ import logging
 import pkg_resources
 
 from pyramid.i18n import TranslationStringFactory
-import wtforms_json
+import wtforms_json; wtforms_json.init()  # monkey-patch wtforms to accept JSON data
 
-wtforms_json.init()  # monkey-patch wtforms to accept JSON data
-
+from . import models
 
 log = logging.getLogger('occams').getChild(__name__)
 
 _ = TranslationStringFactory(__name__)
 
+__prefix__ = '/lims'
+__title__ = _(u'LIMS')
 __version__ = pkg_resources.require(__name__)[0].version
+
+
+def initdb(connectable):
+    assert 'blame' in connectable.info, 'Need someone to blame!'
+    models.LimsModel.metadata.create_all(connectable)
 
 
 def includeme(config):
@@ -21,7 +27,7 @@ def includeme(config):
         'name': 'lims',
         'title': _(u'LIMS'),
         'package': 'occams_lims',
-        'route': 'lims.main',
+        'route': 'lims.index',
         'version': __version__
     }
 
