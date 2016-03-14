@@ -63,8 +63,8 @@ def specimen(context, request):
     elif 'cctg' in db_session.bind.url.database:
         processing_location_name = {
             'harbor-ucla-clinic': 'harbor-ucla-clinic',
-            'long-beach-clinic': 'long_beach_lab',
-            'long-beach-lab': 'long_beach_lab',
+            'long-beach-clinic': 'long-beach-lab',
+            'long-beach-lab': 'long-beach-lab',
             'usc-clinic': 'usc-lab',
             'usc-lab': 'usc-lab',
             'avrc': 'avrc',
