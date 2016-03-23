@@ -7,8 +7,7 @@
             type="button"
             class="btn btn-default pull-right"
             name="add"
-            data-modal-remote="${request.current_route_path(_route_name='lims.add')}"
-            data-modal-target="#modal-target"
+            id="add-modal"
             tal:condition="request.has_permission('process')">
           <span class="fa fa-plus"></span>
           <span i18n:translate="">Add Specimen</span>
@@ -175,5 +174,4 @@
     <div id="modal-target" class="modal fade"></div>
 
   </metal:content-slot>
-
 </html>
