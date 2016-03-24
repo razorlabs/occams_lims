@@ -8,7 +8,9 @@ $(function () {
   //if we move LIMS to knockout, we could use the click binding here instead
   $('#add-modal').on('click', function(event) {
       event.preventDefault();
-      $('#modal-target').load('/lims/avrc/add');
+      var $this = $(this);
+      var remote = $this.data('remote');
+      $('#modal-target').load(remote);
       var modal = $('#modal-target').modal()
       modal.show()
   });
