@@ -3,6 +3,7 @@ from pyramid.httpexceptions import HTTPFound, HTTPOk, HTTPForbidden
 from pyramid.response import FileIter
 from pyramid.view import view_config
 from pyramid.session import check_csrf_token
+from sqlalchemy import orm
 import wtforms
 from wtforms.ext.dateutil.fields import DateField
 from wtforms_components import TimeField
@@ -96,9 +97,9 @@ def specimen(context, request):
 
     label_queue = request.session.setdefault(SPECIMEN_LABEL_QUEUE, set())
 
-    if (request.method == 'POST'
-            and check_csrf_token(request)
-            and form.validate()):
+    if (request.method == 'POST' and
+            check_csrf_token(request) and
+            form.validate()):
 
         if not request.has_permission('process'):
             raise HTTPForbidden
@@ -268,9 +269,9 @@ def add(context, request):
     Form = build_add_form(context, request)
     form = Form(request.POST)
 
-    if (request.method == 'POST'
-            and check_csrf_token(request)
-            and form.validate()):
+    if (request.method == 'POST' and
+            check_csrf_token(request) and
+            form.validate()):
         state = (
             db_session.query(models.SpecimenState)
             .filter_by(name=u'pending-draw')
@@ -283,17 +284,22 @@ def add(context, request):
         type_ = \
             db_session.query(models.SpecimenType) \
             .get(form.specimen_type_id.data)
-        visit = (
-            db_session.query(studies.Visit)
-            .filter(studies.Visit.patient_id == patient.id)
-            .filter(studies.Visit.cycles.any(id=form.cycle_id.data))
-            .one())
+        try:
+            visit = (
+                db_session.query(studies.Visit)
+                .filter(studies.Visit.patient_id == patient.id)
+                .filter(studies.Visit.cycles.any(id=form.cycle_id.data))
+                .one())
+        except (orm.exc.MultipleResultsFound, orm.exc.NoResultFound) as e:
+            collect_date = None
+        else:
+            collect_date = visit.visit_date
         db_session.add(models.Specimen(
             patient=patient,
             cycle=cycle,
             specimen_type=type_,
             state=state,
-            collect_date=visit.visit_date,
+            collect_date=collect_date,
             location=context,
             tubes=type_.default_tubes))
         db_session.flush()
