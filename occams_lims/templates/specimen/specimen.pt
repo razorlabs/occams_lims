@@ -8,6 +8,7 @@
             class="btn btn-default pull-right"
             name="add"
             id="add-modal"
+            data-remote="${request.current_route_path(_route_name='lims.add')}"
             tal:condition="request.has_permission('process')">
           <span class="fa fa-plus"></span>
           <span i18n:translate="">Add Specimen</span>
