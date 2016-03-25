@@ -31,7 +31,7 @@ class Test_checkin:
 
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
@@ -61,7 +61,7 @@ class Test_checkin:
 
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
