@@ -23,7 +23,7 @@
             labs factory(request);
             url request.route_path('lims.index');
             current_lab request.matchdict['lab']|nothing;
-            active request.matched_route.name.startswith('lims.lab');"
+            active request.matched_route.name.startswith('lims.specimen');"
           tal:attributes="class python:'active' if active else ''"
           tal:condition="request.has_permission('view', labs)"
           id="labs-menu"

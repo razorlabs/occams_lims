@@ -248,7 +248,7 @@ def specimen_labels(context, request):
             request.session[SPECIMEN_LABEL_QUEUE] = set()
             request.session.changed()
             request.session.flash(u'Your Queue has been cleared', 'info')
-            next = request.current_route_path(_route_name='lims.lab')
+            next = request.current_route_path(_route_name='lims.specimen')
             if request.is_xhr:
                 return HTTPOk(json={'__next__': next})
             else:
