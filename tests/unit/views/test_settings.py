@@ -23,7 +23,7 @@ class TestSettings:
         from webob.multidict import MultiDict
         from occams_lims import models
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
@@ -61,7 +61,7 @@ class TestSettings:
             name=slugify(title), title=title)
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         # Attemp to create a new type with the same title
@@ -89,7 +89,7 @@ class TestSettings:
         factories.SpecimenTypeFactory.create()
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         # Attemp to create a new type with the same title
@@ -119,7 +119,7 @@ class TestSettings:
 
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         # Attemp to set the first entry the same as the second
@@ -148,7 +148,7 @@ class TestSettings:
         type_ = factories.SpecimenTypeFactory.create()
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         # Attemp to create a new type with the same title
@@ -178,7 +178,7 @@ class TestSettings:
         specimen = factories.SpecimenFactory.create()
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         # Attemp to create a new type with the same title
@@ -207,7 +207,7 @@ class TestSettings:
         specimen_type = factories.SpecimenTypeFactory.create()
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
@@ -245,7 +245,7 @@ class TestSettings:
         factories.AliquotTypeFactory.create(name=slugify(title), title=title)
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         # Attemp to create a new type with the same title
@@ -277,7 +277,7 @@ class TestSettings:
         type_ = factories.AliquotTypeFactory.create()
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         # Attemp to create a new type with the same title
@@ -309,7 +309,7 @@ class TestSettings:
 
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         # Attemp to set the first entry the same as the second
@@ -338,7 +338,7 @@ class TestSettings:
         type_ = factories.AliquotTypeFactory.create()
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         # Attemp to create a new type with the same title
@@ -368,7 +368,7 @@ class TestSettings:
         aliquot = factories.AliquotFactory.create()
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         # Attemp to create a new type with the same title
@@ -395,7 +395,7 @@ class TestSettings:
 
         from occams_lims import models
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
@@ -427,7 +427,7 @@ class TestSettings:
 
         from occams_lims import models
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
@@ -464,7 +464,7 @@ class TestSettings:
         )
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
@@ -492,7 +492,7 @@ class TestSettings:
         import mock
         from webob.multidict import MultiDict
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
@@ -522,7 +522,7 @@ class TestSettings:
         )
         db_session.flush()
 
-        req.current_route_path = mock.Mock()
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
