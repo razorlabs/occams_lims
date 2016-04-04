@@ -23,9 +23,9 @@ ALIQUOT_LABEL_QUEUE = 'aliquot_label_queue'
 
 class ALIQUOT_LABEL_SETTINGS:
     """
-    These settings are based off: 
+    These settings are based off:
         Cryo-Babies 1.28"x0.5" White, Order #LCRY-1700
-        
+
     UCSD Richman Lab uses these types of labels, in the future we'll try and
     have configurable labels.
     """
@@ -468,6 +468,9 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
     states_query = db_session.query(models.AliquotState).order_by('title')
     available_states = [(s.id, s.title) for s in states_query]
 
+    cycles_query = db_session.query(studies.Cycle).order_by('title')
+    available_cycles = [(s.id, s.title) for s in cycles_query]
+
     class FilterForm(wtforms.Form):
 
         pid = wtforms.StringField(
@@ -483,6 +486,12 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
         aliquot_states = wtforms.SelectMultipleField(
             _(u'Aliquot States'),
             choices=available_states,
+            coerce=int,
+            validators=[wtforms.validators.Optional()])
+
+        visit_cycles = wtforms.SelectMultipleField(
+            _(u'Visit Cycles'),
+            choices=available_cycles,
             coerce=int,
             validators=[wtforms.validators.Optional()])
 
@@ -541,6 +550,11 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
             models.Aliquot.state_id.in_(filter_form.aliquot_states.data))
     else:
         query = query.filter(models.AliquotState.name == state)
+
+    if 'visit_cycles' not in omit and filter_form.visit_cycles.data:
+        query = query.filter(
+            models.Aliquot.specimen.has(
+                models.Specimen.cycle_id.in_(filter_form.visit_cycles.data)))
 
     if 'from_' not in omit and filter_form.from_.data:
         query = query.filter(
