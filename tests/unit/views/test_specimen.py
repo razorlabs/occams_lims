@@ -53,6 +53,9 @@ class Test_filter_specimen:
         return view(*args, **kw)
 
     def test_filter_by_pid_found(self, req, db_session, factories):
+        """
+        It should return specimen matching the pid filter criteria
+        """
         from webob.multidict import MultiDict
 
         pid = u'XXX-XXX-XX'
@@ -70,6 +73,10 @@ class Test_filter_specimen:
         assert res['has_specimen']
 
     def test_filter_by_pid_not_found(self, req, db_session, factories):
+        """
+        It should not return specimen because filter criteria does not match
+        any specimen
+        """
         from webob.multidict import MultiDict
 
         pid = u'XXX-XXX-XX'
@@ -82,6 +89,50 @@ class Test_filter_specimen:
         db_session.flush()
 
         req.GET = MultiDict([('pid', u'YYY-YYY-YY')])
+        res = self._call_fut(location, req, state='pending-draw')
+
+        assert not res['has_specimen']
+
+    def test_filter_by_cycle_found(self, req, db_session, factories):
+        """
+        It should return specimen matching the cycle filter criteria
+        """
+        from webob.multidict import MultiDict
+
+        location = factories.LocationFactory.create()
+        cycle = factories.CycleFactory.create(
+            title=u'Week 52')
+        factories.SpecimenFactory.create(
+            state__name='pending-draw',
+            cycle=cycle,
+            location=location)
+        db_session.flush()
+
+        req.GET = MultiDict([(u'visit_cycles', cycle.id)])
+        res = self._call_fut(location, req, state='pending-draw')
+
+        assert res['has_specimen']
+
+    def test_filter_by_cycle_not_found(self, req, db_session, factories):
+        """
+        It should not return specimen because filter criteria does not match
+        any specimen
+        """
+        from webob.multidict import MultiDict
+
+        location = factories.LocationFactory.create()
+        cycle = factories.CycleFactory.create(
+            title=u'Week 52')
+        factories.SpecimenFactory.create(
+            state__name='pending-draw',
+            cycle=cycle,
+            location=location)
+        db_session.flush()
+
+        test_cycle_id = 1234
+
+        req.GET = MultiDict([(u'visit_cycles', test_cycle_id)])
+
         res = self._call_fut(location, req, state='pending-draw')
 
         assert not res['has_specimen']
