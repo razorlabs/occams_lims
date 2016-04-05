@@ -185,6 +185,9 @@ class Test_filter_aliquot:
         return view(*args, **kw)
 
     def test_filter_by_pid_found(self, req, db_session, factories):
+        """
+        It should return aliquot matching the cycle filter criteria
+        """
         from webob.multidict import MultiDict
 
         pid = u'XXX-XXX-XX'
@@ -205,6 +208,10 @@ class Test_filter_aliquot:
         assert res['has_aliquot']
 
     def test_filter_by_pid_not_found(self, req, db_session, factories):
+        """
+        It should not return aliquot because filter criteria does not match
+        any specimen
+        """
         from webob.multidict import MultiDict
 
         pid = u'XXX-XXX-XX'
@@ -221,6 +228,55 @@ class Test_filter_aliquot:
 
         req.GET = MultiDict([('pid', u'YYY-YYY-YY')])
         res = self._call_fut(location, req, state='state')
+
+        assert not res['has_aliquot']
+
+    def test_filter_by_cycle_found(self, req, db_session, factories):
+        """
+        It should return aliquot matching the cycle filter criteria
+        """
+        from webob.multidict import MultiDict
+
+        location = factories.LocationFactory.create()
+        cycle = factories.CycleFactory.create(
+            title=u'Week 52')
+        specimen = factories.SpecimenFactory.create(
+            cycle=cycle)
+        factories.AliquotFactory.create(
+            state__name='pending',
+            location=location,
+            specimen=specimen)
+        db_session.flush()
+
+        req.GET = MultiDict([(u'visit_cycles', cycle.id)])
+        res = self._call_fut(location, req, state='pending')
+
+        assert res['has_aliquot']
+
+    def test_filter_by_cycle_not_found(self, req, db_session, factories):
+        """
+        It should not return aliquot because filter criteria does not match
+        any specimen
+        """
+        from webob.multidict import MultiDict
+
+        location = factories.LocationFactory.create()
+        cycle = factories.CycleFactory.create(
+            title=u'Week 52')
+        cycle2 = factories.CycleFactory.create(
+            title=u'Week 53')
+        specimen = factories.SpecimenFactory.create(
+            cycle=cycle,
+            location=location)
+        factories.AliquotFactory.create(
+            state__name='pending',
+            location=location,
+            specimen=specimen)
+        db_session.flush()
+
+        req.GET = MultiDict([(u'visit_cycles', cycle2.id)])
+
+        res = self._call_fut(location, req, state='pending')
 
         assert not res['has_aliquot']
 
