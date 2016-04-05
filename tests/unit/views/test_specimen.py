@@ -123,15 +123,15 @@ class Test_filter_specimen:
         location = factories.LocationFactory.create()
         cycle = factories.CycleFactory.create(
             title=u'Week 52')
+        cycle2 = factories.CycleFactory.create(
+            title=u'Week 53')
         factories.SpecimenFactory.create(
             state__name='pending-draw',
             cycle=cycle,
             location=location)
         db_session.flush()
 
-        test_cycle_id = 1234
-
-        req.GET = MultiDict([(u'visit_cycles', test_cycle_id)])
+        req.GET = MultiDict([(u'visit_cycles', cycle2.id)])
 
         res = self._call_fut(location, req, state='pending-draw')
 
