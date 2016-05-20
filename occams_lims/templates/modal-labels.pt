@@ -7,7 +7,7 @@
       <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
 
       <div class="modal-header">
-        <h4 class="modal-title">Print Specimen Labels for ${count} Specimen</h4>
+        <h4 class="modal-title">Print ${count} Labels</h4>
       </div>
 
       <div class="modal-body">

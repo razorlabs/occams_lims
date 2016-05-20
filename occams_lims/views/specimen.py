@@ -458,6 +458,9 @@ def filter_specimen(context, request, state, page_key='page', omit=None):
     states_query = db_session.query(models.SpecimenState).order_by('title')
     available_states = [(s.id, s.title) for s in states_query]
 
+    cycles_query = db_session.query(studies.Cycle).order_by('title')
+    available_cycles = [(s.id, s.title) for s in cycles_query]
+
     class FilterForm(wtforms.Form):
 
         pid = wtforms.StringField(
@@ -473,6 +476,12 @@ def filter_specimen(context, request, state, page_key='page', omit=None):
         specimen_states = wtforms.SelectMultipleField(
             _(u'Specimen States'),
             choices=available_states,
+            coerce=int,
+            validators=[wtforms.validators.Optional()])
+
+        visit_cycles = wtforms.SelectMultipleField(
+            _(u'Visit Cycles'),
+            choices=available_cycles,
             coerce=int,
             validators=[wtforms.validators.Optional()])
 
@@ -516,6 +525,10 @@ def filter_specimen(context, request, state, page_key='page', omit=None):
             models.SpecimenState.id.in_(filter_form.specimen_states.data)))
     else:
         query = query.filter(models.Specimen.state.has(name=state))
+
+    if 'visit_cycles' not in omit and filter_form.visit_cycles.data:
+        query = query.filter(
+            models.Specimen.cycle_id.in_(filter_form.visit_cycles.data))
 
     if 'from_' not in omit and filter_form.from_.data:
         query = query.filter(

@@ -261,8 +261,8 @@
           data-trigger="hover"
           data-placement="top"
           data-html="true"
-          data-content="Saves all of the changes entered to the database. Move the selected aliquot to a 'checked in' state."
-          >Check-in</button>
+          data-content="Saves all of the changes entered to the database. Move the selected aliquot to a <b>Checked In</b> state."
+          >Check In</button>
       <button
           type="submit"
           class="btn btn-default"
@@ -271,9 +271,10 @@
           data-toggle="popover"
           data-trigger="hover"
           data-placement="top"
-          data-content="Saves all of the changes entered to the database. Move the selected aliquot to a 'pending check out' state, and makes them available in the Check out queue."
+          data-html="true"
+          data-content="Saves all of the changes entered to the database. Move the selected aliquot to a <b>Pending Check Out</b> state, and makes them available in the Check out queue."
           tal:attributes="disabled not:has_aliquot"
-          >Check-out</button>
+          >Pending Check Out</button>
       <button
           type="submit"
           class="btn btn-danger"

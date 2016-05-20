@@ -112,7 +112,7 @@
           data-trigger="hover"
           data-placement="top"
           data-html="true"
-          data-content="Return the selected aliquot to a 'checked in' state. This will reset the location to the current lab location. "
+          data-content="Return the selected aliquot to a <b>Checked In</b> state. This will reset the location to the current lab location. "
           >Return</button>
       <button
           type="submit"
@@ -123,7 +123,7 @@
           data-placement="top"
           data-content="Finalize checkout for selected aliquot. These aliquot can be checked back in"
           tal:attributes="disabled not:has_aliquot"
-          >Complete</button>
+          >Check Out</button>
       <button
           type="submit"
           class="btn btn-primary"

@@ -53,6 +53,7 @@ class StudyFactory(SQLAlchemyModelFactory, FakeDescribable):
 class CycleFactory(SQLAlchemyModelFactory, FakeDescribable):
     class Meta:
         model = studies.Cycle
+    title = factory.Faker('word')
     study = factory.SubFactory(StudyFactory)
     week = factory.Faker('pyint')
 

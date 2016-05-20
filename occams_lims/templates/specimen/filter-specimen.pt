@@ -10,6 +10,10 @@
   <div tal:define="field filter_form.specimen_states|nothing" tal:condition="field" class="form-group" style="min-width: 200px">
     ${field(class_='form-control js-select2', placeholder=field.label.text)}
   </div>
+  <!--! select2 doesn't play nicely with inline forms so we must manually set a min-width -->
+  <div tal:define="field filter_form.visit_cycles|nothing" tal:condition="field" class="form-group" style="min-width: 200px">
+    ${field(class_='form-control js-select2', placeholder=field.label.text)}
+  </div>
   <div tal:define="field filter_form.from_|nothing" tal:condition="field" class="form-group">
     ${field(class_='form-control js-date', placeholder=field.label.text, size=10)}
   </div>

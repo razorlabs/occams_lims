@@ -122,7 +122,7 @@
           data-trigger="hover"
           data-placement="top"
           data-html="true"
-          data-content="Return the selected aliquot to a 'checked in' state. This will reset the location to the current lab location."
+          data-content="Return the selected aliquot to a <b>Checked In</b> state. This will reset the location to the current lab location."
           >Check In</button>
       <button
           type="submit"
