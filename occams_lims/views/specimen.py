@@ -1,3 +1,5 @@
+from datetime import date
+
 import six
 from pyramid.httpexceptions import HTTPFound, HTTPOk, HTTPForbidden
 from pyramid.response import FileIter
@@ -6,7 +8,7 @@ from pyramid.session import check_csrf_token
 from sqlalchemy import orm
 import wtforms
 from wtforms.ext.dateutil.fields import DateField
-from wtforms_components import TimeField
+from wtforms_components import TimeField, DateRange
 
 from occams.utils.forms import apply_changes
 from occams.utils.pagination import Pagination
@@ -342,7 +344,10 @@ def build_crud_form(context, request):
                 wtforms.validators.NumberRange(min=1)])
 
         collect_date = DateField(
-            validators=[conditionally_required])
+            validators=[
+                conditionally_required,
+                DateRange(min=date(1900, 1, 1))
+            ])
 
         collect_time = TimeField(
             # There doesn't seem to be a nice way to add the colon if the
@@ -487,11 +492,17 @@ def filter_specimen(context, request, state, page_key='page', omit=None):
 
         from_ = DateField(
             _(u'From Date'),
-            validators=[wtforms.validators.Optional()])
+            validators=[
+                wtforms.validators.Optional(),
+                DateRange(min=date(1900, 1, 1))
+            ])
 
         to = DateField(
             _(u'To Date'),
-            validators=[wtforms.validators.Optional()])
+            validators=[
+                wtforms.validators.Optional(),
+                DateRange(min=date(1900, 1, 1))
+            ])
 
     filter_form = FilterForm(request.GET)
 
