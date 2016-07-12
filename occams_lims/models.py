@@ -209,7 +209,6 @@ def populate_default_specimen_states(target, connection, **kw):
         values.update({
             'create_user_id': blame_id,
             'modify_user_id': blame_id,
-            'revision': 1
         })
         return values
 
@@ -270,7 +269,6 @@ def populate_default_aliquot_states(target, connection, **kw):
         values.update({
             'create_user_id': blame_id,
             'modify_user_id': blame_id,
-            'revision': 1
         })
         return values
 

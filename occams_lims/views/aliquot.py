@@ -1,3 +1,5 @@
+from datetime import date
+
 import six
 from pyramid.httpexceptions import HTTPFound, HTTPOk, HTTPForbidden
 from pyramid.response import FileIter
@@ -7,6 +9,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 import wtforms
 from wtforms.ext.dateutil.fields import DateField
+from wtforms_components import DateRange
 
 from occams.utils.forms import apply_changes
 from occams.utils.pagination import Pagination
@@ -82,7 +85,10 @@ def aliquot(context, request):
             places=1,
             validators=[conditionally_required])
         store_date = DateField(
-            validators=[conditionally_required])
+            validators=[
+                conditionally_required,
+                DateRange(min=date(1900, 1, 1))
+            ])
         freezer = wtforms.StringField(
             validators=[wtforms.validators.optional()])
         rack = wtforms.StringField(
@@ -497,11 +503,17 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
 
         from_ = DateField(
             _(u'From Date'),
-            validators=[wtforms.validators.Optional()])
+            validators=[
+                wtforms.validators.Optional(),
+                DateRange(min=date(1900, 1, 1))
+            ])
 
         to = DateField(
             _(u'To Date'),
-            validators=[wtforms.validators.Optional()])
+            validators=[
+                wtforms.validators.Optional(),
+                DateRange(min=date(1900, 1, 1))
+            ])
 
         freezer = wtforms.StringField(
             _(u'Freezer'),

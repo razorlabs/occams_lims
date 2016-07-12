@@ -1,3 +1,4 @@
+from datetime import date
 from itertools import chain
 
 from reportlab.lib import colors
@@ -14,6 +15,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 import wtforms
 from wtforms.ext.dateutil.fields import DateField
+from wtforms_components import DateRange
 
 from occams.utils.forms import apply_changes
 
@@ -47,7 +49,10 @@ def checkout(context, request):
             validators=[
                 wtforms.validators.DataRequired()])
         sent_date = DateField(
-            validators=[wtforms.validators.Optional()])
+            validators=[
+                wtforms.validators.Optional(),
+                DateRange(min=date(1900, 1, 1))
+            ])
         sent_name = wtforms.StringField(
             validators=[wtforms.validators.Optional()])
         sent_notes = wtforms.TextAreaField(
@@ -147,7 +152,10 @@ def checkout_update(context, request):
         sent_date = DateField(
             _(u'Sent Date'),
             description=_(u'Date sent for analysis.'),
-            validators=[wtforms.validators.Optional()])
+            validators=[
+                wtforms.validators.Optional(),
+                DateRange(min=date(1900, 1, 1))
+            ])
         sent_name = wtforms.StringField(
             _(u'Sent Name '),
             description=_(u'The name of the aliquot\'s receiver.'),
