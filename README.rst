@@ -1,140 +1,169 @@
-Introduction
-============
-The occams.lab product is an add-on to the avrc.aeh clinical product that acts
-as an inventory of banked specimen, associating these specimen with patients,
-study cycles and visit dates. The product controls how specimen are aliquoted,
-and allows aliquot to be stored in a freezer/rack/box location, as well as tracking
-aliquot check in and check out. Occams.lab uses event listeners to automatically
-queue specimen for draw when a patient visit is added to the system (see
-avrc.aeh for more information regarding patients, visits, studies and cycles.)
+OCCAMS LIMS
+===========
 
-This product may contain traces of nuts.
+A web application for managing a research samples
 
-Installation and Setup
-======================
-There are a few installation gotchas for the occams.lab product. After installing
-the product through the "Add-on" section of plone, make sure you do the following:
 
-1) Set up the behaviors
-for some reason, the product's behaviors are not installed correctly. You must
-manually set them up. Here is how:
-
-After installing, navigate to the dexterity types section of site setup.
-- Clinical Lab: Add both the Specimen Label Sheet and Aliquot Label Sheet behaviors.
-- Research Lab: Add both the Specimen Label Sheet and Aliquot Label Sheet behaviors.
-- Site: Add the Lab Location behavior.
-- Study: Add the Available Specimen behavior.
-- Cycle: Add Required Specimen behavior.
-- Visit: Add Requested Specimen behavior.
-
-2) Set up the Lab Locations.
-There is currently a beta view through which to edit lab locations. Alternatively
-you can edit them directly in the location table. To edit ttw, add a new institute
-to your site, and then navigate to the "./lablocations" view.
-
-3) Assign a default location to your Sites.
-Each Site needs to have a default lab location. This controls where automatically
-created specimen show up for draw. To do so, just select the Edit tab for your site
-and use the lab location dropdown.
-
-4) Add the Plone Lab objects to your Sites. There are two sorts of Labs. Clinical
-Labs can draw specimen from a patient, as well as process those specimen into aliquot.
-Research Labs only process specimen into aliquot. When configuring a Lab, there
-are a few pieces to set up.
-
-- Clinical Lab:
--- Set up the Lab's location. This should be the same location as its corresponding Site.
--- Set up the Lab's processing location. This can either be the same as its location (
-meaning that specimen will be processed at the same location), or a different location,
-if specimen will be shipped to another location before being aliquotted.
--- Set up the Lab's Specimen Sheet. Use the dimensions for the sort of Specimen labels
-the lab will be using.
--- Set up the Lab's Aliquot sheet. Use the dimensions for the sort of Aliquot labels
-the lab will be using.
-
-- Research Lab:
--- Set up the Lab's location. This will be the same as the processing location from
-the Research Lab's corresponding clinical lab.
--- Set up the Lab's storage location. This is the location where aliquot will be
-placed upon completion. It is often the same as the Lab's location, but sometimes
-the aliquot will be shipped to a final destination after being aliquotted.
--- Set up the Lab's Aliquot sheet. Use the dimensions for the sort of Aliquot labels
-the lab will be using.
-
-5) Set up the Specimen/Aliquot in the database. There is currently no ttw option
-for configuring this aspect of the system. To set up this aspect of the occams.lab
-system, use your preferred method of editing the database to add the specimen
-to the specimentype table, and how that specimentype aliquots in the aliquottype
-table.
-
-Usage
-=====
-
-Study Configuration
+System Requirements
 -------------------
-On a study's edit tab, there will be a sub-tab for specimen. There, type the
-name of the specimen that you want associated with that study, and select it from
-the drop-down list.
 
-Cycle Configuration
--------------------
-On a cycle's edit tab, there will be a sub-tab for specimen. There, type the
-name of the specimen you want to be automatically queued when a visit with that
-cycle is added.
+* Python 2.7+
+* npm (globally installed with -g option)
+  - bower
+  - lessc
+* redis
+* PostgreSQL 9.5+
 
 
-Specimen Lifecycle
-==================
-When a visit is added to a patient, specimen for the visit's associated cycles
-are created. (This behavior can be overridden by unchecking the "create specimen"
-checkbox on the specimen sub-tab of the add a visit screen.)
+Authentication
+--------------
 
-These created specimen appear on the view screen (Specimen to be processed) of
-the Clinical Lab if the visit date is on or before today in a pending state. Lab workers fill out
-the appropriate information for the specimen, print labels using the label queue,
-and then "Complete Selected". If the processing lab location is the same location
-as this clinical lab, the specimen are moved to the "Batched" tab, awaiting processing.
-If the processing lab location is at a different lab, the specimen will show up
-in that lab's batched tab, if its a clinical lab, or its primary view if it is
-a processing lab.
+Because many organizations have their politics of authentication, this app
+tries to not force any authentication paradigm on the client and instead
+uses `repoze.who` to allow clients to supply their own authentication via
+customized-organization-specific plugins.
 
-The Batched/Processing lab view lists all specimen that were successfully drawn.
-The lab worker can then select some or all of the specimen and move them to the
-"Ready to Aliquot" tab.
+For production, it is recommended you use a robust solution like LDAP,
+Active Directory, or a database of users.
 
-Under the "Ready to Aliquot" tab, each specimen will be displayed as a collection
-of aliquot templates that directly reflects how those specimen aliquot. For instance,
-if blood aliquot into plasma and pbmc, two templates will show at the top of the
-screen for that blood aliquot. Using the template, the lab worker can create
-a number of identical aliquot from a specimen, which show in the second table
-on the same page. These pending aliquot can have labels printed, then either
-checked in, checked out, or deleted (in case more aliquot were created in the
-system than were actually aliquotted.)
-
-If the aliquot were checked in, they are now available to view through the "View
-Stored Aliquot" links at the top of the screen.
-
-If the aliquot were checked out, they will show up on the Checkout Queue. This
-queue allows you to set a new location as well as other sent information to the
-aliquot.
-Once checked out, if they were checked out to a location that has a Lab, the
-aliquot will show up in the Check in tab of that Lab.
+For development, we'll be using a JSON document of users to allow us
+to create test users as neeeded.
 
 
-==================
-Self-Certification
-==================
+Development
+-----------
 
-    [ ] Internationalized
+This application uses Docker_ to setup a *development environment* with dummy
+user accounts. It is recommended you familiarize yourself with some basic
+knowledge of how it works.
 
-    [ ] Unit tests
+.. _Docker: https://www.docker.com/
 
-    [ ] End-user documentation
+VirtualBox
+++++++++++
 
-    [ ] Internal documentation (documentation, interfaces, etc.)
+Install Virtualbox from:
 
-    [ ] Existed and maintained for at least 6 months
+https://www.virtualbox.org/wiki/Downloads
 
-    [ ] Installs and uninstalls cleanly
+This is required to install boot2docker on containers.
 
-    [ ] Code structure follows best practice
+
+Machine and Compose
++++++++++++++++++++
+
+You will neeed to install Docker Compose_ and Machine_ in order so setup
+your environment. To do so, follow the instructions the following instructions
+based on your host environment:
+
+- macOS: https://docs.docker.com/docker-for-mac/
+- Windows: https://docs.docker.com/docker-for-windows/
+- Linux:  https://docs.docker.com/engine/installation/linux/
+
+.. _Compose: https://docs.docker.com/compose/overview/
+.. _Machine: https://docs.docker.com/machine/overview/
+
+
+Installation
+++++++++++++
+
+#. Provision a new Docker machine called "lims-develop" by running the
+   following command::
+
+      > docker-machine create -d virtualbox lims-develop
+
+#. Point Docker to the development machine::
+
+      > eval $(docker-machine env lims-develop)
+      > docker-machine ls
+      NAME              ACTIVE   DRIVER       STATE     URL                         SWARM   DOCKER    ERRORS
+      lims-develop      *        virtualbox   Running   tcp://192.168.99.104:2376           v1.12.0
+
+   Note the asterisk in the "ACTIVE" column.
+
+#. Clone the application and build the containers::
+
+      > git clone https://github.com/razorlabs/occams_lims
+      > cd occams_lims
+      > docker-compose build
+
+   This will take a moment, so it's a good idea to refill on coffee at this time.
+
+#. Back? Ok, spin up the containers, there will some additional building for
+   dependencies, this is normal::
+
+      > docker-compose up -d
+
+#. Build the static assess::
+
+      > docker-compose run app bower install
+
+#. Build the database tables::
+
+      > docker-compose run app occams_initdb develop.ini
+
+#. Build the participant number generator tables::
+
+      > docker-compose run app or_initdb develop.ini
+
+#. Get the IP address of the machine and use it to navigate to http://the.ip.addr.es:3000/ ::
+
+      > docker-machine ip lims-develop
+
+
+You now should have a working LIMS app.
+
+
+Common Tasks
+""""""""""""
+
+How do I add more users?
+''''''''''''''''''''''''
+
+Modify the data setting in the `[plugin:dev_users]` section of the develop.ini
+file. There is already a test user there for you, so use that a template.
+
+
+How do I run the tests?
+'''''''''''''''''''''''
+
+Create a test user and database to run the tests.
+
+::
+
+    > psql -U occams -h `docker-machine ip lims-develop` -c "CREATE USER test"
+    > psql -U occams -h `docker-machine ip lims-develop` -c "CREATE DATABASE test OWNER test"
+    > docker-compose run app py.test --db postgresql://test@postgres/test --redis redis://redis/9
+
+
+How do I check the logs?
+''''''''''''''''''''''''
+
+::
+
+    > docker-compose logs -f
+
+How do I access the database?
+'''''''''''''''''''''''''''''
+
+Install the Postgres client on the host machine and run::
+
+  > psql -U occams -h `docker-machine ip lims-develop`
+
+How do I restart the application?
+'''''''''''''''''''''''''''''''''
+
+::
+
+    > docker-compose restart app
+
+
+How do I reset the database and start over again?
+'''''''''''''''''''''''''''''''''''''''''''''''''
+
+::
+
+    > docker-compose down
+    > docker volume rm occams_db
+    > docker-compose up -d
+    > docker-compose run app occams_initdb develop.ini

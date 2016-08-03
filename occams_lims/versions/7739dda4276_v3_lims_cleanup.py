@@ -7,7 +7,7 @@ Create Date: 2015-10-22 22:47:21.314965
 
 # revision identifiers, used by Alembic.
 revision = '7739dda4276'
-down_revision = '1d2d71fb2bde'
+down_revision = None
 branch_labels = ('lims',)
 
 from alembic import op, context
