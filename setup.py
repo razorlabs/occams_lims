@@ -44,8 +44,12 @@ REQUIRES = [
     'wtforms-components',
     'zope.sqlalchemy',
 
+    'occams_datastore',
     'occams',
-    'occams_studies'
+    'occams_accounts',
+    'occams_forms',
+    'occams_roster',
+    'occams_studies',
 ]
 
 EXTRAS = {
