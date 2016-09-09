@@ -24,7 +24,6 @@
           <col class="id"></col>
           <col class="aliquot"></col>
           <col class="coordinates"></col>
-          <col class="special_instruction"></col>
           <col class="notes"></col>
           <col class="location"></col>
           <col class="sent_date"></col>
@@ -37,7 +36,6 @@
             <th i18n:translate="">ID</th>
             <th i18n:translate="">Aliquot</th>
             <th i18n:translate="">Fr/Rk/Bx</th>
-            <th i18n:translate="">Special Instructions</th>
             <th i18n:translate="">Notes</th>
             <th i18n:translate="">Location</th>
             <th i18n:translate="">Sent Date</th>
@@ -59,7 +57,6 @@
                 <div><span>${sample.aliquot_type.title}<span> &bull; <span>${sample.amount or '--'}${sample.amount and sample.aliquot_type.units}</span></div>
               </td>
               <td>${sample.freezer or '?'}/${sample.rack or '?'}/${sample.box or '?'}</td>
-              <td>${sample.special_instruction}</td>
               <td>${sample.notes}</td>
               <td tal:define="field subform.location_id">
                 ${field(class_='form-control js-select2')}

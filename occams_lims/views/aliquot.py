@@ -65,10 +65,6 @@ def aliquot(context, request):
         context, request, page_key='aliquotpage', state='pending')
     aliquot = aliquot_vals['aliquot']
 
-    available_instructions = [
-        (i.id, i.title)
-        for i in db_session.query(models.SpecialInstruction).order_by('title')]
-
     label_queue = request.session.setdefault(ALIQUOT_LABEL_QUEUE, set())
 
     if any(i in request.POST for i in [
@@ -94,10 +90,6 @@ def aliquot(context, request):
         rack = wtforms.StringField(
             validators=[wtforms.validators.optional()])
         box = wtforms.StringField(
-            validators=[wtforms.validators.optional()])
-        special_instruction = wtforms.SelectField(
-            choices=available_instructions,
-            coerce=int,
             validators=[wtforms.validators.optional()])
         notes = wtforms.TextAreaField(
             validators=[wtforms.validators.optional()])
@@ -373,10 +365,6 @@ def make_aliquot_label(aliquot):
     if aliquot.amount:
         units = aliquot.aliquot_type.units or ''
         type_label += ' {}{}'.format(aliquot.amount, units)
-
-    if aliquot.special_instruction \
-            and aliquot.special_instruction.name != u'na':
-        type_label += ' {}'.format(aliquot.special_instruction.name)
 
     barcode = 0
     lines = [

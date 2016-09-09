@@ -57,10 +57,6 @@
                 <div><code>${sample.specimen.patient.pid}</code></div>
                 <div><strong>${sample.specimen.cycle.study.short_title} - ${sample.specimen.cycle.week}</strong></div>
                 <div>${sample.aliquot_type.title}</div>
-                <tal:sp condition="sample.special_instruction">
-                  <hr />
-                  <div>${sample.special_instruction}</div>
-                </tal:sp>
                 <hr />
                 <div class="text-muted">
                 <div class="pull-right"><code>${sample.sent_date}</code></div>
