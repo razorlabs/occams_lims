@@ -48,8 +48,6 @@ class LabPlan(ExportPlan):
             row('sent_notes', self.name, types.STRING, is_system=True),
             row('thawed_num', self.name, types.NUMBER, decimal_places=0,
                 is_system=True),
-            row('special_instruction', self.name, types.STRING,
-                is_system=True),
             row('inventory_date', self.name, types.DATE, is_system=True),
             row('aliquot_notes', self.name, types.STRING, is_system=True),
             row('specimen_type', self.name, types.STRING,
@@ -101,7 +99,6 @@ class LabPlan(ExportPlan):
                 lims.Aliquot.sent_name.label('sent_name'),
                 lims.Aliquot.sent_notes.label('sent_notes'),
                 lims.Aliquot.thawed_num.label('thawed_num'),
-                lims.SpecialInstruction.title.label('special_instruction'),
                 lims.Aliquot.inventory_date.label('inventory_date'),
                 lims.Aliquot.notes.label('aliquot_notes'),
                 lims.SpecimenType.title.label('specimen_type'),
@@ -133,7 +130,6 @@ class LabPlan(ExportPlan):
             .outerjoin(lims.Aliquot.state)
             .outerjoin(AliquotLocation, lims.Aliquot.location)
             .outerjoin(SpecimenLocation, lims.Specimen.location)
-            .outerjoin(lims.Aliquot.special_instruction)
             .outerjoin(lims.Specimen.cycle)
             .outerjoin(studies.Cycle.study)
             .outerjoin(lims.Specimen.specimen_type)
@@ -158,7 +154,6 @@ class LabPlan(ExportPlan):
                 lims.Aliquot.sent_name,
                 lims.Aliquot.sent_notes,
                 lims.Aliquot.thawed_num,
-                lims.SpecialInstruction.title,
                 lims.Aliquot.inventory_date,
                 lims.Aliquot.notes,
                 lims.SpecimenType.title,

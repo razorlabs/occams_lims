@@ -97,11 +97,6 @@ class SpecimenStateFactory(SQLAlchemyModelFactory, FakeDescribable):
         model = models.SpecimenState
 
 
-class SpecialInstructionFactory(SQLAlchemyModelFactory, FakeDescribable):
-    class Meta:
-        model = models.SpecialInstruction
-
-
 class SpecimenFactory(SQLAlchemyModelFactory):
     class Meta:
         model = models.Specimen
@@ -148,4 +143,3 @@ class AliquotFactory(SQLAlchemyModelFactory):
     sent_date = factory.LazyAttribute(lambda o: o.store_date)
     sent_name = factory.Faker('name')
     sent_notes = factory.Faker('paragraph')
-    special_instruction = factory.SubFactory(SpecialInstructionFactory)

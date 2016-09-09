@@ -30,7 +30,6 @@
               <col class="freezer"></col>
               <col class="rack"></col>
               <col class="box"></col>
-              <col class="special_instruction"></col>
               <col class="notes"></col>
             </colgroup>
             <tr>
@@ -45,7 +44,6 @@
               <th i18n:translate="">Freezer</th>
               <th i18n:translate="">Rack</th>
               <th i18n:translate="">Box</th>
-              <th i18n:translate="">Special Instructions</th>
               <th i18n:translate="">Notes</th>
             </tr>
           </thead>
@@ -83,11 +81,6 @@
                 </td>
                 <td tal:define="field subform.box">
                   ${field(class_='form-control')}
-                  <div class="text-danger" tal:repeat="error field.errors">${error}</div>
-                </td>
-                <td tal:define="field subform.special_instruction">
-                  ${field(class_='form-control js-select2', data_placeholder='Please select a field')}
-
                   <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                 </td>
                 <td tal:define="field subform.notes">
@@ -148,7 +141,6 @@
           <col class="freezer"></col>
           <col class="rack"></col>
           <col class="box"></col>
-          <col class="special_instruction"></col>
           <col class="notes"></col>
         </colgroup>
         <thead>
@@ -163,7 +155,6 @@
             <th i18n:translate="">Freezer</th>
             <th i18n:translate="">Rack</th>
             <th i18n:translate="">Box</th>
-            <th i18n:translate="">Special Instructions</th>
             <th i18n:translate="">Notes</th>
           </tr>
         </thead>
@@ -208,12 +199,6 @@
               </td>
               <td tal:define="field subform.box">
                 ${field(class_='form-control', disabled=disabled)}
-                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
-              </td>
-              <td tal:define="field subform.special_instruction">
-                ${field(class_='form-control js-select2', data_placeholder='Please select a field',
-                  disabled=disabled)}
-
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
               <td tal:define="field subform.notes">

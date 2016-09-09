@@ -348,23 +348,6 @@ class Location(LimsModel,
             sa.Index('ix_%s_active' % cls.__tablename__, 'active'))
 
 
-class SpecialInstruction(LimsModel,
-                         datastore.Describeable,
-                         datastore.Referenceable,
-                         datastore.Modifiable):
-    """
-    We may wish to add information here about the special instruction
-    Right now we just need a vocabulary
-    """
-
-    __tablename__ = 'specialinstruction'
-
-    @declared_attr
-    def __table_args__(cls):
-        return (
-            sa.UniqueConstraint('name'), )
-
-
 class SpecimenType(LimsModel,
                    datastore.Referenceable,
                    datastore.Describeable,
@@ -652,12 +635,6 @@ class Aliquot(LimsModel,
 
     notes = sa.Column(sa.Unicode)
 
-    special_instruction_id = sa.Column(sa.Integer)
-
-    special_instruction = orm.relationship(
-        SpecialInstruction,
-        primaryjoin=(special_instruction_id == SpecialInstruction.id))
-
     @declared_attr
     def __table_args__(cls):
         return (
@@ -680,11 +657,6 @@ class Aliquot(LimsModel,
                 columns=['previous_location_id'],
                 refcolumns=['location.id'],
                 name='fk_%s_previous_location_id' % cls.__tablename__,
-                ondelete='SET NULL'),
-            sa.ForeignKeyConstraint(
-                columns=['special_instruction_id'],
-                refcolumns=['specialinstruction.id'],
-                name='fk_%s_specialinstruction_id' % cls.__tablename__,
                 ondelete='SET NULL'),
             sa.ForeignKeyConstraint(
                 columns=['state_id'],
