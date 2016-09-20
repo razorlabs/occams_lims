@@ -467,7 +467,7 @@ class Test_aliquot:
         assert aliquot.amount is None
         assert res.status_code == 302, 'Should be status code 302'
 
-    @pytest.mark.parametrize('button', ['queue', 'checkin', 'checkout'])
+    @pytest.mark.parametrize('button', ['queue', 'checkin'])
     def test_required_data_aliquot_on_button(
             self, req, db_session, factories, button):
         """

@@ -5,25 +5,43 @@
         class="${'active' if tab == view else ''}"
         tal:define="view string:lims.specimen"
         tal:condition="request.has_permission('view')">
-      <a href="${request.current_route_path(_route_name=view)}" i18n:translate="">Specimen</a>
+      <a  href="${request.current_route_path(_route_name=view, _query={})}"
+          i18n:translate="">Pending Draw</a>
     </li>
     <li role="presentation"
         class="${'active' if tab == view else ''}"
         tal:define="view string:lims.aliquot"
         tal:condition="request.has_permission('view')">
-      <a href="${request.current_route_path(_route_name=view)}" i18n:translate="">Aliquot</a>
+      <a  href="${request.current_route_path(_route_name=view, _query={})}"
+          i18n:translate="">Pending Aliquot</a>
     </li>
     <li role="presentation"
         class="${'active' if tab == view else ''}"
-        tal:define="view string:lims.checkout"
+        tal:define="view string:lims.checked-in"
         tal:condition="request.has_permission('process')">
-      <a href="${request.current_route_path(_route_name=view)}" i18n:translate="">Check-out Queue</a>
+      <a  href="${request.current_route_path(_route_name=view, _query={})}"
+          i18n:translate="">Checked In</a>
+    </li>
+    <li role="presentation"
+        class="${'active' if tab == view else ''}"
+        tal:define="view string:lims.checked-out"
+        tal:condition="request.has_permission('process')">
+      <a  href="${request.current_route_path(_route_name=view, _query={})}"
+          i18n:translate="">Checked Out</a>
     </li>
     <li role="presentation"
         class="${'active' if tab == view else ''}"
         tal:define="view string:lims.checkin"
         tal:condition="request.has_permission('process')">
-      <a href="${request.current_route_path(_route_name=view)}" i18n:translate="">Check-in</a>
+      <a  href="${request.current_route_path(_route_name=view, _query={})}"
+          i18n:translate="">Pending Check-in</a>
+    </li>
+    <li role="presentation"
+        class="${'active' if tab == view else ''}"
+        tal:define="view string:lims.checkout"
+        tal:condition="request.has_permission('process')">
+      <a  href="${request.current_route_path(_route_name=view, _query={})}"
+          i18n:translate="">Pending Check-out</a>
     </li>
   </ul>
 </nav>

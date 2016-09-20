@@ -15,7 +15,7 @@
       <p i18n:translate="">Please refine your search</p>
     </div>
 
-    <form method="POST">
+    <form method="POST" action="${request.current_route_path()}">
       <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
 
       <table class="table table-bordered table-hover table-striped" tal:condition="has_aliquot">
@@ -23,24 +23,26 @@
           <col class="select"></col>
           <col class="id"></col>
           <col class="aliquot"></col>
-          <col class="coordinates"></col>
+          <col class="amount"></col>
+          <col class="freezer"></col>
+          <col class="rack"></col>
+          <col class="box"></col>
+          <col class="thaw_count"></col>
+          <col class="previous_location"></col>
           <col class="notes"></col>
-          <col class="location"></col>
-          <col class="sent_date"></col>
-          <col class="sent_name"></col>
-          <col class="sent_notes"></col>
         </colgroup>
         <thead>
           <tr>
             <th><input type="checkbox" data-toggle='selectall'/></th>
             <th i18n:translate="">ID</th>
             <th i18n:translate="">Aliquot</th>
-            <th i18n:translate="">Fr/Rk/Bx</th>
-            <th i18n:translate="">Notes</th>
+            <th i18n:translate="" class="required">Amount</th>
+            <th i18n:translate="">Freezer</th>
+            <th i18n:translate="">Rack</th>
+            <th i18n:translate="">Box</th>
+            <th i18n:translate="">Thawed Count</th>
             <th i18n:translate="">Location</th>
-            <th i18n:translate="">Sent Date</th>
-            <th i18n:translate="">Recipient</th>
-            <th i18n:translate="">Sent Notes</th>
+            <th i18n:translate="">Notes</th>
           </tr>
         </thead>
         <tbody>
@@ -54,26 +56,45 @@
                 <div class="pull-right"><code>${sample.store_date}</code></div>
                 <div><code>${sample.specimen.patient.pid}</code></div>
                 <div><strong>${sample.specimen.cycle.study.short_title} - ${sample.specimen.cycle.week}</strong></div>
-                <div><span>${sample.aliquot_type.title}<span> &bull; <span>${sample.amount or '--'}${sample.amount and sample.aliquot_type.units}</span></div>
+                <div>${sample.aliquot_type.title}</div>
               </td>
-              <td>${sample.freezer or '?'}/${sample.rack or '?'}/${sample.box or '?'}</td>
-              <td>${sample.notes}</td>
+
+              <td tal:define="field subform.amount">
+                <div class="input-group"
+                     tal:define="units sample.aliquot_type.units"
+                     tal:omit-tag="not:units">
+                  ${field(class_='form-control')}
+                    <span class="input-group-addon"
+                          tal:condition="units"
+                      >${sample.aliquot_type.units}</span>
+                </div>
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.freezer">
+                ${field(class_='form-control')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.rack">
+                ${field(class_='form-control')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.box">
+                ${field(class_='form-control')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
+              <td tal:define="field subform.thawed_num">
+                ${field(class_='form-control')}
+                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              </td>
               <td tal:define="field subform.location_id">
                 ${field(class_='form-control js-select2')}
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
-              <td tal:define="field subform.sent_date">
-                ${field(class_='form-control js-date', placeholder='YYYY-MM-DD')}
-                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
-              </td>
-              <td tal:define="field subform.sent_name">
+              <td tal:define="field subform.notes">
                 ${field(class_='form-control')}
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
-              <td tal:define="field subform.sent_notes">
-                ${field(class_='form-control')}
-                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
-              </td>
+
             </tr>
           </tal:draw>
         </tbody>
@@ -81,33 +102,13 @@
 
       <nav metal:use-macro="load: ../pager.pt"></nav>
 
-      <a type="button"
-          class="btn btn-default"
-          href="${request.current_route_path(_route_name='lims.checkout_receipt')}"
-          download
-          type="application/pdf"
-          tal:attributes="disabled not:has_aliquot"
-        >Print Receipt</a>
-      <button
-          type="button"
-          class="btn btn-default"
-          name="bulk_update"
-          tal:attributes="disabled not:has_aliquot"
-          data-modal-target="#modal-target"
-          data-modal-remote="${request.current_route_path(_route_name='lims.checkout_update')}"
-          >Bulk Update Selection</button>
       <button
           type="submit"
           class="btn btn-default"
-          name="return"
+          name="pending-checkout"
+          tal:condition="request.has_permission('process')"
           tal:attributes="disabled not:has_aliquot"
-          >Mark Selection as Checked In</button>
-      <button
-          type="submit"
-          class="btn btn-default"
-          name="complete"
-          tal:attributes="disabled not:has_aliquot"
-          >Mark Selection as Checked Out</button>
+          >Mark Selection as Pending Check-Out</button>
       <button
           type="submit"
           class="btn btn-primary"
@@ -116,8 +117,6 @@
           >Save All Changes</button>
 
     </form>
-
-    <div id="modal-target" class="modal fade"></div>
 
   </metal:content-slot>
 

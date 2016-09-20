@@ -114,21 +114,13 @@
             name="queue"
             tal:attributes="disabled not:has_specimen"
             tal:condition="request.has_permission('process')"
-            data-toggle="popover"
-            data-trigger="hover"
-            data-placement="top"
-            data-content="Saves all changes, and then adds the selected specimen to the print queue"
-            >Toggle Print Queue</button>
+            >Toggle Selection for Print Queue</button>
         <button
             type="button"
             class="btn btn-default"
             name="print"
             data-modal-remote="${request.current_route_path(_route_name='lims.specimen_labels')}"
             data-modal-target="#modal-target"
-            data-toggle="popover"
-            data-trigger="hover"
-            data-placement="top"
-            data-content="Prints labels for the specimen in the print queue"
             tal:attributes="disabled not:has_labels_queued"
             tal:condition="request.has_permission('process')"
           >Print Labels</button>
@@ -138,34 +130,21 @@
             name="cancel-draw"
             tal:attributes="disabled not:has_specimen"
             tal:condition="request.has_permission('process')"
-            data-toggle="popover"
-            data-trigger="hover"
-            data-placement="top"
-            data-content="Mark the selected specimen as undrawn"
-            >Cancel Draw</button>
+            >Mark Selection as Canceled Draw</button>
         <button
             type="submit"
             class="btn btn-default"
             name="pending-aliquot"
             tal:attributes="disabled not:has_specimen"
             tal:condition="request.has_permission('process')"
-            data-toggle="popover"
-            data-trigger="hover"
-            data-placement="top"
-            data-html="true"
-            data-content="Saves all changes entered to the database (for all specimen). Then marks the selected specimen as complete. Completed specimen will then appear in the <a href='${request.current_route_path(_route_name='lims.aliquot')}'>Ready to Aliquot</a> tab of the target location."
-            >Pending Aliquot</button>
+            >Mark Selection as Pending Aliquot</button>
         <button
             type="submit"
             class="btn btn-primary"
             name="save"
             tal:attributes="disabled not:has_specimen"
             tal:condition="request.has_permission('process')"
-            data-toggle="popover"
-            data-trigger="hover"
-            data-placement="top"
-            data-content="Saves all of the changes entered to the database. This applies to all specimen, not just selected specimen."
-            >Save</button>
+            >Save All Changes</button>
 
         </div>
 

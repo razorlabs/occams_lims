@@ -114,22 +114,13 @@
           class="btn btn-default"
           name="checkin"
           tal:attributes="disabled not:has_aliquot"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-html="true"
-          data-content="Return the selected aliquot to a <b>Checked In</b> state. This will reset the location to the current lab location."
-          >Check In</button>
+          >Mark Selection as Checked In</button>
       <button
           type="submit"
           class="btn btn-primary"
           name="save"
           tal:attributes="disabled not:has_aliquot"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-content="Saves all of the changes entered to the database. This applies to all aliquot, not just selected aliquot."
-          >Save</button>
+          >Save All Changes</button>
 
     </form>
 

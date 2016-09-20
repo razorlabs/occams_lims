@@ -274,29 +274,6 @@ def aliquot(context, request):
                 request.session.flash(u'Please select aliquot', 'warning')
             return HTTPFound(location=request.current_route_path())
 
-        elif 'checkout' in request.POST and aliquot_form.validate():
-            state = (
-                db_session.query(models.AliquotState)
-                .filter_by(name='pending-checkout')
-                .one())
-            transitioned_count = 0
-            for i, entry in enumerate(aliquot_form.aliquot.entries):
-                apply_changes(entry.form, aliquot[i])
-                if entry.ui_selected.data:
-                    transitioned_count += 1
-                    aliquot[i].state = state
-            update_print_queue()
-            if transitioned_count > 0:
-                request.session.flash(
-                    _(u'${count} aliquot have been changed to the status '
-                      u'of ${state}.',
-                        mapping={'count': transitioned_count,
-                                 'state': state.title}),
-                    'success')
-            else:
-                request.session.flash(u'Please select aliquot', 'warning')
-            return HTTPFound(location=request.current_route_path())
-
         elif 'delete' in request.POST and aliquot_form.validate():
             deleted_count = 0
             for i, entry in enumerate(aliquot_form.aliquot.entries):
