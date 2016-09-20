@@ -24,7 +24,6 @@ def includeme(config):
     config.add_route('lims.aliquot_labels',     '/{lab}/aliquot_labels',   factory=models.LabFactory, traverse='/{lab}')
 
     config.add_route('lims.checkout',           '/{lab}/checkout',         factory=models.LabFactory, traverse='/{lab}')
-    config.add_route('lims.checked-out',        '/{lab}/checked-out',       factory=models.LabFactory, traverse='/{lab}')
     config.add_route('lims.checkout_update',    '/{lab}/bulkupdate',       factory=models.LabFactory, traverse='/{lab}')
     config.add_route('lims.checkout_receipt',   '/{lab}/checkoutreceipt',  factory=models.LabFactory, traverse='/{lab}')
 

@@ -24,24 +24,17 @@
     </li>
     <li role="presentation"
         class="${'active' if tab == view else ''}"
-        tal:define="view string:lims.checked-out"
+        tal:define="view string:lims.checkout"
         tal:condition="request.has_permission('process')">
       <a  href="${request.current_route_path(_route_name=view, _query={})}"
-          i18n:translate="">Checked Out</a>
+          i18n:translate="">Pending Check-out</a>
     </li>
     <li role="presentation"
         class="${'active' if tab == view else ''}"
         tal:define="view string:lims.checkin"
         tal:condition="request.has_permission('process')">
       <a  href="${request.current_route_path(_route_name=view, _query={})}"
-          i18n:translate="">Pending Check-in</a>
-    </li>
-    <li role="presentation"
-        class="${'active' if tab == view else ''}"
-        tal:define="view string:lims.checkout"
-        tal:condition="request.has_permission('process')">
-      <a  href="${request.current_route_path(_route_name=view, _query={})}"
-          i18n:translate="">Pending Check-out</a>
+          i18n:translate="">Checked-Out</a>
     </li>
   </ul>
 </nav>
