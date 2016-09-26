@@ -270,7 +270,7 @@ def checkout_receipt(context, request):
     header = [
         _(u'ID'),
         _(u'PID'),
-        _(u'Store Date'),
+        _(u'Collect Date & Time'),
         _(u'Visit'),
         _(u'Type'),
         _(u'Amt.'),
@@ -283,18 +283,20 @@ def checkout_receipt(context, request):
     column_widths = [
         0.07 * full_width,   # id
         0.08 * full_width,   # pid
-        0.10 * full_width,   # store date
-        0.10 * full_width,   # visit #
+        0.15 * full_width,   # collect date
+        0.10 * full_width,   # visit
         0.15 * full_width,   # type
-        0.05 * full_width,   # amount
+        0.10 * full_width,   # amount
         0.10 * full_width,   # sent date
-        0.35 * full_width,   # shipping notes
+        0.25 * full_width,   # shipping notes
     ]
 
     rows = chain([header], iter([
         six.text_type(sample.id),
         six.text_type(sample.specimen.patient.pid),
-        sample.store_date.isoformat(),
+        '{} {}'.format(
+            sample.collect_date.isoformat(),
+            sample.collect_time.strftime('%H:%M')),
         u'{0} - {1}'.format(
             sample.specimen.cycle.study.short_title,
             sample.specimen.cycle.week),

@@ -9,7 +9,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 import wtforms
 from wtforms.ext.dateutil.fields import DateField
-from wtforms_components import DateRange
+from wtforms_components import DateRange, TimeField
 
 from occams.utils.forms import apply_changes
 from occams.utils.pagination import Pagination
@@ -59,7 +59,12 @@ def aliquot(context, request):
     db_session = request.db_session
     specimen_vals = filter_specimen(
         context, request, page_key='specimenpage', state='pending-aliquot')
+
     specimen = specimen_vals['specimen']
+    template_values = [
+        {'specimen': s, 'collect_date': date.today()}
+        for s in specimen
+    ]
 
     aliquot_vals = filter_aliquot(
         context, request, page_key='aliquotpage', state='pending')
@@ -67,8 +72,7 @@ def aliquot(context, request):
 
     label_queue = request.session.setdefault(ALIQUOT_LABEL_QUEUE, set())
 
-    if any(i in request.POST for i in [
-            'queue', 'print', 'checkin', 'checkout']):
+    if any(i in request.POST for i in ['queue', 'print', 'checkin', 'create']):
         conditionally_required = required_if('ui_selected')
     else:
         conditionally_required = wtforms.validators.optional()
@@ -80,10 +84,14 @@ def aliquot(context, request):
         amount = wtforms.DecimalField(
             places=1,
             validators=[conditionally_required])
-        store_date = DateField(
+        collect_date = DateField(
             validators=[
                 conditionally_required,
                 DateRange(min=date(1900, 1, 1))
+            ])
+        collect_time = TimeField(
+            validators=[
+                conditionally_required,
             ])
         freezer = wtforms.StringField(
             validators=[wtforms.validators.optional()])
@@ -96,10 +104,15 @@ def aliquot(context, request):
 
     class SpecimenAliquotForm(AliquotForm):
         count = wtforms.IntegerField(
-            validators=[wtforms.validators.optional()])
+            validators=[
+                required_if('ui_selected'),
+                wtforms.validators.optional()
+            ]
+        )
         aliquot_type_id = wtforms.SelectField(
             coerce=int,
-            validators=[wtforms.validators.optional()])
+            validators=[required_if('ui_selected')]
+        )
 
         def __init__(self, *args, **kw):
             super(AliquotForm, self).__init__(*args, **kw)
@@ -110,13 +123,18 @@ def aliquot(context, request):
                     specimen = obj
                 elif isinstance(obj, models.Aliquot):
                     specimen = obj.specimen
-                else:
+            else:
+                try:
+                    specimen = kw['specimen']
+                except KeyError:
                     specimen = None
 
             if specimen:
                 self.aliquot_type_id.choices = [
                     (t.id, t.title)
                     for t in specimen.specimen_type.aliquot_types.values()]
+            else:
+                self.aliquot_type_id.choices = []
 
     class SpecimenCrudForm(wtforms.Form):
         specimen = wtforms.FieldList(wtforms.FormField(SpecimenAliquotForm))
@@ -137,7 +155,7 @@ def aliquot(context, request):
     else:
         aliquot_formdata = None
 
-    specimen_form = SpecimenCrudForm(specimen_formdata, specimen=specimen)
+    specimen_form = SpecimenCrudForm(specimen_formdata, specimen=template_values)
     aliquot_form = AliquotCrudForm(aliquot_formdata, aliquot=aliquot)
 
     def update_print_queue():
@@ -179,7 +197,7 @@ def aliquot(context, request):
                 kw['specimen'] = specimen[i]
                 kw['state'] = state
                 kw['location'] = location
-                kw['inventory_date'] = kw['store_date']
+                kw['inventory_date'] = kw['collect_date']
                 kw['previous_location'] = location
 
                 # clean up the dictionary
@@ -317,8 +335,8 @@ def make_aliquot_label(aliquot):
     cycle = specimen.cycle
     patient = specimen.patient
     pid = patient.pid
-    collect_date_label = aliquot.specimen.collect_date.strftime('%m/%d/%Y')
-    store_date_label = aliquot.store_date.strftime('%m/%d/%Y')
+    collect_date_label = aliquot.collect_date.strftime('%m/%d/%Y')
+    collect_time_label = aliquot.collect_time.strftime('%H:%M')
     study_label = study.short_title
     cycle_label = cycle.week or cycle.title
     type_label = aliquot.aliquot_type.name
@@ -347,7 +365,7 @@ def make_aliquot_label(aliquot):
     lines = [
         u'{}'.format(aliquot.id),
         u'{}   {}   {}'.format(aliquot.id, pid, enrollment_number),
-        u'C: {} S: {}'.format(collect_date_label, store_date_label),
+        u'{} {}'.format(collect_date_label, collect_time_label),
         u'{} - {} - {}'.format(study_label, cycle_label, type_label)
     ]
 
@@ -535,12 +553,12 @@ def filter_aliquot(context, request, state, page_key='page', omit=None):
 
     if 'from_' not in omit and filter_form.from_.data:
         query = query.filter(
-            (models.Aliquot.store_date >= filter_form.from_.data)
+            (models.Aliquot.collect_date >= filter_form.from_.data)
             | (models.Aliquot.inventory_date >= filter_form.from_.data))
 
     if 'to' not in omit and filter_form.to.data:
         query = query.filter(
-            (models.Aliquot.store_date <= filter_form.to.data)
+            (models.Aliquot.collect_date <= filter_form.to.data)
             | (models.Aliquot.inventory_date <= filter_form.to.data))
 
     if 'freezer' not in omit and filter_form.freezer.data:

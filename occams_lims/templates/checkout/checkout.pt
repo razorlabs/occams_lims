@@ -51,7 +51,7 @@
               <td>${subform.ui_selected(**{'data-toggle': 'select'})}</td>
               <td><code>${sample.id}</code></td>
               <td>
-                <div class="pull-right"><code>${sample.store_date}</code></div>
+                <div class="pull-right"><code>${sample.collect_date}</code></div>
                 <div><code>${sample.specimen.patient.pid}</code></div>
                 <div><strong>${sample.specimen.cycle.study.short_title} - ${sample.specimen.cycle.week}</strong></div>
                 <div><span>${sample.aliquot_type.title}<span> &bull; <span>${sample.amount or '--'}${sample.amount and sample.aliquot_type.units}</span></div>
