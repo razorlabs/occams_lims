@@ -72,26 +72,21 @@ def aliquot(context, request):
 
     label_queue = request.session.setdefault(ALIQUOT_LABEL_QUEUE, set())
 
-    if any(i in request.POST for i in ['queue', 'print', 'checkin', 'create']):
-        conditionally_required = required_if('ui_selected')
-    else:
-        conditionally_required = wtforms.validators.optional()
-
     class AliquotForm(wtforms.Form):
         ui_selected = wtforms.BooleanField()
         id = wtforms.IntegerField(
             widget=wtforms.widgets.HiddenInput())
         amount = wtforms.DecimalField(
             places=1,
-            validators=[conditionally_required])
+            validators=[wtforms.validators.required()])
         collect_date = DateField(
             validators=[
-                conditionally_required,
+                wtforms.validators.required(),
                 DateRange(min=date(1900, 1, 1))
             ])
         collect_time = TimeField(
             validators=[
-                conditionally_required,
+                wtforms.validators.required(),
             ])
         freezer = wtforms.StringField(
             validators=[wtforms.validators.optional()])
@@ -407,7 +402,6 @@ def aliquot_labels(context, request):
                         models.Specimen.patient_id,
                         models.Aliquot.aliquot_type_id,
                         models.Aliquot.id))
-
                 printables = iter(make_aliquot_label(s) for s in query)
 
                 stream = six.StringIO()

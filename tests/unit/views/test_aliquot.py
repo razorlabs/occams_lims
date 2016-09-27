@@ -138,7 +138,7 @@ class Test_make_aliquot_label:
         res = self._call_fut(aliquot)
         assert enrollment.reference_number in res[1][1]
 
-    def test_collect_and_store_date(self, db_session, factories):
+    def test_collect_and_collect_date(self, db_session, factories):
         import datetime
         aliquot = factories.AliquotFactory.create()
         factories.EnrollmentFactory.create(
@@ -149,16 +149,10 @@ class Test_make_aliquot_label:
 
         res = self._call_fut(aliquot)
         # these are label rows
-        dates = res[1][2]
+        date_string, time_string = res[1][2].split()
 
-        assert dates[0:2] == u'C:'
-        assert dates[14:16] == u'S:'
-
-        collect_date = datetime.datetime.strptime(dates[3:13], '%m/%d/%Y')
+        collect_date = datetime.datetime.strptime(date_string, '%m/%d/%Y')
         assert isinstance(collect_date, datetime.datetime) is True
-
-        store_date = datetime.datetime.strptime(dates[17:27], '%m/%d/%Y')
-        assert isinstance(store_date, datetime.datetime) is True
 
     def test_ignore_multiple_enrollment_numbers(self, db_session, factories):
         from datetime import timedelta
@@ -380,14 +374,84 @@ class Test_aliquot:
 
         assert len(res['specimen_form']['specimen'].entries) == 1
 
-    def test_no_required_data_aliquot_create(self, req, db_session, factories):
-        """
-        It should not require input for amount, and store_date when
-        aliquot is created
-        """
+    def test_required_collect_date_aliquot_create(self, req, db_session, factories):
+        from datetime import datetime
         import mock
         from webob.multidict import MultiDict
-        from occams_lims import models
+
+        factories.AliquotStateFactory.create(name='pending')
+        aliquot_type = factories.AliquotTypeFactory.create()
+        specimen_type = aliquot_type.specimen_type
+        specimen_pending = factories.SpecimenStateFactory.create(
+            name='pending-aliquot'
+        )
+        specimen = factories.SpecimenFactory.create(
+            state=specimen_pending,
+            specimen_type=specimen_type
+        )
+        db_session.flush()
+
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('specimen-0-ui_selected', '1'),
+            ('specimen-0-count', '2'),
+            ('specimen-0-aliquot_type_id', str(aliquot_type.id)),
+            ('specimen-0-amount', '1.2'),
+            ('specimen-0-collect_date', ''),
+            ('specimen-0-collect_time', str(datetime.now().time().strftime('%H:%M'))),
+            ('template-form', '1'),
+            ('create', '1')
+        ])
+
+        context = specimen.location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        assert 'required' in res['specimen_form'].errors['specimen'][0]['collect_date'][0]
+
+    def test_required_collect_time_aliquot_create(self, req, db_session, factories):
+        from datetime import datetime
+        import mock
+        from webob.multidict import MultiDict
+
+        factories.AliquotStateFactory.create(name='pending')
+        aliquot_type = factories.AliquotTypeFactory.create()
+        specimen_type = aliquot_type.specimen_type
+        specimen_pending = factories.SpecimenStateFactory.create(
+            name='pending-aliquot'
+        )
+        specimen = factories.SpecimenFactory.create(
+            state=specimen_pending,
+            specimen_type=specimen_type
+        )
+        db_session.flush()
+
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('specimen-0-ui_selected', '1'),
+            ('specimen-0-count', '2'),
+            ('specimen-0-aliquot_type_id', str(aliquot_type.id)),
+            ('specimen-0-amount', '1.2'),
+            ('specimen-0-collect_date', str(datetime.now().date())),
+            ('specimen-0-collect_time', ''),
+            ('template-form', '1'),
+            ('create', '1')
+        ])
+
+        context = specimen.location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        assert 'required' in res['specimen_form'].errors['specimen'][0]['collect_time'][0]
+
+    def test_required_amount_aliquot_create(self, req, db_session, factories):
+        from datetime import datetime
+        import mock
+        from webob.multidict import MultiDict
 
         factories.AliquotStateFactory.create(name='pending')
         aliquot_type = factories.AliquotTypeFactory.create()
@@ -409,7 +473,8 @@ class Test_aliquot:
             ('specimen-0-count', '2'),
             ('specimen-0-aliquot_type_id', str(aliquot_type.id)),
             ('specimen-0-amount', ''),
-            ('specimen-0-store_date', ''),
+            ('specimen-0-collect_date', str(datetime.now().date())),
+            ('specimen-0-collect_time', str(datetime.now().time().strftime('%H:%M'))),
             ('template-form', '1'),
             ('create', '1')
         ])
@@ -418,19 +483,11 @@ class Test_aliquot:
         context.request = req
         res = self._call_fut(context, req)
 
-        aliquot_query = (
-            db_session.query(models.Aliquot)
-            .filter_by(specimen=specimen))
+        assert 'required' in res['specimen_form'].errors['specimen'][0]['amount'][0]
 
-        assert aliquot_query.count() == 2
-        assert res.status_code == 302, 'Should be status code 302'
-
-    def test_no_required_data_aliquot_save(self, req, db_session, factories):
-        """
-        It should not require input for amount, and store_date when
-        aliquot is saved (works in progress)
-        """
+    def test_require_amount_aliquot_save(self, req, db_session, factories):
         import mock
+        from datetime import datetime
         from webob.multidict import MultiDict
 
         location = factories.LocationFactory.create()
@@ -454,7 +511,8 @@ class Test_aliquot:
         req.POST = MultiDict([
             ('aliquot-0-ui_selected', ''),
             ('aliquot-0-amount', ''),
-            ('aliquot-0-store_date', ''),
+            ('aliquot-0-collect_date', str(datetime.now().date())),
+            ('aliquot-0-collect_time', str(datetime.now().time().strftime('%H:%M'))),
             ('aliquot-form', '1'),
             ('save', '1'),
         ])
@@ -463,18 +521,11 @@ class Test_aliquot:
         context.request = req
         res = self._call_fut(context, req)
 
-        assert aliquot.store_date is None
-        assert aliquot.amount is None
-        assert res.status_code == 302, 'Should be status code 302'
+        assert 'required' in res['aliquot_form'].errors['aliquot'][0]['amount'][0]
 
-    @pytest.mark.parametrize('button', ['queue', 'checkin'])
-    def test_required_data_aliquot_on_button(
-            self, req, db_session, factories, button):
-        """
-        It should not require input for amount, and store_date when
-        aliquot is checked-in
-        """
+    def test_require_collect_date_aliquot_save(self, req, db_session, factories):
         import mock
+        from datetime import datetime
         from webob.multidict import MultiDict
 
         location = factories.LocationFactory.create()
@@ -484,9 +535,8 @@ class Test_aliquot:
         aliquot_pending = factories.AliquotStateFactory.create(name='pending')
         factories.AliquotStateFactory.create(name='checked-in')
 
-        factories.SpecimenFactory.create()
-
         aliquot = factories.AliquotFactory.create(
+            specimen__location=location,
             specimen__state=specimen_state,
             state=aliquot_pending,
             location=location,
@@ -497,23 +547,98 @@ class Test_aliquot:
         req.method = 'POST'
         req.GET = MultiDict()
         req.POST = MultiDict([
-            ('aliquot-0-id', str(aliquot.id)),
-            ('aliquot-0-ui_selected', 'true'),
-            ('aliquot-0-aliquot_type_id', '56'),
-            ('aliquot-0-amount', ''),
-            ('aliquot-0-store_date', ''),
+            ('aliquot-0-ui_selected', ''),
+            ('aliquot-0-amount', '9.99'),
+            ('aliquot-0-collect_date', ''),
+            ('aliquot-0-collect_time', str(datetime.now().time().strftime('%H:%M'))),
             ('aliquot-form', '1'),
-            (button, '1'),
+            ('save', '1'),
         ])
 
         context = aliquot.location
         context.request = req
         res = self._call_fut(context, req)
 
-        assert 'required' in \
-            res['aliquot_form'].errors['aliquot'][0]['store_date'][0]
-        assert 'required' in \
-            res['aliquot_form'].errors['aliquot'][0]['amount'][0]
+        assert 'required' in res['aliquot_form'].errors['aliquot'][0]['collect_date'][0]
+
+    def test_require_collect_time_aliquot_save(self, req, db_session, factories):
+        import mock
+        from datetime import datetime
+        from webob.multidict import MultiDict
+
+        location = factories.LocationFactory.create()
+        specimen_state = factories.SpecimenStateFactory.create(
+            name='complete'
+        )
+        aliquot_pending = factories.AliquotStateFactory.create(name='pending')
+        factories.AliquotStateFactory.create(name='checked-in')
+
+        aliquot = factories.AliquotFactory.create(
+            specimen__location=location,
+            specimen__state=specimen_state,
+            state=aliquot_pending,
+            location=location,
+        )
+        db_session.flush()
+
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('aliquot-0-ui_selected', ''),
+            ('aliquot-0-amount', '9.99'),
+            ('aliquot-0-collect_date', str(datetime.now().date())),
+            ('aliquot-0-collect_time', ''),
+            ('aliquot-form', '1'),
+            ('save', '1'),
+        ])
+
+        context = aliquot.location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        assert 'required' in res['aliquot_form'].errors['aliquot'][0]['collect_time'][0]
+
+    def test_aliquot_save(self, req, db_session, factories):
+        import mock
+        from datetime import datetime
+        from webob.multidict import MultiDict
+
+        location = factories.LocationFactory.create()
+        specimen_state = factories.SpecimenStateFactory.create(
+            name='complete'
+        )
+        aliquot_pending = factories.AliquotStateFactory.create(name='pending')
+        factories.AliquotStateFactory.create(name='checked-in')
+
+        aliquot = factories.AliquotFactory.create(
+            specimen__location=location,
+            specimen__state=specimen_state,
+            state=aliquot_pending,
+            location=location,
+        )
+        db_session.flush()
+
+        req.current_route_path = mock.Mock(return_value='/a/b/c')
+        req.method = 'POST'
+        req.GET = MultiDict()
+        req.POST = MultiDict([
+            ('aliquot-0-ui_selected', ''),
+            ('aliquot-0-amount', '9.99'),
+            ('aliquot-0-collect_date', str(datetime.now().date())),
+            ('aliquot-0-collect_time', str(datetime.now().time().strftime('%H:%M'))),
+            ('aliquot-form', '1'),
+            ('save', '1'),
+        ])
+
+        context = aliquot.location
+        context.request = req
+        res = self._call_fut(context, req)
+
+        assert aliquot.collect_date is not None
+        assert aliquot.collect_time is not None
+        assert str(aliquot.amount) == '9.99'
+        assert res.status_code == 302, 'Should be status code 302'
 
     def test_view_and_process_permissions(self, req, config,
                                           db_session, factories):
@@ -580,7 +705,7 @@ class Test_aliquot:
             ('aliquot-0-ui_selected', 'true'),
             ('aliquot-0-aliquot_type_id', aliquot.specimen.specimen_type_id),
             ('aliquot-0-amount', aliquot.amount),
-            ('aliquot-0-store_date', aliquot.store_date.strftime('%Y-%m-%d')),
+            ('aliquot-0-collect_date', aliquot.collect_date.strftime('%Y-%m-%d')),
             ('aliquot-form', '1'),
             ('delete', '1'),
         ])

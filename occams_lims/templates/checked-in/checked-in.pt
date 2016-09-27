@@ -66,7 +66,7 @@
                   ${field(class_='form-control')}
                     <span class="input-group-addon"
                           tal:condition="units"
-                      >${sample.aliquot_type.units}</span>
+                      ><small>${sample.aliquot_type.units}</small></span>
                 </div>
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
