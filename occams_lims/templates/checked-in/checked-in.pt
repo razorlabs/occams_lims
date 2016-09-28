@@ -57,13 +57,6 @@
                 <div><code>${sample.specimen.patient.pid}</code></div>
                 <div><strong>${sample.specimen.cycle.study.short_title} - ${sample.specimen.cycle.week}</strong></div>
                 <div>${sample.aliquot_type.title}</div>
-                <hr />
-                <div class="text-muted">
-                <div class="pull-right"><code>${sample.sent_date}</code></div>
-                <div><strong>${sample.sent_name}</strong></div>
-                <div tal:condition="sample.sent_notes">
-                  <span tal:omit-tag="" tal:repeat="line sample.sent_notes.splitlines()">${line}<br /></span></div>
-                </div>
               </td>
 
               <td tal:define="field subform.amount">
@@ -112,9 +105,10 @@
       <button
           type="submit"
           class="btn btn-default"
-          name="checkin"
+          name="pending-checkout"
+          tal:condition="request.has_permission('process')"
           tal:attributes="disabled not:has_aliquot"
-          >Mark Selection as Checked In</button>
+          >Mark Selection as Pending Check-Out</button>
       <button
           type="submit"
           class="btn btn-primary"
@@ -123,8 +117,6 @@
           >Save All Changes</button>
 
     </form>
-
-    <div id="modal-target" class="modal fade"></div>
 
   </metal:content-slot>
 

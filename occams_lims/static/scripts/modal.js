@@ -27,10 +27,14 @@
     $.post(url, data, function(response, status, xhr){
       var contentType = xhr.getResponseHeader('Content-Type');
       if (contentType.indexOf('pdf') > 0){
+
+        // Use FileSaver polyfill to prompt for download instead of popup
         var file = new Blob([response], {type: 'application/pdf'});
-        var fileURL = URL.createObjectURL(file);
-        window.open(fileURL);
-        window.location.reload();
+        saveAs(file)
+
+        // Ensure the page refreshes after save
+        setTimeout(function() { window.location.reload(); }, 100);
+
       } else if (contentType.indexOf('json') > 0) {
         window.location = response.__next__
       } else {
