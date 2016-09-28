@@ -127,10 +127,10 @@
         <button
             type="submit"
             class="btn btn-default"
-            name="cancel-draw"
+            name="not-collected"
             tal:attributes="disabled not:has_specimen"
             tal:condition="request.has_permission('process')"
-            >Mark Selection as Canceled Draw</button>
+            >Mark Selection as Not Collected</button>
         <button
             type="submit"
             class="btn btn-default"

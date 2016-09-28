@@ -214,7 +214,7 @@ def populate_default_specimen_states(target, connection, **kw):
 
     connection.execute(target.insert().values([
         state(name=u'pending-draw', title=u'Pending Draw'),
-        state(name=u'cancel-draw', title=u'Draw Cancelled'),
+        state(name=u'not-collected', title=u'Not Collected'),
         state(name=u'pending-aliquot', title=u'Pending Aliquot'),
         state(name=u'aliquoted', title=u'Aliquoted'),
         state(name=u'rejected', title=u'Rejected'),

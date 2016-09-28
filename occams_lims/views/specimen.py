@@ -137,7 +137,7 @@ def specimen(context, request):
                 request.session.flash(u'Please select specimen', 'warning')
             return HTTPFound(location=request.current_route_path())
 
-        for state_name in ('cancel-draw', 'pending-aliquot'):
+        for state_name in ('not-collected', 'pending-aliquot'):
             if state_name in request.POST:
                 state = (
                     db_session.query(models.SpecimenState)
