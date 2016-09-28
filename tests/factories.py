@@ -7,6 +7,8 @@ Note that dependent structures are only implemented minimally.
 Do not import this module directly, we've setup a fixture for this.
 """
 
+from datetime import datetime
+
 import factory
 from factory.alchemy import SQLAlchemyModelFactory
 
@@ -105,7 +107,7 @@ class SpecimenFactory(SQLAlchemyModelFactory):
     cycle = factory.SubFactory(CycleFactory)
     state = factory.SubFactory(SpecimenStateFactory)
     collect_date = factory.Faker('date_time_this_year')
-    collect_time = factory.Faker('time')
+    collect_time = factory.LazyAttribute(lambda o: datetime.now().time())
     location = factory.SubFactory(LocationFactory)
     previous_location = factory.SubFactory(LocationFactory)
     tubes = factory.Faker('pyint')
@@ -130,16 +132,16 @@ class AliquotFactory(SQLAlchemyModelFactory):
     specimen = factory.SubFactory(SpecimenFactory)
     aliquot_type = factory.SubFactory(AliquotTypeFactory)
     state = factory.SubFactory(AliquotStateFactory)
-    labbook = factory.Faker('ean8')
     amount = factory.Faker('pydecimal')
-    store_date = factory.Faker('date_time_this_year')
+    collect_date = factory.Faker('date_time_this_year')
+    collect_time = factory.LazyAttribute(lambda o: datetime.now().time())
     freezer = factory.Faker('random_digit')
     rack = factory.Faker('random_digit')
     box = factory.Faker('random_digit')
     location = factory.SubFactory(LocationFactory)
     previous_location = factory.SubFactory(LocationFactory)
     thawed_num = factory.Faker('pyint')
-    inventory_date = factory.LazyAttribute(lambda o: o.store_date)
-    sent_date = factory.LazyAttribute(lambda o: o.store_date)
+    inventory_date = factory.LazyAttribute(lambda o: o.collect_date)
+    sent_date = factory.LazyAttribute(lambda o: o.collect_date)
     sent_name = factory.Faker('name')
     sent_notes = factory.Faker('paragraph')

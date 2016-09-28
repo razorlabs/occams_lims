@@ -7,10 +7,6 @@
     ${field(class_='form-control js-select2', placeholder=field.label.text)}
   </div>
   <!--! select2 doesn't play nicely with inline forms so we must manually set a min-width -->
-  <div tal:define="field form.aliquot_states|nothing" tal:condition="field" class="form-group" style="min-width: 200px">
-    ${field(class_='form-control js-select2', placeholder=field.label.text)}
-  </div>
-  <!--! select2 doesn't play nicely with inline forms so we must manually set a min-width -->
   <div tal:define="field filter_form.visit_cycles|nothing" tal:condition="field" class="form-group" style="min-width: 200px">
     ${field(class_='form-control js-select2', placeholder=field.label.text)}
   </div>

@@ -6,6 +6,7 @@ from reportlab.lib.pagesizes import A4, landscape, letter
 from reportlab.platypus import \
     SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
 from pyramid.httpexceptions import HTTPFound, HTTPOk
 from pyramid.response import FileIter
 from pyramid.view import view_config
@@ -220,7 +221,7 @@ def checkout_receipt(context, request):
         leftMargin=30,
         topMargin=30,
         bottomMargin=18)
-    doc.pagesize = letter
+    doc.pagesize = landscape(letter)
     elements = []
     styles = getSampleStyleSheet()
     paragraph_style = styles['Normal']
@@ -266,28 +267,50 @@ def checkout_receipt(context, request):
     s = s['BodyText']
     s.wordWrap = 'CJK'
 
-    header = [[
-        _(u'ID'), _(u'PID'), _(u'Study / Week'), _(u'Store Date'),
-        _(u'Type'), _(u'Amount'), _(u'Notes')
-    ]]
+    header = [
+        _(u'ID'),
+        _(u'PID'),
+        _(u'Collect Date & Time'),
+        _(u'Visit'),
+        _(u'Type'),
+        _(u'Amt.'),
+        _(u'Sent Date'),
+        _(u'Shipping Notes')
+    ]
 
-    rows = chain(header, iter([
+    full_width = 10 * inch
+
+    column_widths = [
+        0.07 * full_width,   # id
+        0.08 * full_width,   # pid
+        0.15 * full_width,   # collect date
+        0.10 * full_width,   # visit
+        0.15 * full_width,   # type
+        0.10 * full_width,   # amount
+        0.10 * full_width,   # sent date
+        0.25 * full_width,   # shipping notes
+    ]
+
+    rows = chain([header], iter([
         six.text_type(sample.id),
         six.text_type(sample.specimen.patient.pid),
+        '{} {}'.format(
+            sample.collect_date.isoformat(),
+            sample.collect_time.strftime('%H:%M')),
         u'{0} - {1}'.format(
             sample.specimen.cycle.study.short_title,
             sample.specimen.cycle.week),
-        sample.store_date.isoformat(),
         sample.aliquot_type.title,
         u'{0}{1}'.format(
             six.text_type(sample.amount or u'--'),
             sample.aliquot_type.units or u''),
-        '{0}\n{1}'.format(sample.notes or '', sample.sent_notes or '')
+        sample.sent_date.isoformat() if sample.sent_date else '',
+        sample.sent_notes or '',
         ] for sample in query
     ))
 
     data = [[Paragraph(cell, s) for cell in row] for row in rows]
-    t = Table(data)
+    t = Table(data, colWidths=column_widths)
     t.setStyle(style)
 
     # Send the data and build the file

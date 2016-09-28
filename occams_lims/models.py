@@ -467,11 +467,19 @@ class Specimen(LimsModel,
         SpecimenState,
         primaryjoin=(state_id == SpecimenState.id))
 
-    collect_date = sa.Column(sa.Date)
+    collect_date = sa.Column(
+        sa.Date,
+        nullable=False,
+        server_default=sa.text('CURRENT_TIMESTAMP')
+    )
 
-    collect_time = sa.Column(sa.Time)
+    collect_time = sa.Column(
+        sa.Time,
+        nullable=False,
+        server_default=sa.text('CURRENT_TIMESTAMP')
+    )
 
-    location_id = sa.Column(sa.Integer)
+    location_id = sa.Column(sa.Integer, nullable=False)
 
     location = orm.relationship(
         Location,
@@ -533,7 +541,7 @@ class Specimen(LimsModel,
                 columns=['location_id'],
                 refcolumns=['location.id'],
                 name='fk_%s_location_id' % cls.__tablename__,
-                ondelete='SET NULL'),
+                ondelete='CASCADE'),
             sa.ForeignKeyConstraint(
                 columns=['previous_location_id'],
                 refcolumns=['location.id'],
@@ -593,11 +601,19 @@ class Aliquot(LimsModel,
         AliquotState,
         primaryjoin=(state_id == AliquotState.id))
 
-    labbook = sa.Column(sa.Unicode, doc='Lab Book number')
-
     amount = sa.Column('amount', sa.Numeric)
 
-    store_date = sa.Column(sa.Date)
+    collect_date = sa.Column(
+        sa.Date,
+        nullable=False,
+        server_default=sa.text('CURRENT_TIMESTAMP')
+    )
+
+    collect_time = sa.Column(
+        sa.Time,
+        nullable=False,
+        server_default=sa.text('CURRENT_TIMESTAMP')
+    )
 
     freezer = sa.Column(sa.Unicode)
 
@@ -605,7 +621,7 @@ class Aliquot(LimsModel,
 
     box = sa.Column(sa.Unicode)
 
-    location_id = sa.Column(sa.Integer)
+    location_id = sa.Column(sa.Integer, nullable=False)
 
     location = orm.relationship(
         Location,
@@ -652,7 +668,7 @@ class Aliquot(LimsModel,
                 columns=['location_id'],
                 refcolumns=['location.id'],
                 name='fk_%s_location_id' % cls.__tablename__,
-                ondelete='SET NULL'),
+                ondelete='CASCADE'),
             sa.ForeignKeyConstraint(
                 columns=['previous_location_id'],
                 refcolumns=['location.id'],

@@ -51,7 +51,7 @@
               <td>${subform.ui_selected(**{'data-toggle': 'select'})}</td>
               <td><code>${sample.id}</code></td>
               <td>
-                <div class="pull-right"><code>${sample.store_date}</code></div>
+                <div class="pull-right"><code>${sample.collect_date}</code></div>
                 <div><code>${sample.specimen.patient.pid}</code></div>
                 <div><strong>${sample.specimen.cycle.study.short_title} - ${sample.specimen.cycle.week}</strong></div>
                 <div><span>${sample.aliquot_type.title}<span> &bull; <span>${sample.amount or '--'}${sample.amount and sample.aliquot_type.units}</span></div>
@@ -93,44 +93,27 @@
           class="btn btn-default"
           name="bulk_update"
           tal:attributes="disabled not:has_aliquot"
-          data-modal-remote="${request.current_route_path(_route_name='lims.checkout_update')}"
           data-modal-target="#modal-target"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-content="Opens a new window for updating *all* of the aliquot in the checkout queue. NOTE: There may be more aliquot in the queue than you see on the screen"
-          >Bulk Update</button>
+          data-modal-remote="${request.current_route_path(_route_name='lims.checkout_update')}"
+          >Bulk Update Selection</button>
       <button
           type="submit"
           class="btn btn-default"
           name="return"
           tal:attributes="disabled not:has_aliquot"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-html="true"
-          data-content="Return the selected aliquot to a <b>Checked In</b> state. This will reset the location to the current lab location. "
-          >Return</button>
+          >Mark Selection as Checked In</button>
       <button
           type="submit"
           class="btn btn-default"
           name="complete"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-content="Finalize checkout for selected aliquot. These aliquot can be checked back in"
           tal:attributes="disabled not:has_aliquot"
-          >Check Out</button>
+          >Mark Selection as Checked Out</button>
       <button
           type="submit"
           class="btn btn-primary"
           name="save"
           tal:attributes="disabled not:has_aliquot"
-          data-toggle="popover"
-          data-trigger="hover"
-          data-placement="top"
-          data-content=" Saves all of the changes entered to the database. This applies to all aliquot, not just selected aliquot. "
-          >Save</button>
+          >Save All Changes</button>
 
     </form>
 

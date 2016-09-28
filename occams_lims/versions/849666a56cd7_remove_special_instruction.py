@@ -17,6 +17,7 @@ import sqlalchemy as sa
 
 def upgrade():
     op.drop_column('aliquot', 'special_instruction_id')
+    op.drop_column('aliquot_audit', 'special_instruction_id')
     op.drop_table('specialinstruction')
 
 
