@@ -216,6 +216,29 @@ def aliquot(context, request):
                 request.session.flash(_(u'No Aliquot created.'), 'warning')
             return HTTPFound(location=request.current_route_path())
 
+        elif 'pending-draw' in request.POST:
+            state_name = 'pending-draw'
+            state = (
+                db_session.query(models.SpecimenState)
+                .filter_by(name=state_name)
+                .one())
+            transitioned_count = 0
+            for i, subform in enumerate(specimen_form.specimen.entries):
+                if subform.ui_selected.data:
+                    specimen[i].state = state
+                    transitioned_count += 1
+            if transitioned_count:
+                db_session.flush()
+                request.session.flash(
+                    _(u'${count} specimen have been changed to the '
+                      u'status of ${state}.',
+                        mapping={'count': transitioned_count,
+                                 'state': state.title}),
+                    'success')
+            else:
+                request.session.flash(u'Please select specimen', 'warning')
+            return HTTPFound(location=request.current_route_path())
+
         elif 'aliquoted' in request.POST:
             state_name = 'aliquoted'
             state = (
