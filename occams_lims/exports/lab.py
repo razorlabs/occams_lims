@@ -86,7 +86,7 @@ class LabPlan(ExportPlan):
         query = (
             session.query(
                 lims.AliquotType.title.label('aliquot_type'),
-                lims.Aliquot.store_date.label('store_date'),
+                lims.Aliquot.collect_date.label('store_date'),
                 lims.Aliquot.amount.label('amount'),
                 lims.AliquotType.units.label('units'),
                 AliquotLocation.title.label('aliquot_location'),
@@ -142,7 +142,7 @@ class LabPlan(ExportPlan):
                                   lims.Aliquot.box) != null())
             .group_by(
                 lims.AliquotType.title,
-                lims.Aliquot.store_date,
+                lims.Aliquot.collect_date,
                 lims.Aliquot.amount,
                 lims.AliquotType.units,
                 AliquotLocation.title,
