@@ -33,9 +33,9 @@ wtforms-json
 wtforms-components
 zope.sqlalchemy
 
--e git+https://github.com/razorlabs/occams_datastore@master#egg=occams_datastore
--e git+https://github.com/razorlabs/occams@master#egg=occams
--e git+https://github.com/razorlabs/occams_accounts@master#egg=occams_accounts
--e git+https://github.com/razorlabs/occams_forms@master#egg=occams_forms
--e git+https://github.com/razorlabs/occams_roster@master#egg=occams_roster
--e git+https://github.com/razorlabs/occams_studies@master#egg=occams_studies
+-e git+https://github.com/razorlabs/occams_datastore@3_x_x#egg=occams_datastore
+-e git+https://github.com/razorlabs/occams@3_x_x#egg=occams
+-e git+https://github.com/razorlabs/occams_accounts@3_x_x#egg=occams_accounts
+-e git+https://github.com/razorlabs/occams_forms@3_x_x#egg=occams_forms
+-e git+https://github.com/razorlabs/occams_roster@3_x_x#egg=occams_roster
+-e git+https://github.com/razorlabs/occams_studies@3_x_x#egg=occams_studies
