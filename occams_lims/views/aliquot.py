@@ -112,17 +112,16 @@ def aliquot(context, request):
         def __init__(self, *args, **kw):
             super(AliquotForm, self).__init__(*args, **kw)
 
+            specimen = None
+
             if 'obj' in kw:
                 obj = kw['obj']
                 if isinstance(obj, models.Specimen):
                     specimen = obj
                 elif isinstance(obj, models.Aliquot):
                     specimen = obj.specimen
-            else:
-                try:
-                    specimen = kw['specimen']
-                except KeyError:
-                    specimen = None
+            elif 'specimen' in kw:
+                specimen = kw['specimen']
 
             if specimen:
                 self.aliquot_type_id.choices = [
