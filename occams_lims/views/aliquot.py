@@ -97,7 +97,34 @@ def aliquot(context, request):
         notes = wtforms.TextAreaField(
             validators=[wtforms.validators.optional()])
 
-    class SpecimenAliquotForm(AliquotForm):
+    class SpecimenAliquotForm(wtforms.Form):
+        """
+        Similar form to Aliquot, except the fields are conditionally required
+        if they are selected
+        """
+
+        ui_selected = wtforms.BooleanField()
+        id = wtforms.IntegerField(
+            widget=wtforms.widgets.HiddenInput())
+        amount = wtforms.DecimalField(
+            places=1,
+            validators=[required_if('ui_selected')])
+        collect_date = DateField(
+            validators=[
+                required_if('ui_selected'),
+                DateRange(min=date(1900, 1, 1))
+            ])
+        collect_time = TimeField(
+            validators=[required_if('ui_selected')])
+        freezer = wtforms.StringField(
+            validators=[wtforms.validators.optional()])
+        rack = wtforms.StringField(
+            validators=[wtforms.validators.optional()])
+        box = wtforms.StringField(
+            validators=[wtforms.validators.optional()])
+        notes = wtforms.TextAreaField(
+            validators=[wtforms.validators.optional()])
+
         count = wtforms.IntegerField(
             validators=[
                 required_if('ui_selected'),
@@ -110,7 +137,7 @@ def aliquot(context, request):
         )
 
         def __init__(self, *args, **kw):
-            super(AliquotForm, self).__init__(*args, **kw)
+            super(SpecimenAliquotForm, self).__init__(*args, **kw)
 
             specimen = None
 

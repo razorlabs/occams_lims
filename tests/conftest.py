@@ -223,6 +223,7 @@ def wsgi(request):
 
     :returns: a WSGI application
     """
+    import os
     import tempfile
     import shutil
     import six
@@ -245,6 +246,9 @@ def wsgi(request):
 
     tmp_dir = tempfile.mkdtemp()
 
+    here = os.path.abspath(os.path.dirname(__file__))
+    assets_dir = os.path.abspath(os.path.join(here, '../occams_lims/static'))
+
     wsgi = main({}, **{
         'redis.url': REDIS_URL,
         'redis.sessions.secret': 'sekrit',
@@ -257,7 +261,9 @@ def wsgi(request):
         'pyramid.debug_all': True,
 
         'webassets.debug': True,
-
+        'webassets.base_dir': 'occams:static',
+        'webassets.base_url': '/static',
+        'webassets.paths': '{"%s": "/lims/static"}' % assets_dir,
         'occams.apps': 'occams_lims',
 
         'occams.db.url': db_url,
