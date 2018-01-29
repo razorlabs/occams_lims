@@ -691,23 +691,3 @@ class Aliquot(LimsModel,
                 'previous_location_id'),
             sa.Index('ix_%s_state_id' % cls.__tablename__, 'state_id'))
 
-
-class BoxFactory(dict):
-
-    __acl__ = [
-        (Allow, groups.administrator(), ALL_PERMISSIONS),
-        (Allow, Authenticated, 'view')
-        ]
-
-    def __init__(self, request):
-        self.request = request
-
-    def __getitem__(self, key):
-        db_session = self.request.db_session
-        try:
-            box = db_session.query(Box).filter_by(id=key).one()
-        except orm.exc.NoResultFound:
-            raise KeyError
-        box.__parent__ = self
-        return box
-
