@@ -39,7 +39,7 @@
             <th i18n:translate="" class="required">Amount</th>
             <th i18n:translate="">Freezer</th>
             <th i18n:translate="">Rack</th>
-            <th i18n:translate="">Box</th>
+            <th i18n:translate="">Row/Column/Box</th>
             <th i18n:translate="">Thawed Count</th>
             <th i18n:translate="">Location</th>
             <th i18n:translate="">Notes</th>
@@ -78,9 +78,26 @@
                 ${field(class_='form-control')}
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
-              <td tal:define="field subform.box">
-                ${field(class_='form-control')}
-                <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+              <td class="form-inline text-nowrap">
+                  <span tal:define="field subform.box_row">
+                    ${field(class_='form-control box_row', size=2)}
+                    <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                  </span>
+                  <span tal:define="field subform.box_column">
+                    ${field(class_='form-control box_column', size=2)}
+                    <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                  </span>
+                  <span tal:define="field subform.box">
+                    ${field(class_='form-control', size=2)}
+                    <button
+                        class="btn btn-outline-secondary"
+                        id="box-modal"
+                        data-remote="${request.current_route_path(_route_name='lims.boxes')}"
+                        type=button">
+                        View
+                    </button>
+                  <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                  </span>
               </td>
               <td tal:define="field subform.thawed_num">
                 ${field(class_='form-control')}
