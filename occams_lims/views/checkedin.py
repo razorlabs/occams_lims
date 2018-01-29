@@ -39,6 +39,10 @@ def checked_in(context, request):
             validators=[wtforms.validators.optional()])
         rack = wtforms.StringField(
             validators=[wtforms.validators.optional()])
+        box_row = wtforms.StringField(
+            validators=[wtforms.validators.optional()])
+        box_column = wtforms.StringField(
+            validators=[wtforms.validators.optional()])
         box = wtforms.StringField(
             validators=[wtforms.validators.optional()])
         thawed_num = wtforms.IntegerField(

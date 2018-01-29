@@ -94,6 +94,10 @@ def aliquot(context, request):
             validators=[wtforms.validators.optional()])
         box = wtforms.StringField(
             validators=[wtforms.validators.optional()])
+        box_column = wtforms.StringField(
+            validators=[wtforms.validators.optional()])
+        box_row = wtforms.StringField(
+            validators=[wtforms.validators.optional()])
         notes = wtforms.TextAreaField(
             validators=[wtforms.validators.optional()])
 
