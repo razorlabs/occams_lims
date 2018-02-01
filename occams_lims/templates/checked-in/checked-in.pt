@@ -81,22 +81,25 @@
               <td class="form-inline text-nowrap">
                   <span tal:define="field subform.box_row">
                     ${field(class_='form-control box_row', size=2)}
-                    <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                                        <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                   </span>
                   <span tal:define="field subform.box_column">
                     ${field(class_='form-control box_column', size=2)}
                     <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                   </span>
                   <span tal:define="field subform.box">
-                    ${field(class_='form-control', size=2)}
-                    <button
-                        class="btn btn-outline-secondary"
-                        id="box-modal"
-                        data-remote="${request.current_route_path(_route_name='lims.boxes')}"
-                        type=button">
-                        View
-                    </button>
-                  <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                    ${field(class_='form-control box', size=2)}
+                      <button
+                          type="button"
+                          class="btn btn-default"
+                          name="box_view"
+                          data-modal-remote="${request.current_route_path(_route_name='lims.boxes')}"
+                          data-modal-target="#modal-target"
+                          tal:condition="request.has_permission('view')">
+                          View
+                      </button>
+
+                                      <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                   </span>
               </td>
               <td tal:define="field subform.thawed_num">
@@ -134,7 +137,7 @@
           >Save All Changes</button>
 
     </form>
-
+        <div id="modal-target" class="modal fade"></div>
   </metal:content-slot>
 
 </html>
