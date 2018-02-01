@@ -1,4 +1,4 @@
-from pyramid.httpexceptions import HTTPFound
+from pyramid.httpexceptions import HTTPFound, HTTPOk
 from pyramid.view import view_config
 from pyramid.session import check_csrf_token
 import wtforms
@@ -98,3 +98,41 @@ def checked_in(context, request):
     })
 
     return vals
+
+def build_box_form(context, request):
+    db_session = request.db_session
+
+    def row_col_conflict():
+        pass
+
+    class BoxForm(wtforms.Form):
+        row = wtforms.StringField(
+            'row',
+            [wtforms.validators.Optional(),
+             row_col_conflict,
+             wtforms.validators.NumberRange(min=1, max=9)
+            ])
+
+        column = wtforms.StringField(
+            'column',
+            [wtforms.validators.Optional(),
+             row_col_conflict,
+             wtforms.validators.Regexp(
+                '[a-i]', message='row must be between a-i')
+            ])
+
+    return BoxForm
+
+@view_config(
+    route_name='lims.boxes',
+    permission='view',
+    renderer='../templates/checked-in/modal-boxes.pt')
+def box_grid(context, request):
+    db_session = request.db_session
+    Form = build_box_form(context, request)
+    form = Form(request.POST)
+
+    return {
+        'form': form
+    }
+
