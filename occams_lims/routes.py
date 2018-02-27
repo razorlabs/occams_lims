@@ -30,5 +30,7 @@ def includeme(config):
     config.add_route('lims.checkin',            '/{lab}/checkin',          factory=models.LabFactory, traverse='/{lab}')
     config.add_route('lims.checked-in',         '/{lab}/checked-in',       factory=models.LabFactory, traverse='/{lab}')
     config.add_route('lims.boxes',              '/{lab}/boxes',            factory=models.LabFactory, traverse='/{lab}')
+    config.add_route('lims.boxes_json',         '/{lab}/boxes_json',       factory=models.LabFactory, traverse='/{lab}')
+    config.add_route('lims.boxes_ajax',         '/{lab}/boxes_ajax',       factory=models.LabFactory, traverse='/{lab}')
 
     log.debug('Routes configured')
