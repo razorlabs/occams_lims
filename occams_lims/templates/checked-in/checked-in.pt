@@ -18,7 +18,7 @@
     <form method="POST" action="${request.current_route_path()}">
       <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
 
-      <table class="table table-bordered table-hover table-striped" tal:condition="has_aliquot">
+      <table id="main" class="table table-bordered table-hover table-striped" tal:condition="has_aliquot">
         <colgroup>
           <col class="select"></col>
           <col class="id"></col>
@@ -88,18 +88,19 @@
                     <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                   </span>
                   <span tal:define="field subform.box">
-                    ${field(class_='form-control box', size=2)}
+                    ${field(class_='form-control box', size=6)}
                       <button
                           type="button"
                           class="btn btn-default"
+                          id="${repeat.sample.index}"
                           name="box_view"
-                          data-modal-remote="${request.current_route_path(_route_name='lims.boxes')}"
+                          data-modal-remote="${request.current_route_path(_route_name='lims.boxes_json')}"
                           data-modal-target="#modal-target"
                           tal:condition="request.has_permission('view')">
                           View
                       </button>
-
-                                      <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                      <div id="modal-target" class="modal fade"></div>
+                      <div class="text-danger" tal:repeat="error field.errors">${error}</div>
                   </span>
               </td>
               <td tal:define="field subform.thawed_num">
@@ -137,7 +138,6 @@
           >Save All Changes</button>
 
     </form>
-        <div id="modal-target" class="modal fade"></div>
   </metal:content-slot>
 
 </html>
