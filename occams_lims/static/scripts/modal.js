@@ -5,12 +5,18 @@
   // requires data-remote="" attribute and a modal target
   $('button[data-modal-remote]').on('click', function(event){
     var $button = $(event.target),
+        // Grab id of object triggering modal; tal:repeat index row for example
+        // see checked-in.pt for repeat .index example (line 95)
+        data = this.id,
         $modal = $($button.data('modal-target')),
         remote = $button.data('modal-remote');
-      $modal.load(remote, function(response, status, xhr){
+        // Sets data-target variable to id of the object calling the modal
+        $modal.attr('data-target', data);
+        $modal.load(remote, function(response, status, xhr){
         $modal.modal('show');
-      });
+        });
   });
+
 
   // general submit button handler for modal forms
   $(document).on('click', '.modal [type="submit"]', function(event){
