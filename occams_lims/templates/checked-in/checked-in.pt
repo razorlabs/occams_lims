@@ -79,16 +79,14 @@
                 <div class="text-danger" tal:repeat="error field.errors">${error}</div>
               </td>
               <td class="form-inline text-nowrap">
-                  <span tal:define="field subform.box_row">
-                    ${field(class_='form-control box_row', size=2)}
-                                        <div class="text-danger" tal:repeat="error field.errors">${error}</div>
-                  </span>
-                  <span tal:define="field subform.box_column">
-                    ${field(class_='form-control box_column', size=2)}
-                    <div class="text-danger" tal:repeat="error field.errors">${error}</div>
-                  </span>
-                  <span tal:define="field subform.box">
-                    ${field(class_='form-control box', size=6)}
+                  <span tal:define="row subform.box_row;
+                                    column subform.box_column;
+                                    box subform.box">
+                    ${row(class_='form-control box_row', size=2)}
+                    <div class="text-danger" tal:repeat="error row.errors">${error}</div>
+                    ${column(class_='form-control box_column', size=2)}
+                    <div class="text-danger" tal:repeat="error column.errors">${error}</div>
+                    ${box(class_='form-control box', size=6)}
                       <button
                           type="button"
                           class="btn btn-default"
@@ -100,7 +98,7 @@
                           View
                       </button>
                       <div id="modal-target" class="modal fade"></div>
-                      <div class="text-danger" tal:repeat="error field.errors">${error}</div>
+                      <div class="text-danger" tal:repeat="error box.errors">${error}</div>
                   </span>
               </td>
               <td tal:define="field subform.thawed_num">
