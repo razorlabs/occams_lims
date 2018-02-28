@@ -1,0 +1,64 @@
+<div class="modal-dialog modal-lg">
+  <div class="modal-content">
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}">
+        <div class="modal-header">
+          <div class="table-container">
+            <script>
+								function fill_box_value(button){
+									var modal_container = document.getElementById('modal-target'),
+                      // positions within button id ex: column[c]row[4]box[1]
+											boxColumnPosition = 7,
+											boxRowPosition = 13,
+                      boxStartPosition = 19,
+											// replace_row being the row of the aliquot display grid
+                      replace_row = modal_container.dataset.target,
+									    idString = button.closest('td').id;
+								  		targetBoxColumn = "#aliquot-" + replace_row + "-box_column"
+											// target row being the box row
+								  		targetBoxRow = "#aliquot-" + replace_row + "-box_row"
+								  		targetBox = "#aliquot-" + replace_row + "-box"
+											column = idString.charAt(boxColumnPosition);
+											row = idString.charAt(boxRowPosition);
+                      boxEndPosition = (idString.length-1);
+                      box = (idString.substring(boxStartPosition, boxEndPosition));
+
+                  // replace the values of the target items
+									$(targetBoxRow).val(row);
+									$(targetBoxColumn).val(column);
+									$(targetBox).val(box);
+									$('#modal-target').modal('hide');
+								};
+
+								function fill_grid(data){
+									jQuery.each(data, function() {
+										var target_element = 'column[' + this.box_col + ']' +
+                                         'row[' + this.box_row +
+                                         ']box[' + this.box + ']',
+										    replace_value = this.abbr;
+										document.getElementById(target_element)
+                            .innerHTML = replace_value;
+									});
+								};
+
+
+								// calls  box_ajax in checkedin.py for return data
+                $(document).ready( function () {
+                  function ajax_data_fill(){
+                    jQuery.ajax({
+                      url       : 'boxes_ajax',
+                      type      : 'POST',
+                      dataType  : 'json',
+                      success   : function(data) {
+                				$("div.table-container").append(build_grid(data.aliquot));
+                        fill_grid(data.aliquot);
+                      }
+                    });
+                  };
+                  ajax_data_fill();
+                });
+            </script>
+
+          </div>
+        </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
