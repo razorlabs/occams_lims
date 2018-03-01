@@ -30,6 +30,28 @@ def checked_in(context, request):
         conditionally_required = wtforms.validators.optional()
 
     class CheckoutForm(wtforms.Form):
+        def box_position_open(form, field):
+            """
+                Validates the box grid positions already selected
+                is not occupied
+            """
+            message = "Box grid position {row} {col} already occupied by \
+                       Aliquot id {id}"
+            box_query = (
+                    db_session.query(models.Aliquot)
+                    .filter(models.Aliquot.box == form.box.data)
+                    .filter(models.Aliquot.box_row == str(form.box_row.data))
+                    .filter(models.Aliquot.box_column == form.box_column.data)
+                    .first()
+                    )
+
+            if box_query is not None:
+                if (form.id.data != box_query.id):
+                    raise wtforms.ValidationError(message.format(
+                        row=form.box_row.data,
+                        col=form.box_column.data,
+                        id=box_query.id))
+
         ui_selected = wtforms.BooleanField()
         id = wtforms.IntegerField(
             widget=wtforms.widgets.HiddenInput())
@@ -42,12 +64,14 @@ def checked_in(context, request):
             validators=[wtforms.validators.optional()])
         box_row = wtforms.IntegerField(
             validators=[wtforms.validators.optional(),
-                        wtforms.validators.NumberRange(min=1, max=9, message="Please enter number between 1-9")])
+                        wtforms.validators.NumberRange(min=1, max=9,
+                            message="Please enter number between 1-9")])
         box_column = wtforms.StringField(
             validators=[wtforms.validators.optional(),
-                        wtforms.validators.Regexp('[abcdefghi]', message= "Please enter lower case letter between a-i")])
+                        wtforms.validators.Regexp('[abcdefghi]',
+                        message= "Please enter lower case letter between a-i")])
         box = wtforms.StringField(
-            validators=[wtforms.validators.optional()])
+            validators=[wtforms.validators.optional(), box_position_open])
         thawed_num = wtforms.IntegerField(
             validators=[wtforms.validators.optional()])
         location_id = wtforms.SelectField(
@@ -56,6 +80,7 @@ def checked_in(context, request):
             validators=[wtforms.validators.optional()])
         notes = wtforms.TextAreaField(
             validators=[wtforms.validators.optional()])
+
 
     class CrudForm(wtforms.Form):
         aliquot = wtforms.FieldList(wtforms.FormField(CheckoutForm))
