@@ -28,6 +28,7 @@
               <col class="amount"></col>
               <col class="collect_date"></col>
               <col class="freezer"></col>
+              <col class="box"></col>
               <col class="notes"></col>
             </colgroup>
             <tr>
@@ -132,6 +133,7 @@
           <col class="amount"></col>
           <col class="collect_date"></col>
           <col class="freezer"></col>
+          <col class="box"></col>
           <col class="notes"></col>
         </colgroup>
         <thead>
@@ -143,7 +145,8 @@
             <th i18n:translate="">Aliquot</th>
             <th class="required" i18n:translate="">Amount</th>
             <th class="required" i18n:translate="">Collect Date & Time</th>
-            <th i18n:translate="">Freezer/Rack/Box</th>
+            <th i18n:translate="">Freezer/Rack</th>
+            <th i18n:translate="">Row/Column/Box</th>
             <th i18n:translate="">Notes</th>
           </tr>
         </thead>
@@ -182,12 +185,36 @@
               </td>
               <td>
                   <div class="form-inline text-nowrap">
-                      ${subform.freezer(class_='form-control freezer')}
-                      ${subform.rack(class_='form-control rack')}
-                      ${subform.box(class_='form-control box')}
+                      ${subform.freezer(class_='form-control freezer', size=2)}
+                      ${subform.rack(class_='form-control rack', size=2)}
+                    <div class="text-danger" tal:repeat="error subform.freezer.errors">${error}</div>
+                    <div class="text-danger" tal:repeat="error subform.rack.errors">${error}</div>
                   </div>
-                <div class="text-danger" tal:repeat="error subform.freezer.errors">${error}</div>
-                <div class="text-danger" tal:repeat="error subform.rack.errors">${error}</div>
+              </td>
+              <td>
+                  <div class="form-inline text-nowrap">
+                    <span tal:define="row subform.box_row;
+                                      column subform.box_column;
+                                      box subform.box">
+                    ${row(class_='form-control box_row', size=2)}
+                    <div class="text-danger" tal:repeat="error row.errors">${error}</div>
+                    ${column(class_='form-control box_column', size=2)}
+                    <div class="text-danger" tal:repeat="error column.errors">${error}</div>
+                    ${box(class_='form-control box', size=6)}
+                      <button
+                          type="button"
+                          class="btn btn-default"
+                          id="${repeat.sample.index}"
+                          name="box_view"
+                          data-modal-remote="${request.current_route_path(_route_name='lims.boxes_json')}"
+                          data-modal-target="#modal-target"
+                          tal:condition="request.has_permission('view')">
+                          View
+                      </button>
+                      <div id="modal-target" class="modal fade"></div>
+                      <div class="text-danger" tal:repeat="error box.errors">${error}</div>
+                  </span>
+                  </div>
                 <div class="text-danger" tal:repeat="error subform.box.errors">${error}</div>
               </td>
               <td tal:define="field subform.notes">
