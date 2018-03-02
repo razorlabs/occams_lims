@@ -1,3 +1,40 @@
+function fill_box_value(button){
+  var modal_container = document.getElementById('modal-target'),
+      // positions within button id example column[c]row[4]box[1]
+      boxColumnPosition = 7,
+      boxRowPosition = 13,
+      boxStartPosition = 19,
+      // replace_row being the row of the aliquot display grid
+      replace_row = modal_container.dataset.target,
+      idString = button.closest('td').id;
+      targetBoxColumn = "#aliquot-" + replace_row + "-box_column"
+      // target row being the box row
+      targetBoxRow = "#aliquot-" + replace_row + "-box_row"
+      targetBox = "#aliquot-" + replace_row + "-box"
+      column = idString.charAt(boxColumnPosition);
+      row = idString.charAt(boxRowPosition);
+      boxEndPosition = (idString.length-1);
+      box = (idString.substring(boxStartPosition, boxEndPosition));
+
+  // replace the values of the target items
+  $(targetBoxRow).val(row);
+  $(targetBoxColumn).val(column);
+  $(targetBox).val(box);
+  $('#modal-target').modal('hide');
+};
+
+function fill_grid(data){
+  jQuery.each(data, function() {
+    var target_element = 'column[' + this.box_col + ']' +
+                         'row[' + this.box_row +
+                         ']box[' + this.box + ']',
+        replace_value = this.abbr;
+    document.getElementById(target_element)
+            .innerHTML = replace_value;
+  });
+};
+
+
 function build_grid(data) {
   // This function returns a table with labelled row/col grids for box fill
 
@@ -6,7 +43,7 @@ function build_grid(data) {
     var names = {};
 
     jQuery.each(data, function() {
-      box_name = this.box;
+      var box_name = this.box;
       if(!(box_name in names)) {
         names[box_name] = 1
       };
@@ -23,7 +60,7 @@ function build_grid(data) {
   };
 
   function buildTable(idTag){
-    var $topDiv = $('<div>').addClass('tab-pane').attr('id', idTag)
+    var $topDiv = $('<div>').addClass('tab-pane').attr('id', idTag),
         $table = $( '<table>' ).addClass('table table-striped table-grid table-dimensional'),
         column_label = '<th></th>';
 
@@ -51,8 +88,8 @@ function build_grid(data) {
     return $topDiv
   };
 
-  box_names = unique_boxes(data);
-  var $navtabs = $('<ul>').addClass('nav nav-pills'),
+  var box_names = unique_boxes(data),
+      $navtabs = $('<ul>').addClass('nav nav-pills'),
       $tables = $('<div>').addClass('tab-content'),
       add_active = true;
 
