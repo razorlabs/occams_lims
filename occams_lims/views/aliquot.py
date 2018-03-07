@@ -61,8 +61,10 @@ def aliquot(context, request):
         context, request, page_key='specimenpage', state='pending-aliquot')
 
     specimen = specimen_vals['specimen']
+    # set collect date/time to specimen collect date/time by default
     template_values = [
-        {'specimen': s, 'collect_date': date.today()}
+        {'specimen': s, 'collect_date': s.collect_date,
+            'collect_time': s.collect_time}
         for s in specimen
     ]
 
