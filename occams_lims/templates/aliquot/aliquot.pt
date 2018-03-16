@@ -40,7 +40,8 @@
               <th i18n:translate="" class="required">Aliquot Type</th>
               <th i18n:translate="" class="required">Amount</th>
               <th i18n:translate="" class="required">Collect Date & Time</th>
-              <th i18n:translate="">Freezer/Rack/Box</th>
+              <th i18n:translate="">Freezer/Rack</th>
+              <th i18n:translate="">Box</th>
               <th i18n:translate="">Notes</th>
             </tr>
           </thead>
@@ -79,10 +80,14 @@
                     <div class="form-inline text-nowrap">
                       ${subform.freezer(class_='form-control freezer')}
                       ${subform.rack(class_='form-control rack')}
-                      ${subform.box(class_='form-control box')}
                     </div>
                   <div class="text-danger" tal:repeat="error subform.freezer.errors">${error}</div>
                   <div class="text-danger" tal:repeat="error subform.rack.errors">${error}</div>
+                </td>
+                <td>
+                    <div class="form-inline text-nowrap">
+                      ${subform.box(class_='form-control box')}
+                    </div>
                   <div class="text-danger" tal:repeat="error subform.box.errors">${error}</div>
                 </td>
                 <td tal:define="field subform.notes">
