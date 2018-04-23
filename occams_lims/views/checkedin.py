@@ -153,6 +153,7 @@ def box_ajax(context, request):
         .filter(models.Aliquot.box != sa.null())
         .filter(models.Aliquot.box_row != sa.null())
         .filter(models.Aliquot.box_column != sa.null())
+        .filter(models.Aliquot.location == context)
         )
 
     def aliquot_abbrev(aliquot_id):
